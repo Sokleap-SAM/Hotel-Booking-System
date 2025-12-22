@@ -1,23 +1,31 @@
 <script lang="ts">
-  import LoginScreen from '@/components/auth/LoginScreen.vue';
-
-  const background = new URL('@/assets/Background.png ', import.meta.url).href;
+  import { computed } from 'vue';
+  import { useRoute } from 'vue-router';
   export default {
-    name: 'App',
-    data() {
+    name: 'AuthLogin',
+    setup() {
+      const route = useRoute();
+
+      const backgroundStyle = computed(() => {
+        if (route.path === '/login') {
+          return {
+            backgroundImage: "url('src/assets/Background.png')"
+          }
+        }
+        return {
+          backgroundImage: "url('src/assets/Background2.png')"
+        }
+      })
       return {
-        background,
+        backgroundStyle,
       }
-    },
-    components: {
-      LoginScreen,
     }
   }
 </script>
 
 <template>
-  <div class="login-screen">
-    <LoginScreen />
+  <div class="login-screen" :style="backgroundStyle"  >
+    <router-view />
   </div>
 </template>
 
@@ -28,7 +36,6 @@ html, body {
   height: 100%;
 }
 .login-screen {
-  background-image: url('@/assets/Background.png');
   background-size: cover;
   background-position: center;
   display: flex;

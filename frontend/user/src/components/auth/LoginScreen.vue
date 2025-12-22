@@ -26,7 +26,7 @@
         ></i>
       </div>
     </div>
-    <div class="forgot-password">
+    <div class="forgot-password" @click="goToForgotPw">
       <a href="#">Forgot Password</a>
     </div>
     <button class="btn-Login">Login</button>
@@ -34,16 +34,16 @@
     <div class="container-google">
       <img :src="Google" alt="" />
     </div>
-    <div class = create-account>
+    <div class = "create-account">
       <span style="text-align: center; margin-top: 20px">Don't have an account yet?</span>
-      <span>Hellow orld</span>
+      <span class = "register" @click="goToSignup"> Register for free</span>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { ref } from 'vue'
-
+import { useRouter } from 'vue-router'
 const Google = new URL('@/assets/google.png', import.meta.url).href
 
 export default {
@@ -53,11 +53,22 @@ export default {
     const username = ref('')
     const passwordFieldType = ref('password')
 
+    const router = useRouter()
+    const goToSignup = () => {
+      router.push('/signup')
+    }
+
+    const goToForgotPw = () => {
+      router.push('/ForgotPassword')
+    }
+
     const togglePassword = () => {
       passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password'
     }
 
     return {
+      goToSignup,
+      goToForgotPw,
       username,
       password,
       passwordFieldType,
@@ -68,7 +79,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .container {
   width: 449px;
   height: auto;
@@ -96,6 +107,15 @@ export default {
   margin-top: 20px;
   font-size: 16px;
   margin-bottom: 10px;
+  color: #ffffff93;
+}
+.register {
+  color: #ffffff;
+  cursor: pointer;
+}
+.register:hover {
+  text-decoration: underline;
+  color: #2d5ebf;
 }
 .input-group {
   display: flex;
@@ -116,6 +136,9 @@ export default {
   cursor: pointer;
   margin-left: 37px;
   margin-top: 20px;
+}
+.btn-Login:hover {
+  background-color: #1c259f;
 }
 .input-group label {
   padding: 10px;
@@ -141,6 +164,10 @@ h2 {
   text-align: right;
   margin-top: 5px;
   margin-right: 50px;
+}
+.forgot-password:hover a{
+  text-decoration: underline;
+  color: #2d5ebf;
 }
 
 .forgot-password a {

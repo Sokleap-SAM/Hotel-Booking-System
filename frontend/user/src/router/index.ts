@@ -3,6 +3,7 @@ import AuthLogin from '@/view/AuthLogin.vue'
 import LoginScreen from '@/components/auth/LoginScreen.vue'
 import SignUpScreen from '@/components/auth/SignUpScreen.vue'
 import ForgotPasswordScreen from '@/components/auth/ForgotPasswordScreen.vue'
+import ResetPWScreen from '@/components/auth/ResetPWScreen.vue'
 
 const routes = [
   {
@@ -24,6 +25,10 @@ const routes = [
       {
         path: 'ForgotPassword',
         component: ForgotPasswordScreen,
+      },
+      {
+        path: 'ResetPWScreen',
+        component:ResetPWScreen,
       }
     ]
   }

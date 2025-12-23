@@ -32,7 +32,7 @@
     <button class="btn-Login">Login</button>
     <div style="text-align: center; margin-top: 20px">Or continue with</div>
     <div class="container-google">
-      <img :src="Google" alt="" />
+      <GoogleLogin :click="callback"/>
     </div>
     <div class = "create-account">
       <span style="text-align: center; margin-top: 20px">Don't have an account yet?</span>
@@ -44,7 +44,7 @@
 <script lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-const Google = new URL('@/assets/google.png', import.meta.url).href
+import { jwtDecode } from 'jwt-decode';
 
 export default {
   name: 'LoginScreen',
@@ -52,6 +52,23 @@ export default {
     const password = ref('')
     const username = ref('')
     const passwordFieldType = ref('password')
+
+    const userprofile = ref(null);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const callback = (response: any) => {
+      console.log("Encoded JWT ID token: " + response.credential);
+
+      if(response?.credential) {
+        const decoded = jwtDecode(response.credential);
+        console.log("Decoded JWT ID token: ", decoded);
+        userprofile.value = {
+          name:decoded.name,
+          email:decoded.email,
+          picture:decoded.picture,
+        }
+      }
+    }
 
     const router = useRouter()
     const goToSignup = () => {
@@ -73,7 +90,9 @@ export default {
       password,
       passwordFieldType,
       togglePassword,
-      Google,
+      userprofile,
+      callback,
+      // Google,
     }
   },
 }

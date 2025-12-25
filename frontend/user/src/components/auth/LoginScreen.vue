@@ -32,11 +32,11 @@
     <button class="btn-Login">Login</button>
     <div style="text-align: center; margin-top: 20px">Or continue with</div>
     <div class="container-google">
-      <GoogleLogin :click="callback"/>
+      <GoogleLogin :click="callback" />
     </div>
-    <div class = "create-account">
+    <div class="create-account">
       <span style="text-align: center; margin-top: 20px">Don't have an account yet?</span>
-      <span class = "register" @click="goToSignup"> Register for free</span>
+      <span class="register" @click="goToSignup"> Register for free</span>
     </div>
   </div>
 </template>
@@ -44,7 +44,7 @@
 <script lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode'
 
 export default {
   name: 'LoginScreen',
@@ -53,19 +53,26 @@ export default {
     const username = ref('')
     const passwordFieldType = ref('password')
 
-    const userprofile = ref(null);
+    const userprofile = ref({
+      name: '',
+      email: '',
+      picture: '',
+    })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callback = (response: any) => {
-      console.log("Encoded JWT ID token: " + response.credential);
+      console.log('Encoded JWT ID token: ' + response.credential)
 
-      if(response?.credential) {
-        const decoded = jwtDecode(response.credential);
-        console.log("Decoded JWT ID token: ", decoded);
+      if (response?.credential) {
+        const decoded = jwtDecode(response.credential)
+        console.log('Decoded JWT ID token: ', decoded)
         userprofile.value = {
-          name:decoded.name,
-          email:decoded.email,
-          picture:decoded.picture,
+          // @ts-expect-error: myProperty is dynamically added at runtime
+          name: decoded['name'],
+          // @ts-expect-error: myProperty is dynamically added at runtime
+          email: decoded['email'],
+          // @ts-expect-error: myProperty is dynamically added at runtime
+          picture: decoded['picture'],
         }
       }
     }
@@ -184,7 +191,7 @@ h2 {
   margin-top: 5px;
   margin-right: 50px;
 }
-.forgot-password:hover a{
+.forgot-password:hover a {
   text-decoration: underline;
   color: #2d5ebf;
 }

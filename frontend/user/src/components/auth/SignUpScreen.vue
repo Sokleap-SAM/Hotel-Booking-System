@@ -7,7 +7,27 @@
 
   <div class="container">
     <h2>Sign up</h2>
+    <div class="upload-wrapper">
+      <div
+        class="drop-zone"
+        :class="{ 'is-dragover': isDragging }"
+        @dragover.prevent="isDragging = true"
+        @dragleave.prevent="isDragging = false"
+        @drop.prevent="handleDrop"
+        @click="fileInput?.click()"
+      >
+        <img v-if="imageUrl" :src="imageUrl" class="preview-image" />
+        <div v-else class="placeholder">
+          <i class="ri-image-add-line"></i>
+          <span>Drop Image</span>
+        </div>
 
+        <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" hidden />
+      </div>
+    </div>
+    <div>
+      Upload Profile Picture
+    </div>
     <div class="name-row">
       <div class="name-column">
         <label>First Name</label>
@@ -69,7 +89,7 @@
 
 <script lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'SignUpScreen',
@@ -78,21 +98,51 @@ export default {
     const confirmPassword = ref('')
     const passwordFieldType = ref('password')
     const confirmPasswordFieldType = ref('password')
+    const imageUrl = ref<string | null>(null)
+    const isDragging = ref(false)
+    const fileInput = ref<HTMLInputElement | null>(null)
+
+    // Change the type to 'File | undefined'
+    const processFile = (file: File | undefined) => {
+      if (file && file.type.startsWith('image/')) {
+        imageUrl.value = URL.createObjectURL(file)
+      }
+    }
+    const handleDrop = (e: DragEvent) => {
+      isDragging.value = false
+      const files = e.dataTransfer?.files
+      if (files && files.length > 0) {
+        processFile(files[0])
+      }
+    }
+
+    const handleFileSelect = (e: Event) => {
+      const target = e.target as HTMLInputElement
+      if (target.files && target.files.length > 0) {
+        processFile(target.files[0])
+      }
+    }
 
     const togglePassword = (type: string) => {
       if (type === 'main') {
         passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password'
       } else {
-        confirmPasswordFieldType.value = confirmPasswordFieldType.value === 'password' ? 'text' : 'password'
+        confirmPasswordFieldType.value =
+          confirmPasswordFieldType.value === 'password' ? 'text' : 'password'
       }
     }
 
-    const router = useRouter();
+    const router = useRouter()
     const goToLogin = () => {
       router.push('/login')
     }
 
     return {
+      imageUrl,
+      isDragging,
+      fileInput,
+      handleDrop,
+      handleFileSelect,
       goToLogin,
       password,
       confirmPassword,
@@ -219,5 +269,82 @@ input::placeholder {
 
 .back-link:hover {
   text-decoration: underline;
+}
+
+.upload-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.drop-zone {
+  /* Dimensions and Shape */
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+
+  /* Black Border and Subtle Background */
+  border: 2px dashed #000000;
+  background-color: rgba(0, 0, 0, 0.05);
+
+  /* Alignment */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  /* UI/UX */
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Hover/Drag state */
+.drop-zone:hover,
+.drop-zone.is-dragover {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-color: #000000;
+  border-style: solid; /* Changes dash to solid line on hover */
+  transform: scale(1.02);
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image fills the circle without stretching */
+  display: block;
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #000000; /* Black text */
+  font-size: 14px;
+  text-align: center;
+}
+
+.placeholder i {
+  font-size: 32px;
+  color: #000000; /* Black icon */
+  margin-bottom: 8px;
+}
+
+/* Optional: Add a subtle overlay when hovering over an existing image */
+.drop-zone:has(.preview-image):hover::after {
+  content: 'Change Image';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
 }
 </style>

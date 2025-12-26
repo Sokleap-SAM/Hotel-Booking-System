@@ -50,8 +50,10 @@ export default {
 <style scoped>
 /* Main card container */
 .container {
-  width: 450px;
-  height: 620px;
+  width: 90%;
+  max-width: 450px;
+  height: auto;
+  min-height: 620px;
   font-family: 'Lato', sans-serif;
   padding: 40px 20px;
   position: absolute;
@@ -169,5 +171,29 @@ input::placeholder {
 
 .back-link:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px 15px;
+    min-height: 0;
+  }
+
+  .circle {
+    width: 100px;
+    height: 100px;
+  }
+
+  .circle i {
+    font-size: 40px;
+  }
+
+  h2 {
+    font-size: 28px;
+  }
+
+  .btn-Login {
+    font-size: 18px;
+  }
 }
 </style>

@@ -107,17 +107,24 @@ export default {
 
 <style scoped>
 .container {
-  width: 449px;
+  width: 90%;
+  max-width: 450px;
   height: auto;
   position: absolute;
-  top: 200px;
-  left: 535px;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   color: white;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   border-radius: 15px;
   background-color: rgba(255, 255, 255, 0.29);
+  padding: 20px;
+  box-sizing: border-box;
 }
+
 .container-google {
   display: flex;
   justify-content: center;
@@ -128,6 +135,7 @@ export default {
   background-color: rgba(255, 255, 255, 0.29);
   border-radius: 10px;
 }
+
 .create-account {
   text-align: center;
   margin-top: 20px;
@@ -135,24 +143,30 @@ export default {
   margin-bottom: 10px;
   color: #ffffff93;
 }
+
 .register {
   color: #ffffff;
   cursor: pointer;
 }
+
 .register:hover {
   text-decoration: underline;
   color: #2d5ebf;
 }
+
 .input-group {
   display: flex;
   flex-direction: column;
   font-size: 20px;
   font-family: 'Lato', sans-serif;
-  margin: 20px;
-  padding: 10px;
+  margin: 10px 0;
+  width: 100%;
+  max-width: 374px;
 }
+
 .btn-Login {
-  width: 374px;
+  width: 100%;
+  max-width: 374px;
   height: 53px;
   border-radius: 25px;
   background-color: #2331fb;
@@ -160,37 +174,47 @@ export default {
   font-size: 20px;
   border: none;
   cursor: pointer;
-  margin-left: 37px;
   margin-top: 20px;
 }
+
 .btn-Login:hover {
   background-color: #1c259f;
 }
+
 .input-group label {
-  padding: 10px;
+  padding: 10px 0;
 }
+
 .input-group input {
-  width: 374px;
+  width: 100%;
   height: 53px;
   border-radius: 25px;
   background-color: rgba(255, 255, 255, 0.4);
   border: none;
   color: white;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
+
 .input-group:first-of-type {
-  margin-top: -40px;
+  margin-top: 0;
 }
+
 h2 {
   margin-top: 10px;
+  margin-bottom: 20px;
   font-size: 48px;
   text-align: center;
   font-family: 'Lato', sans-serif;
 }
+
 .forgot-password {
   text-align: right;
   margin-top: 5px;
-  margin-right: 50px;
+  width: 100%;
+  max-width: 374px;
 }
+
 .forgot-password:hover a {
   text-decoration: underline;
   color: #2d5ebf;
@@ -201,12 +225,14 @@ h2 {
   text-decoration: none;
   font-size: 0.85rem;
 }
+
 .password-wrapper {
   position: relative;
-  width: 374px;
+  width: 100%;
   display: flex;
   align-items: center;
 }
+
 .toggle-icon {
   position: absolute;
   right: 15px;
@@ -216,5 +242,24 @@ h2 {
   color: #333;
   font-size: 22px;
   z-index: 2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .container {
+    padding: 20px 15px;
+  }
+
+  h2 {
+    font-size: 36px;
+  }
+
+  .input-group {
+    font-size: 18px;
+  }
+
+  .btn-Login {
+    font-size: 18px;
+  }
 }
 </style>

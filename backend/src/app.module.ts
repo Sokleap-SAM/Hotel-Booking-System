@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HotelsModule } from './hotels/hotels.module';
 import { RoomsModule } from './rooms/rooms.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -19,13 +20,18 @@ import { RoomsModule } from './rooms/rooms.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        url: config.get('DATABASE_URL'),
+        host: config.get<string>('database.host'),
+        port: config.get<number>('database.port'),
+        username: config.get<string>('database.username'),
+        password: config.get<string>('database.password'),
+        database: config.get<string>('database.database'),
         autoLoadEntities: true,
         synchronize: true, // Auto-creates tables (only for development!)
       }),
     }),
     HotelsModule,
     RoomsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

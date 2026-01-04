@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import AuthLogin from './view/AuthLogin.vue'
 </script>
 
 <template>
-  <AuthLogin />
+  <router-view />
 </template>
 
 <style>

@@ -29,7 +29,7 @@
     <div class="forgot-password" @click="goToForgotPw">
       <a href="#">Forgot Password</a>
     </div>
-    <button class="btn-Login">Login</button>
+    <button class="btn-Login" @click="goToHome">Login</button>
     <div style="text-align: center; margin-top: 20px">Or continue with</div>
     <div class="container-google">
       <GoogleLogin :click="callback" />
@@ -69,7 +69,7 @@ export default {
         userprofile.value = {
           // @ts-expect-error: myProperty is dynamically added at runtime
           name: decoded['name'],
-          // @ts-expect-error: myProperty is dynamically added at runtime
+          // @ts-expect-error: myProperty is sdynamically added at runtime
           email: decoded['email'],
           // @ts-expect-error: myProperty is dynamically added at runtime
           picture: decoded['picture'],
@@ -90,7 +90,12 @@ export default {
       passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password'
     }
 
+    const goToHome = () => {
+      router.push('/home')
+    }
+
     return {
+      goToHome,
       goToSignup,
       goToForgotPw,
       username,

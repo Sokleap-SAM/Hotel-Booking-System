@@ -4,16 +4,17 @@ import LoginScreen from '@/components/auth/LoginScreen.vue'
 import SignUpScreen from '@/components/auth/SignUpScreen.vue'
 import ForgotPasswordScreen from '@/components/auth/ForgotPasswordScreen.vue'
 import ResetPWScreen from '@/components/auth/ResetPWScreen.vue'
+import HomeScreen from '@/view/HomeScreen.vue'
 
 const routes = [
   {
     path: '/',
-    redirect: '/login'
-  },
-  {
-    path: '/',
     component: AuthLogin,
     children: [
+      {
+        path: '',
+        redirect: '/login',
+      },
       {
         path: 'login',
         component: LoginScreen,
@@ -28,15 +29,19 @@ const routes = [
       },
       {
         path: 'ResetPWScreen',
-        component:ResetPWScreen,
-      }
-    ]
-  }
+        component: ResetPWScreen,
+      },
+    ],
+  },
+  {
+    path: '/home',
+    component: HomeScreen,
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 export default router

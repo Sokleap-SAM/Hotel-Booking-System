@@ -33,13 +33,13 @@ export class RoomsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.roomsService.findOne(id);
   }
 
   @Put(':id')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateRoomDto: UpdateRoomDto,
   ) {
     return this.roomsService.update(id, updateRoomDto);
@@ -47,14 +47,14 @@ export class RoomsController {
 
   @Patch(':id')
   partialUpdate(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateRoomDto: UpdateRoomDto,
   ) {
     return this.roomsService.update(id, updateRoomDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.roomsService.remove(id);
   }
 }

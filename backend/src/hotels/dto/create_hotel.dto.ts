@@ -1,49 +1,72 @@
+import { Transform } from 'class-transformer';
 import {
   IsString,
   IsEmail,
-  IsArray,
   IsUrl,
   MinLength,
   MaxLength,
-  ArrayMinSize,
   Matches,
+  IsOptional,
+  IsNotEmpty,
+  IsArray,
 } from 'class-validator';
 
 export class CreateHotelDto {
+  @IsNotEmpty()
   @IsString()
   @MinLength(3)
   @MaxLength(30)
   name: string;
 
+  @IsNotEmpty()
   @IsString()
   @MinLength(20)
   @MaxLength(100)
   shortDescription: string;
 
+  @IsNotEmpty()
   @IsString()
-  @MinLength(50)
+  @MinLength(40)
   longDescription: string;
 
+  @IsNotEmpty()
   @IsString()
   location: string;
 
-  @IsUrl()
+  @IsNotEmpty()
+  @IsUrl({}, { message: 'A valid Google Map URL is required' })
+  @IsNotEmpty()
   googleMapUrl: string;
 
-  @IsArray()
-  @ArrayMinSize(1)
-  images: string[];
+  @IsOptional()
+  images: any;
 
-  @IsArray()
-  @ArrayMinSize(1)
-  amenities: string[];
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value) as number[];
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  })
+  @IsArray({ message: 'amenityIds must be an array' })
+  amenityIds?: number[];
 
+  @IsString()
+  @IsOptional()
+  custom_amenities?: string;
+
+  @IsNotEmpty()
   @IsString()
   @Matches(/^\+?[\d\s\-\\(\\)]+$/, {
     message: 'Phone number must be valid',
   })
   phoneNumber: string;
 
+  @IsNotEmpty()
   @IsEmail()
   email: string;
 }

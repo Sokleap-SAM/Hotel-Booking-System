@@ -1,11 +1,32 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import NavigationBar from './components/SideNavigationBar.vue';
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <div class="main-layout">
+    <NavigationBar />
+
+    <main class="content-area">
+      <RouterView />
+    </main>
+  </div>
 </template>
 
-<style scoped></style>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.main-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+.content-area {
+  flex-grow: 1;
+  background-color: #ffffff;
+  overflow-y: auto;
+}
+</style>

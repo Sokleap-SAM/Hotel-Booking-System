@@ -1,3 +1,4 @@
+import { Amenity } from 'src/amenities/entities/amenity.entity';
 import { Hotel } from 'src/hotels/entities/hotel.entity';
 import {
   Entity,
@@ -5,12 +6,23 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
+
+export enum RoomCategory {
+  SINGLE = 'Single',
+  DOUBLE = 'Double',
+  TWIN = 'Twin',
+  DELUXE = 'Deluxe',
+  SUITE = 'Suite',
+  PENTHOUSE = 'Penthouse',
+}
 
 @Entity()
 export class Room {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   name: string;
@@ -21,8 +33,12 @@ export class Room {
   @Column('text')
   longDescription: string;
 
-  @Column()
-  type: string;
+  @Column({
+    type: 'enum',
+    enum: RoomCategory,
+    default: RoomCategory.SINGLE,
+  })
+  type: RoomCategory;
 
   @Column()
   available: number;
@@ -39,13 +55,16 @@ export class Room {
   @Column('simple-array')
   images: string[];
 
-  @Column('simple-array')
-  amenities: string[];
+  @ManyToMany(() => Amenity)
+  @JoinTable()
+  amenities: Amenity[];
 
-  @Column({ nullable: true })
-  otherAmenities: string;
+  @Column({ type: 'text', nullable: true })
+  custom_amenities: string;
 
-  @ManyToOne(() => Hotel, (hotel) => hotel.rooms)
+  @ManyToOne(() => Hotel, (hotel) => hotel.rooms, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'hotelId' })
   hotel: Hotel;
 

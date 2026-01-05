@@ -7,8 +7,8 @@
   <div class="container">
     <h2>Login</h2>
     <div class="input-group">
-      <label for="username">Username</label>
-      <input id="username" v-model="username" type="text" placeholder="Enter your username" />
+      <label for="email">Email</label>
+      <input id="email" v-model="email" type="text" placeholder="Enter your email" />
     </div>
     <div class="input-group">
       <label for="password">Password</label>
@@ -26,10 +26,11 @@
         ></i>
       </div>
     </div>
+    <div v-if="error" class="error-message">{{ error }}</div>
     <div class="forgot-password" @click="goToForgotPw">
       <a href="#">Forgot Password</a>
     </div>
-    <button class="btn-Login" @click="goToHome">Login</button>
+    <button class="btn-Login" @click="handleLogin">Login</button>
     <div style="text-align: center; margin-top: 20px">Or continue with</div>
     <div class="container-google">
       <GoogleLogin :click="callback" />
@@ -44,40 +45,25 @@
 <script lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { jwtDecode } from 'jwt-decode'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'LoginScreen',
   setup() {
     const password = ref('')
-    const username = ref('')
+    const email = ref('')
     const passwordFieldType = ref('password')
+    const error = ref<string | null>(null)
 
-    const userprofile = ref({
-      name: '',
-      email: '',
-      picture: '',
-    })
+    const authStore = useAuthStore()
+    const router = useRouter()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const callback = (response: any) => {
       console.log('Encoded JWT ID token: ' + response.credential)
-
-      if (response?.credential) {
-        const decoded = jwtDecode(response.credential)
-        console.log('Decoded JWT ID token: ', decoded)
-        userprofile.value = {
-          // @ts-expect-error: myProperty is dynamically added at runtime
-          name: decoded['name'],
-          // @ts-expect-error: myProperty is sdynamically added at runtime
-          email: decoded['email'],
-          // @ts-expect-error: myProperty is dynamically added at runtime
-          picture: decoded['picture'],
-        }
-      }
+      // Google Login logic to be implemented
     }
 
-    const router = useRouter()
     const goToSignup = () => {
       router.push('/signup')
     }
@@ -90,21 +76,26 @@ export default {
       passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password'
     }
 
-    const goToHome = () => {
-      router.push('/home')
+    const handleLogin = async () => {
+      error.value = null
+      try {
+        await authStore.login({ email: email.value, password: password.value })
+        router.push('/home')
+      } catch (err) {
+        error.value = err.message || 'An unexpected error occurred.'
+      }
     }
 
     return {
-      goToHome,
       goToSignup,
       goToForgotPw,
-      username,
+      email,
       password,
       passwordFieldType,
       togglePassword,
-      userprofile,
       callback,
-      // Google,
+      handleLogin,
+      error,
     }
   },
 }
@@ -128,6 +119,11 @@ export default {
   background-color: rgba(255, 255, 255, 0.29);
   padding: 20px;
   box-sizing: border-box;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 15px;
 }
 
 .container-google {

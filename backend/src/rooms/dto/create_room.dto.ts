@@ -1,7 +1,6 @@
 import {
   IsString,
   IsNumber,
-  IsArray,
   IsOptional,
   IsPositive,
   Min,
@@ -9,25 +8,30 @@ import {
   IsInt,
   MinLength,
   MaxLength,
+  IsEnum,
 } from 'class-validator';
+import { RoomCategory } from '../entities/room.entity';
 
 export class CreateRoomDto {
   @IsString()
   @MinLength(3)
-  @MaxLength(50)
+  @MaxLength(30)
   name: string;
 
   @IsString()
   @MinLength(20)
-  @MaxLength(150)
+  @MaxLength(100)
   shortDescription: string;
 
   @IsString()
-  @MinLength(50)
+  @MinLength(40)
   longDescription: string;
 
-  @IsString()
-  type: string;
+  @IsEnum(RoomCategory, {
+    message:
+      'Room type must be a valid category (Single, Double, Twin, Deluxe, Suite, Penthouse)',
+  })
+  type: RoomCategory;
 
   @IsInt()
   @Min(0)
@@ -48,15 +52,15 @@ export class CreateRoomDto {
   @Max(100)
   discountPercentage: number;
 
-  @IsArray()
-  images: string[];
+  @IsOptional()
+  images: any;
 
-  @IsArray()
-  amenities: string[];
+  @IsOptional()
+  amenityIds: any;
 
   @IsString()
   @IsOptional()
-  otherAmenities?: string;
+  custom_amenities: string;
 
   @IsString()
   hotelId: string;

@@ -32,6 +32,7 @@ export class AuthController {
 
   @Post('google/login')
   async googleLogin(@Body() googleLoginDto: GoogleLoginDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.authService.googleLogin(googleLoginDto.token);
   }
 

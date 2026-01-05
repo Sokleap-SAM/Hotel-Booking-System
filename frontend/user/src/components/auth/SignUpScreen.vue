@@ -7,41 +7,21 @@
 
   <div class="container">
     <h2>Sign up</h2>
-    <div class="upload-wrapper">
-      <div
-        class="drop-zone"
-        :class="{ 'is-dragover': isDragging }"
-        @dragover.prevent="isDragging = true"
-        @dragleave.prevent="isDragging = false"
-        @drop.prevent="handleDrop"
-        @click="fileInput?.click()"
-      >
-        <img v-if="imageUrl" :src="imageUrl" class="preview-image" />
-        <div v-else class="placeholder">
-          <i class="ri-image-add-line"></i>
-          <span>Drop Image</span>
-        </div>
-
-        <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" hidden />
-      </div>
-    </div>
-    <div>
-      Upload Profile Picture
-    </div>
+    <div v-if="error" class="error-message">{{ error }}</div>
     <div class="name-row">
       <div class="name-column">
         <label>First Name</label>
-        <input type="text" placeholder="Enter your firstname" />
+        <input v-model="firstName" type="text" placeholder="Enter your firstname" />
       </div>
       <div class="name-column">
         <label>Last Name</label>
-        <input type="text" placeholder="Enter your lastname" />
+        <input v-model="lastName" type="text" placeholder="Enter your lastname" />
       </div>
     </div>
 
     <div class="input-group">
       <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Enter your email" />
+      <input v-model="email" type="email" id="email" placeholder="Enter your email" />
     </div>
 
     <div class="input-group">
@@ -78,7 +58,7 @@
       </div>
     </div>
 
-    <button class="btn-signup">Sign up</button>
+    <button class="btn-signup" @click="handleSignUp">Sign up</button>
 
     <div class="back-link" @click="goToLogin">
       <i class="ri-arrow-left-line"></i>
@@ -90,38 +70,22 @@
 <script lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'SignUpScreen',
   setup() {
+    const firstName = ref('')
+    const lastName = ref('')
+    const email = ref('')
     const password = ref('')
     const confirmPassword = ref('')
     const passwordFieldType = ref('password')
     const confirmPasswordFieldType = ref('password')
-    const imageUrl = ref<string | null>(null)
-    const isDragging = ref(false)
-    const fileInput = ref<HTMLInputElement | null>(null)
+    const error = ref<string | null>(null)
 
-    // Change the type to 'File | undefined'
-    const processFile = (file: File | undefined) => {
-      if (file && file.type.startsWith('image/')) {
-        imageUrl.value = URL.createObjectURL(file)
-      }
-    }
-    const handleDrop = (e: DragEvent) => {
-      isDragging.value = false
-      const files = e.dataTransfer?.files
-      if (files && files.length > 0) {
-        processFile(files[0])
-      }
-    }
-
-    const handleFileSelect = (e: Event) => {
-      const target = e.target as HTMLInputElement
-      if (target.files && target.files.length > 0) {
-        processFile(target.files[0])
-      }
-    }
+    const authStore = useAuthStore()
+    const router = useRouter()
 
     const togglePassword = (type: string) => {
       if (type === 'main') {
@@ -132,29 +96,52 @@ export default {
       }
     }
 
-    const router = useRouter()
+    const handleSignUp = async () => {
+      error.value = null
+      if (password.value !== confirmPassword.value) {
+        error.value = 'Passwords do not match.'
+        return
+      }
+      try {
+        await authStore.register({
+          firstName: firstName.value,
+          lastName: lastName.value,
+          email: email.value,
+          password: password.value,
+        })
+        alert('Registration successful! Please log in.')
+        router.push('/login')
+      } catch (err) {
+        error.value = err.message || 'An unexpected error occurred.'
+      }
+    }
+
     const goToLogin = () => {
       router.push('/login')
     }
 
     return {
-      imageUrl,
-      isDragging,
-      fileInput,
-      handleDrop,
-      handleFileSelect,
       goToLogin,
       password,
       confirmPassword,
       passwordFieldType,
       confirmPasswordFieldType,
       togglePassword,
+      handleSignUp,
+      firstName,
+      lastName,
+      email,
+      error,
     }
   },
 }
 </script>
 
 <style scoped>
+.error-message {
+  color: red;
+  margin-bottom: 15px;
+}
 /* Main Container - Optimized for small heights */
 .container {
   width: 90%;
@@ -209,7 +196,8 @@ h2 {
   position: relative;
 }
 
-.drop-zone:hover, .drop-zone.is-dragover {
+.drop-zone:hover,
+.drop-zone.is-dragover {
   background-color: rgba(0, 0, 0, 0.1);
   border-style: solid;
   transform: scale(1.02);
@@ -231,7 +219,8 @@ h2 {
   margin-bottom: 8px; /* Reduced spacing */
 }
 
-.name-column, .input-group {
+.name-column,
+.input-group {
   display: flex;
   flex-direction: column;
   text-align: left;

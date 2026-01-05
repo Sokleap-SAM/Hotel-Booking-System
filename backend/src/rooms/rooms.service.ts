@@ -1,10 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Room } from './entities/room.entity';
+import { In, Repository } from 'typeorm';
+import { Room, RoomCategory } from './entities/room.entity';
 import { Hotel } from '../hotels/entities/hotel.entity';
 import { CreateRoomDto } from './dto/create_room.dto';
 import { UpdateRoomDto } from './dto/update_room.dto';
+import {
+  Amenity,
+  AmenityCategory,
+} from 'src/amenities/entities/amenity.entity';
 
 @Injectable()
 export class RoomsService {
@@ -13,33 +21,49 @@ export class RoomsService {
     private roomsRepository: Repository<Room>,
     @InjectRepository(Hotel)
     private hotelsRepository: Repository<Hotel>,
+    @InjectRepository(Amenity)
+    private readonly amenitiesRepo: Repository<Amenity>,
   ) {}
 
   async create(createRoomDto: CreateRoomDto): Promise<Room> {
-    const hotel = await this.hotelsRepository.findOne({
-      where: { id: createRoomDto.hotelId },
-    });
+    const { hotelId, amenityIds, ...roomData } = createRoomDto;
 
-    if (!hotel) {
-      throw new NotFoundException(
-        `Hotel with ID ${createRoomDto.hotelId} not found`,
+    if (!amenityIds?.length && !createRoomDto.custom_amenities?.trim()) {
+      throw new BadRequestException(
+        'Provide at least one standard or custom amenity.',
       );
     }
 
-    const room = this.roomsRepository.create(createRoomDto);
-    room.hotel = hotel;
+    const amenities = amenityIds?.length
+      ? await this.amenitiesRepo.find({
+          where: {
+            id: In(amenityIds),
+            category: AmenityCategory.ROOM,
+          },
+        })
+      : [];
 
+    if (amenityIds?.length && amenities.length !== amenityIds.length) {
+      throw new BadRequestException(
+        'One or more selected amenities are not valid for rooms.',
+      );
+    }
+
+    const hotel = await this.hotelsRepository.findOneBy({ id: hotelId });
+    if (!hotel) throw new NotFoundException(`Hotel ${hotelId} not found`);
+
+    const room = this.roomsRepository.create({ ...roomData, hotel, amenities });
     return await this.roomsRepository.save(room);
   }
 
-  async findOne(id: number): Promise<Room> {
+  async findOne(id: string): Promise<Room> {
     const room = await this.roomsRepository.findOne({
       where: { id },
-      relations: ['hotel'],
+      relations: ['hotel', 'amenities'],
     });
 
     if (!room) {
-      throw new NotFoundException(`Room with ID ${id} not found`);
+      throw new NotFoundException(`Room ${id} not found`);
     }
 
     return room;
@@ -48,91 +72,74 @@ export class RoomsService {
   async findByHotel(hotelId: string): Promise<any[]> {
     const rooms = await this.roomsRepository.find({
       where: { hotelId },
-      relations: ['hotel'],
+      relations: ['hotel', 'amenities'],
       order: { price: 'ASC' },
     });
 
     return rooms.map((room) => ({
-      id: room.id,
-      name: room.name,
-      shortDescription: room.shortDescription,
-      longDescription: room.longDescription,
-      type: room.type,
-      available: room.available,
-      price: room.price,
-      maxOccupancy: room.maxOccupancy,
-      discountPercentage: room.discountPercentage,
-      images: room.images,
-      amenities: room.amenities,
-      otherAmenities: room.otherAmenities,
-      createdAt: room.createdAt,
-      hotel: {
-        name: room.hotel?.name,
-      },
+      ...room,
+      hotel: { name: room.hotel?.name },
     }));
   }
 
-  async update(id: number, updateRoomDto: UpdateRoomDto): Promise<Room> {
-    const room = await this.findOne(id);
+  async update(id: string, updateRoomDto: UpdateRoomDto): Promise<Room> {
+    const room = await this.roomsRepository.findOne({
+      where: { id },
+      relations: ['amenities'],
+    });
+    if (!room) throw new NotFoundException(`Room ${id} not found`);
 
-    if (updateRoomDto.hotelId && updateRoomDto.hotelId !== room.hotelId) {
-      const hotel = await this.hotelsRepository.findOne({
-        where: { id: updateRoomDto.hotelId },
+    const { hotelId, amenityIds, ...rest } = updateRoomDto;
+
+    const finalAmenityIds =
+      amenityIds !== undefined ? amenityIds : room.amenities;
+    const finalCustom =
+      updateRoomDto.custom_amenities !== undefined
+        ? updateRoomDto.custom_amenities
+        : room.custom_amenities;
+
+    if (
+      (!finalAmenityIds ||
+        (Array.isArray(finalAmenityIds) && finalAmenityIds.length === 0)) &&
+      !finalCustom?.trim()
+    ) {
+      throw new BadRequestException(
+        'Room must have at least one standard or custom amenity.',
+      );
+    }
+
+    if (hotelId && hotelId !== room.hotelId) {
+      const hotel = await this.hotelsRepository.findOneBy({ id: hotelId });
+      if (!hotel) throw new NotFoundException(`Hotel ${hotelId} not found`);
+      room.hotel = hotel;
+    }
+
+    if (amenityIds) {
+      const validAmenities = await this.amenitiesRepo.find({
+        where: {
+          id: In(amenityIds),
+          category: AmenityCategory.ROOM,
+        },
       });
 
-      if (!hotel) {
-        throw new NotFoundException(
-          `Hotel with ID ${updateRoomDto.hotelId} not found`,
+      if (validAmenities.length !== amenityIds.length) {
+        throw new BadRequestException(
+          'One or more selected amenities are not valid for rooms.',
         );
       }
-
-      room.hotel = hotel;
-      room.hotelId = updateRoomDto.hotelId;
+      room.amenities = validAmenities;
     }
 
-    if (updateRoomDto.name !== undefined) {
-      room.name = updateRoomDto.name;
-    }
-    if (updateRoomDto.shortDescription !== undefined) {
-      room.shortDescription = updateRoomDto.shortDescription;
-    }
-    if (updateRoomDto.longDescription !== undefined) {
-      room.longDescription = updateRoomDto.longDescription;
-    }
-    if (updateRoomDto.type !== undefined) {
-      room.type = updateRoomDto.type;
-    }
-    if (updateRoomDto.available !== undefined) {
-      room.available = updateRoomDto.available;
-    }
-    if (updateRoomDto.price !== undefined) {
-      room.price = updateRoomDto.price;
-    }
-    if (updateRoomDto.maxOccupancy !== undefined) {
-      room.maxOccupancy = updateRoomDto.maxOccupancy;
-    }
-    if (updateRoomDto.discountPercentage !== undefined) {
-      room.discountPercentage = updateRoomDto.discountPercentage;
-    }
-    if (updateRoomDto.images !== undefined) {
-      room.images = updateRoomDto.images;
-    }
-    if (updateRoomDto.amenities !== undefined) {
-      room.amenities = updateRoomDto.amenities;
-    }
-    if (updateRoomDto.otherAmenities !== undefined) {
-      room.otherAmenities = updateRoomDto.otherAmenities;
-    }
-
+    Object.assign(room, rest);
     return await this.roomsRepository.save(room);
   }
 
-  async remove(id: number): Promise<{ message: string }> {
+  async remove(id: string): Promise<{ message: string }> {
     const room = await this.findOne(id);
     await this.roomsRepository.remove(room);
 
     return {
-      message: `Room with ID ${id} deleted successfully`,
+      message: `Room ${id} deleted successfully`,
     };
   }
 
@@ -152,6 +159,13 @@ export class RoomsService {
       },
       relations: ['hotel'],
       order: { discountPercentage: 'DESC' },
+    });
+  }
+
+  async findByCategory(category: RoomCategory): Promise<Room[]> {
+    return await this.roomsRepository.find({
+      where: { type: category, available: 1 },
+      relations: ['hotel', 'amenities'],
     });
   }
 }

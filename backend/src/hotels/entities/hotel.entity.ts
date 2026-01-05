@@ -1,6 +1,13 @@
-// src/hotels/entities/hotel.entity.ts
+import { Amenity } from 'src/amenities/entities/amenity.entity';
 import { Room } from 'src/rooms/entities/room.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 
 @Entity()
 export class Hotel {
@@ -22,11 +29,15 @@ export class Hotel {
   @Column()
   googleMapUrl: string;
 
-  @Column('simple-array')
+  @Column('simple-array', { nullable: true })
   images: string[];
 
-  @Column('simple-array')
-  amenities: string[];
+  @ManyToMany(() => Amenity, (amenity) => amenity.hotels)
+  @JoinTable({ name: 'hotel_amenities_amenity' })
+  amenities: Amenity[];
+
+  @Column({ nullable: true })
+  custom_amenities: string;
 
   @Column()
   phoneNumber: string;

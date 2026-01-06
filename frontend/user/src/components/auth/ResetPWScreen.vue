@@ -74,7 +74,8 @@
         </li>
       </ul>
     </div>
-    <button class="btn-Login">Reset Password</button>
+    <div v-if="error" class="error-message">{{ error }}</div>
+    <button class="btn-Login" @click="goToLogin">Reset Password</button>
     <div class="back-link" @click="goToEnterEmail">
       <i class="ri-arrow-left-line"></i>
       <span>Back to enter email</span>
@@ -91,7 +92,8 @@ export default {
     const password = ref('')
     const confirmPassword = ref('')
     const passwordFieldType = ref('password')
-    const confirmPasswordFieldType = ref('password')
+    const confirmPasswordFieldType = ref('password');
+    const error = ref<string | null>(null);
 
     // Validation Logic
     const hasMinLength = computed(() => password.value.length >= 8)
@@ -113,7 +115,30 @@ export default {
       router.push('/ForgotPassword')
     }
 
+    const goToLogin = () => {
+      error.value = null;
+      if (!password.value || !confirmPassword.value) {
+        error.value = 'Please fill in all fields.';
+        return;
+      }
+      if (password.value !== confirmPassword.value) {
+        error.value = 'Passwords do not match.';
+        return;
+      }
+      const allValid =
+        hasMinLength.value &&
+        hasUppercase.value &&
+        hasLowercase.value &&
+        hasNumber.value;
+      if (!allValid) {
+        error.value = 'Password does not meet the requirements.';
+        return;
+      }
+      router.push('/Login');
+    };
+
     return {
+      goToLogin,
       hasMinLength,
       hasUppercase,
       hasLowercase,
@@ -124,12 +149,17 @@ export default {
       confirmPasswordFieldType,
       togglePassword,
       goToEnterEmail,
-    }
+      error,
+    };
   },
 }
 </script>
 
 <style scoped>
+.error-message {
+  color: red;
+  margin-bottom: 15px;
+}
 /* Main Container - Adjusted for maximum vertical efficiency */
 .container {
   position: absolute;

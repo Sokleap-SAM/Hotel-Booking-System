@@ -14,8 +14,9 @@
     <span>below and we'll verify your name</span>
     <div class="input-group">
       <label>Email Address</label>
-      <input type="email" id="email" placeholder="Enter your email" />
+      <input type="email" id="email" placeholder="Enter your email" v-model="email" />
     </div>
+    <div v-if="error" class="error-message">{{ error }}</div>
     <button class="btn-Login" @click="goToResetPW">verify email</button>
     <div class="back-link" @click="goToLogin">
       <i class="ri-arrow-left-line"></i>
@@ -25,29 +26,42 @@
 </template>
 
 <script lang="ts">
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 export default {
   name: 'ForgotPasswordScreen',
   setup() {
-
-    const router = useRouter()
+    const email = ref('');
+    const error = ref<string | null>(null);
+    const router = useRouter();
     const goToLogin = () => {
       router.push('/login')
     }
 
     const goToResetPW = () => {
-      router.push('/ResetPWScreen')
-    }
+      error.value = null;
+      if (!email.value) {
+        error.value = 'Please enter your email address.';
+        return;
+      }
+      router.push('/ResetPWScreen');
+    };
 
     return {
       goToResetPW,
       goToLogin,
-    }
+      email,
+      error,
+    };
   }
 }
 </script>
 
 <style scoped>
+.error-message {
+  color: red;
+  margin-bottom: 15px;
+}
 /* Main card container */
 .container {
   width: 90%;

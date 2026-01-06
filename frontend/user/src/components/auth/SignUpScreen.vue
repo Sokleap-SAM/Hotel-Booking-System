@@ -97,10 +97,20 @@ export default {
     }
 
     const handleSignUp = async () => {
-      error.value = null
+      error.value = null;
+      if (
+        !firstName.value ||
+        !lastName.value ||
+        !email.value ||
+        !password.value ||
+        !confirmPassword.value
+      ) {
+        error.value = 'Please fill in all fields.';
+        return;
+      }
       if (password.value !== confirmPassword.value) {
-        error.value = 'Passwords do not match.'
-        return
+        error.value = 'Passwords do not match.';
+        return;
       }
       try {
         await authStore.register({
@@ -108,13 +118,14 @@ export default {
           lastName: lastName.value,
           email: email.value,
           password: password.value,
-        })
-        alert('Registration successful! Please log in.')
-        router.push('/login')
+          confirmPassword: confirmPassword.value,
+        });
+        alert('Registration successful! Please log in.');
+        router.push('/login');
       } catch (err) {
-        error.value = err.message || 'An unexpected error occurred.'
+        error.value = err.message || 'An unexpected error occurred.';
       }
-    }
+    };
 
     const goToLogin = () => {
       router.push('/login')

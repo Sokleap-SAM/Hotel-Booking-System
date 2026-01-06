@@ -3,15 +3,45 @@ import { defineStore } from 'pinia'
 import { jwtDecode } from 'jwt-decode'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('token'))
-  const user = ref(token.value ? jwtDecode(token.value) : null)
+  // --- State ---
+  const token = ref<string | null>(localStorage.getItem('token'))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user = ref<any>(null)
 
+  // Initialization: Safely decode token on page load/refresh
+  if (token.value) {
+    try {
+      user.value = jwtDecode(token.value)
+    } catch (error) {
+      console.error('Invalid token in storage:', error)
+      token.value = null
+      localStorage.removeItem('token')
+    }
+  }
+
+  // --- Getters ---
   const isAuthenticated = computed(() => !!token.value)
 
+  // --- Actions ---
+
+  /**
+   * Helper to update state and storage.
+   * Useful for both normal login and Google OAuth redirects.
+   */
+  function setToken(accessToken: string) {
+    try {
+      token.value = accessToken
+      localStorage.setItem('token', accessToken)
+      user.value = jwtDecode(accessToken)
+    } catch (error) {
+      console.error('Failed to set token:', error)
+      logout()
+    }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async function login(credentials: any) {
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,21 +56,18 @@ export const useAuthStore = defineStore('auth', () => {
 
       const data = await response.json()
       if (data.access_token) {
-        token.value = data.access_token
-        localStorage.setItem('token', data.access_token)
-        user.value = jwtDecode(data.access_token)
+        setToken(data.access_token)
       }
-      return data;
+      return data
     } catch (error) {
       console.error('Login error:', error)
       throw error
     }
   }
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async function register(userInfo: any) {
     try {
-      const response = await fetch('http://localhost:3000/auth/register', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,5 +93,13 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  return { token, user, isAuthenticated, login, register, logout }
+  return {
+    token,
+    user,
+    isAuthenticated,
+    login,
+    register,
+    logout,
+    setToken
+  }
 })

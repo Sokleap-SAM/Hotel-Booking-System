@@ -77,14 +77,18 @@ export default {
     }
 
     const handleLogin = async () => {
-      error.value = null
-      try {
-        await authStore.login({ email: email.value, password: password.value })
-        router.push('/home')
-      } catch (err) {
-        error.value = err.message || 'An unexpected error occurred.'
+      error.value = null;
+      if (!email.value || !password.value) {
+        error.value = 'Please enter both email and password.';
+        return;
       }
-    }
+      try {
+        await authStore.login({ email: email.value, password: password.value });
+        router.push('/home');
+      } catch (err) {
+        error.value = err.message || 'An unexpected error occurred.';
+      }
+    };
 
     return {
       goToSignup,

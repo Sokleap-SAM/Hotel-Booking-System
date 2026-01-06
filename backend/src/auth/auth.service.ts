@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { UserService } from './user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -38,6 +43,13 @@ export class AuthService {
   }
 
   async register(userDto: UserRegisterDto) {
+    if (userDto.password !== userDto.confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+    const existingUser = await this.userService.findByEmail(userDto.email);
+    if (existingUser) {
+      throw new ConflictException('User already exists');
+    }
     return this.userService.create(userDto);
   }
 

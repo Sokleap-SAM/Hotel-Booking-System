@@ -32,8 +32,8 @@ const routes = [
         component: ForgotPasswordScreen,
       },
       {
-        path: 'ResetPWScreen',
-        name: 'ResetPWScreen',
+        path: 'reset-password/:token',
+        name: 'reset-password',
         component: ResetPWScreen,
       },
     ],

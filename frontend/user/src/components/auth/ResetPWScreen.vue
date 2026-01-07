@@ -75,7 +75,7 @@
       </ul>
     </div>
     <div v-if="error" class="error-message">{{ error }}</div>
-    <button class="btn-Login" @click="goToLogin">Reset Password</button>
+    <button class="btn-Login" @click="handleResetPassword">Reset Password</button>
     <div class="back-link" @click="goToEnterEmail">
       <i class="ri-arrow-left-line"></i>
       <span>Back to enter email</span>
@@ -85,7 +85,8 @@
 
 <script lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 export default {
   name: 'ForgotPasswordScreen',
   setup() {
@@ -111,34 +112,43 @@ export default {
     }
 
     const router = useRouter()
+    const route = useRoute()
+    const authStore = useAuthStore()
     const goToEnterEmail = () => {
       router.push('/ForgotPassword')
     }
 
-    const goToLogin = () => {
-      error.value = null;
+    const handleResetPassword = async () => {
+      error.value = null
       if (!password.value || !confirmPassword.value) {
-        error.value = 'Please fill in all fields.';
-        return;
+        error.value = 'Please fill in all fields.'
+        return
       }
       if (password.value !== confirmPassword.value) {
-        error.value = 'Passwords do not match.';
-        return;
+        error.value = 'Passwords do not match.'
+        return
       }
       const allValid =
         hasMinLength.value &&
         hasUppercase.value &&
         hasLowercase.value &&
-        hasNumber.value;
+        hasNumber.value
       if (!allValid) {
-        error.value = 'Password does not meet the requirements.';
-        return;
+        error.value = 'Password does not meet the requirements.'
+        return
       }
-      router.push('/Login');
-    };
+      try {
+        const token = route.params.token as string
+        await authStore.resetPassword(token, password.value)
+        alert('Password has been reset successfully. Please log in.')
+        router.push('/Login')
+      } catch (err) {
+        error.value = err.message || 'An unexpected error occurred.'
+      }
+    }
 
     return {
-      goToLogin,
+      handleResetPassword, 
       hasMinLength,
       hasUppercase,
       hasLowercase,

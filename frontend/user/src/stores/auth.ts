@@ -41,22 +41,24 @@ export const useAuthStore = defineStore('auth', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async function login(credentials: any) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/login`, {
+      const response = await fetch('http://localhost:3000/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Login failed')
+        // LOG THIS: This will show you the NestJS error object
+        console.error('Backend Error Response:', data)
+        throw new Error(data.message || 'Login failed')
       }
 
-      const data = await response.json()
       if (data.access_token) {
-        setToken(data.access_token)
+        token.value = data.access_token
+        localStorage.setItem('token', data.access_token)
+        user.value = jwtDecode(data.access_token)
       }
       return data
     } catch (error) {
@@ -65,15 +67,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async function register(userInfo: any) {
+  async function register(userInfo: FormData) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/register`,
+        {
+          method: 'POST',
+          body: userInfo,
         },
-        body: JSON.stringify(userInfo),
-      })
+      )
 
       if (!response.ok) {
         const error = await response.json()
@@ -83,6 +85,56 @@ export const useAuthStore = defineStore('auth', () => {
       return await response.json()
     } catch (error) {
       console.error('Register error:', error)
+      throw error
+    }
+  }
+
+  async function forgotPassword(email: string) {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/forgot-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        },
+      )
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Forgot password failed')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Forgot password error:', error)
+      throw error
+    }
+  }
+
+  async function resetPassword(token: string, password: string) {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/reset-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token, password }),
+        },
+      )
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Password reset failed')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Reset password error:', error)
       throw error
     }
   }
@@ -100,6 +152,8 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
-    setToken
+    setToken,
+    resetPassword,
+    forgotPassword,
   }
 })

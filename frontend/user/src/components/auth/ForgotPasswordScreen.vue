@@ -17,7 +17,7 @@
       <input type="email" id="email" placeholder="Enter your email" v-model="email" />
     </div>
     <div v-if="error" class="error-message">{{ error }}</div>
-    <button class="btn-Login" @click="goToResetPW">verify email</button>
+    <button class="btn-Login" @click="handleForgotPassword">verify email</button>
     <div class="back-link" @click="goToLogin">
       <i class="ri-arrow-left-line"></i>
       <span>Back to login</span>
@@ -28,27 +28,34 @@
 <script lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 export default {
   name: 'ForgotPasswordScreen',
   setup() {
     const email = ref('');
     const error = ref<string | null>(null);
     const router = useRouter();
+    const authStore = useAuthStore();
     const goToLogin = () => {
       router.push('/login')
     }
 
-    const goToResetPW = () => {
+    const handleForgotPassword = async () => {
       error.value = null;
       if (!email.value) {
         error.value = 'Please enter your email address.';
         return;
       }
-      router.push('/ResetPWScreen');
+      try {
+        const data = await authStore.forgotPassword(email.value);
+        router.push({ name: 'reset-password', params: { token: data.token } });
+      } catch (err) {
+        error.value = err.message || 'An unexpected error occurred.';
+      }
     };
 
     return {
-      goToResetPW,
+      handleForgotPassword,
       goToLogin,
       email,
       error,

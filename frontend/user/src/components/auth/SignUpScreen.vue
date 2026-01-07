@@ -8,6 +8,27 @@
   <div class="container">
     <h2>Sign up</h2>
     <div v-if="error" class="error-message">{{ error }}</div>
+    <div class="upload-wrapper">
+      <div
+        class="drop-zone"
+        @click="triggerFileInput"
+        @dragover.prevent
+        @drop.prevent="handleDrop"
+      >
+        <input
+          type="file"
+          ref="fileInput"
+          @change="handleFileSelect"
+          accept="image/*"
+          style="display: none"
+        />
+        <div v-if="!profileImagePreview" class="placeholder">
+          <i class="ri-upload-cloud-2-line"></i>
+          <span>Drop or click</span>
+        </div>
+        <img v-else :src="profileImagePreview" class="preview-image" />
+      </div>
+    </div>
     <div class="name-row">
       <div class="name-column">
         <label>First Name</label>
@@ -83,6 +104,9 @@ export default {
     const passwordFieldType = ref('password')
     const confirmPasswordFieldType = ref('password')
     const error = ref<string | null>(null)
+    const profileImage = ref<File | null>(null)
+    const profileImagePreview = ref<string | null>(null)
+    const fileInput = ref<HTMLInputElement | null>(null)
 
     const authStore = useAuthStore()
     const router = useRouter()
@@ -96,8 +120,37 @@ export default {
       }
     }
 
+    const triggerFileInput = () => {
+      fileInput.value?.click()
+    }
+
+    const handleFileSelect = (event: Event) => {
+      const target = event.target as HTMLInputElement
+      if (target.files && target.files[0]) {
+        const file = target.files[0]
+        profileImage.value = file
+        showPreview(file)
+      }
+    }
+
+    const handleDrop = (event: DragEvent) => {
+      if (event.dataTransfer && event.dataTransfer.files[0]) {
+        const file = event.dataTransfer.files[0]
+        profileImage.value = file
+        showPreview(file)
+      }
+    }
+
+    const showPreview = (file: File) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        profileImagePreview.value = e.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    }
+
     const handleSignUp = async () => {
-      error.value = null;
+      error.value = null
       if (
         !firstName.value ||
         !lastName.value ||
@@ -105,27 +158,32 @@ export default {
         !password.value ||
         !confirmPassword.value
       ) {
-        error.value = 'Please fill in all fields.';
-        return;
+        error.value = 'Please fill in all fields.'
+        return
       }
       if (password.value !== confirmPassword.value) {
-        error.value = 'Passwords do not match.';
-        return;
+        error.value = 'Passwords do not match.'
+        return
       }
+
+      const formData = new FormData()
+      formData.append('firstName', firstName.value)
+      formData.append('lastName', lastName.value)
+      formData.append('email', email.value)
+      formData.append('password', password.value)
+      formData.append('confirmPassword', confirmPassword.value)
+      if (profileImage.value) {
+        formData.append('profileImage', profileImage.value)
+      }
+
       try {
-        await authStore.register({
-          firstName: firstName.value,
-          lastName: lastName.value,
-          email: email.value,
-          password: password.value,
-          confirmPassword: confirmPassword.value,
-        });
-        alert('Registration successful! Please log in.');
-        router.push('/login');
+        await authStore.register(formData)
+        alert('Registration successful! Please log in.')
+        router.push('/login')
       } catch (err) {
-        error.value = err.message || 'An unexpected error occurred.';
+        error.value = err.message || 'An unexpected error occurred.'
       }
-    };
+    }
 
     const goToLogin = () => {
       router.push('/login')
@@ -143,8 +201,14 @@ export default {
       lastName,
       email,
       error,
+      profileImage,
+      profileImagePreview,
+      fileInput,
+      triggerFileInput,
+      handleFileSelect,
+      handleDrop
     }
-  },
+  }
 }
 </script>
 

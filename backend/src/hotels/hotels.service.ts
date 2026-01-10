@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   BadRequestException,
   Injectable,
@@ -26,48 +24,21 @@ export class HotelsService {
     private amenitiesRepository: Repository<Amenity>,
   ) {}
 
-  private parseField(field: any) {
-    if (!field || field === 'undefined' || field === 'null') return [];
-    if (typeof field === 'string') {
-      try {
-        return JSON.parse(field);
-      } catch (e) {
-        return [];
-      }
-    }
-    return field;
-  }
-
-  async create(
-    dto: CreateHotelDto,
-    files: Express.Multer.File[],
-  ): Promise<Hotel> {
+  async create(dto: CreateHotelDto, files: any[]): Promise<Hotel> {
     const { amenityIds, custom_amenities, ...hotelData } = dto;
-    const parsedIds = this.parseField(amenityIds);
-    const hasAmenities = Array.isArray(parsedIds) && parsedIds.length > 0;
-    const hasCustomAmenities =
-      dto.custom_amenities && dto.custom_amenities.trim() !== '';
-
-    if (!hasAmenities && !hasCustomAmenities) {
-      throw new BadRequestException(
-        'Please select amenities or enter custom amenities',
-      );
-    }
     const filePaths = files.map((f) => `/uploads/hotels/${f.filename}`);
-    let amenities: Amenity[] = [];
-    if (hasAmenities) {
-      amenities = await this.amenitiesRepository.find({
-        where: {
-          id: In(parsedIds),
-          category: AmenityCategory.HOTEL,
-        },
-      });
-    }
+
+    const amenities = await this.amenitiesRepository.find({
+      where: {
+        id: In(amenityIds || []),
+        category: AmenityCategory.HOTEL,
+      },
+    });
 
     const hotel = this.hotelsRepository.create({
       ...hotelData,
       amenities,
-      custom_amenities: hasCustomAmenities ? (custom_amenities as any) : null,
+      custom_amenities: custom_amenities || '',
       images: filePaths,
     });
 
@@ -99,49 +70,49 @@ export class HotelsService {
   async update(
     id: string,
     dto: UpdateHotelDto,
-    newFiles: Express.Multer.File[],
+    newFiles: any[],
   ): Promise<Hotel> {
     const hotel = await this.findOne(id);
     const { amenityIds, existingImages, custom_amenities, ...rest } = dto;
 
-    const incomingIds =
-      amenityIds !== undefined
-        ? this.parseField(amenityIds)
-        : hotel.amenities.map((a) => a.id);
-    const incomingCustom =
-      custom_amenities !== undefined
-        ? custom_amenities
-        : hotel.custom_amenities;
+    const newPaths = newFiles.map((f) => `/uploads/hotels/${f.filename}`);
+    const currentExisting = (existingImages as string[]) || [];
+    const totalImagesAfterUpdate = [
+      ...((existingImages as string[]) || []),
+      ...newPaths,
+    ];
 
-    const hasAmenities = Array.isArray(incomingIds) && incomingIds.length > 0;
-    const hasCustomAmenities = incomingCustom && incomingCustom.trim() !== '';
-
-    if (!hasAmenities && !hasCustomAmenities) {
-      throw new BadRequestException(
-        'Please select amenities or enter custom amenities',
-      );
+    if (totalImagesAfterUpdate.length === 0) {
+      throw new BadRequestException('A hotel must have at least one image.');
     }
 
-    const oldImages = this.parseField(existingImages);
-    const newPaths = newFiles.map((f) => `/uploads/hotels/${f.filename}`);
-    hotel.images = [...oldImages, ...newPaths];
+    const imagesToDelete = hotel.images.filter(
+      (path) => !currentExisting.includes(path),
+    );
 
-    if (amenityIds !== undefined) {
-      const ids = this.parseField(amenityIds);
+    for (const path of imagesToDelete) {
+      try {
+        await unlink(join(process.cwd(), path));
+      } catch (err) {
+        console.error(`Failed to delete old image: ${path}`, err);
+      }
+    }
+
+    hotel.images = totalImagesAfterUpdate;
+
+    if (custom_amenities && (!amenityIds || amenityIds.length === 0)) {
+      hotel.amenities = [];
+    } else if (Array.isArray(amenityIds) && amenityIds.length > 0) {
       hotel.amenities = await this.amenitiesRepository.find({
         where: {
-          id: In(Array.isArray(ids) ? ids : []),
+          id: In(amenityIds),
           category: AmenityCategory.HOTEL,
         },
       });
     }
 
     if (custom_amenities !== undefined) {
-      if (custom_amenities && custom_amenities.trim()) {
-        hotel.custom_amenities = custom_amenities.trim();
-      } else {
-        (hotel.custom_amenities as any) = null;
-      }
+      hotel.custom_amenities = custom_amenities?.trim() || '';
     }
 
     Object.assign(hotel, rest);

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Transform } from 'class-transformer';
 import {
   IsString,
@@ -5,37 +8,40 @@ import {
   IsUrl,
   MinLength,
   MaxLength,
-  Matches,
   IsOptional,
   IsNotEmpty,
   IsArray,
 } from 'class-validator';
 
 export class CreateHotelDto {
+  @Transform(({ value }) => value?.trim())
   @IsNotEmpty()
   @IsString()
   @MinLength(3)
   @MaxLength(30)
   name: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsNotEmpty()
   @IsString()
   @MinLength(20)
   @MaxLength(100)
   shortDescription: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsNotEmpty()
   @IsString()
   @MinLength(40)
   longDescription: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsNotEmpty()
   @IsString()
   location: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsNotEmpty()
   @IsUrl({}, { message: 'A valid Google Map URL is required' })
-  @IsNotEmpty()
   googleMapUrl: string;
 
   @IsOptional()
@@ -43,27 +49,21 @@ export class CreateHotelDto {
 
   @IsOptional()
   @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value) as number[];
-      } catch {
-        return value;
-      }
-    }
-    return value;
+    if (!value) return [];
+    const values = Array.isArray(value) ? value : [value];
+    return values.map(id => Number(id)).filter(id => !isNaN(id));
   })
   @IsArray({ message: 'amenityIds must be an array' })
   amenityIds?: number[];
 
+  @Transform(({ value }) => value?.trim())
   @IsString()
   @IsOptional()
   custom_amenities?: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsNotEmpty()
   @IsString()
-  @Matches(/^\+?[\d\s\-\\(\\)]+$/, {
-    message: 'Phone number must be valid',
-  })
   phoneNumber: string;
 
   @IsNotEmpty()

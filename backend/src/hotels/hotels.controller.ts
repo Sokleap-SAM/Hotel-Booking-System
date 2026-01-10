@@ -8,13 +8,14 @@ import {
   Patch,
   UseInterceptors,
   UploadedFiles,
-  BadRequestException,
+  ParseFilePipe,
 } from '@nestjs/common';
 import { HotelsService } from './hotels.service';
 import { CreateHotelDto } from './dto/create_hotel.dto';
 import { UpdateHotelDto } from './dto/update_hotel.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { hotelUploadConfig } from '../config/file-upload.config';
+import { HotelValidatorPipe } from './pipes/hotel-validtor.pipe';
 
 @Controller('hotels')
 export class HotelsController {
@@ -23,12 +24,14 @@ export class HotelsController {
   @Post()
   @UseInterceptors(FilesInterceptor('images', 10, hotelUploadConfig))
   create(
-    @Body() dto: CreateHotelDto,
-    @UploadedFiles() files: Express.Multer.File[],
+    @Body(new HotelValidatorPipe()) dto: CreateHotelDto,
+    @UploadedFiles(
+      new ParseFilePipe({
+        fileIsRequired: false,
+      }),
+    )
+    files: Express.Multer.File[],
   ) {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('At least one hotel image is required');
-    }
     return this.hotelsService.create(dto, files);
   }
 
@@ -46,8 +49,13 @@ export class HotelsController {
   @UseInterceptors(FilesInterceptor('images', 10, hotelUploadConfig))
   update(
     @Param('id') id: string,
-    @Body() dto: UpdateHotelDto,
-    @UploadedFiles() files?: Express.Multer.File[],
+    @Body(new HotelValidatorPipe()) dto: UpdateHotelDto,
+    @UploadedFiles(
+      new ParseFilePipe({
+        fileIsRequired: false,
+      }),
+    )
+    files?: Express.Multer.File[],
   ) {
     return this.hotelsService.update(id, dto, files || []);
   }

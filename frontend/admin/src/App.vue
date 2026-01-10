@@ -21,7 +21,7 @@ body {
 .main-layout {
   display: flex;
   min-height: 100vh;
-  width: 100vw;
+  width: 90vw;
 }
 
 .content-area {

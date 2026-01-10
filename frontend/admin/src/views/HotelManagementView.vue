@@ -153,9 +153,7 @@ const handleAction = async (action: string) => {
   } else if (action === 'edit') {
     router.push(`/manage_hotel&room/edit/${hotel.id}`);
   } else if (action === 'manage') {
-    // Add your manage rooms logic here
     console.log("Managing rooms for hotel:", hotel.id);
-    // router.push(`/hotels/${hotel.id}/rooms`);
   }
 
   activeHotelId.value = null;

@@ -65,25 +65,20 @@ export const useHotelStore = defineStore('hotel', {
         if (data[f] !== undefined) formData.append(f, data[f] || '');
       });
 
-      const amenityIdsArray = Array.isArray(data.amenityIds) ? toRaw(data.amenityIds) : [];
-      formData.append('amenityIds', JSON.stringify(amenityIdsArray));
-
-      if (data.custom_amenities) {
-        const cleanCustom = data.custom_amenities
-          .split(',')
-          .map((s: string) => s.trim())
-          .filter((s: string) => s !== '')
-          .join(', ');
-
-        formData.append('custom_amenities', cleanCustom);
-      } else {
-        formData.append('custom_amenities', '');
+      if (Array.isArray(data.amenityIds)) {
+        data.amenityIds.forEach((id: string | number) => {
+          formData.append('amenityIds', id.toString());
+        });
       }
+
+      const cleanCustom = data.custom_amenities
+        ? data.custom_amenities.split(',').map((s: string) => s.trim()).filter((s: string) => s !== '').join(', ')
+        : '';
+      formData.append('custom_amenities', cleanCustom);
 
       if (Array.isArray(data.images)) {
         data.images.forEach((item: any) => {
           if (item instanceof File) {
-            // New file uploads
             formData.append('images', item);
           } else if (typeof item === 'string' && item.trim() !== '') {
             formData.append('existingImages[]', item);
@@ -104,41 +99,7 @@ export const useHotelStore = defineStore('hotel', {
         await this.fetchHotels();
         return { success: true };
       } catch (error: any) {
-        const rawMessages = error.response?.data?.message || error.response?.data?.errors;
-        const fieldErrors: Record<string, string> = {};
-
-        const messages = Array.isArray(rawMessages)
-          ? rawMessages
-          : typeof rawMessages === 'string'
-            ? [rawMessages]
-            : [];
-
-        messages.forEach((msg: string) => {
-          const m = msg.toLowerCase();
-          let formattedMsg = msg;
-
-          Object.keys(fieldLabels).forEach(key => {
-            if (msg.includes(key)) {
-              formattedMsg = msg.replace(key, fieldLabels[key] || key);
-            }
-          });
-          if (m.includes('name')) fieldErrors.name = formattedMsg;
-          else if (m.includes('short')) fieldErrors.shortDescription = formattedMsg;
-          else if (m.includes('long')) fieldErrors.longDescription = formattedMsg;
-          else if (m.includes('email')) fieldErrors.email = formattedMsg;
-          else if (m.includes('amenity') || m.includes('amenities')) fieldErrors.amenityIds = formattedMsg;
-          else if (m.includes('custom')) fieldErrors.custom_amenities = msg;
-          else if (m.includes('phone')) fieldErrors.phoneNumber = formattedMsg;
-          else if (m.includes('location')) fieldErrors.location = formattedMsg;
-          else if (m.includes('google')) fieldErrors.googleMapUrl = formattedMsg;
-          else if (m.includes('image')) fieldErrors.images = formattedMsg;
-        });
-
-        return {
-          success: false,
-          errors: fieldErrors,
-          message: typeof rawMessages === 'string' ? rawMessages : 'Please check the form for errors.'
-        };
+        return this.handleError(error);
       } finally {
         this.isLoading = false;
       }
@@ -154,36 +115,7 @@ export const useHotelStore = defineStore('hotel', {
         await this.fetchHotels();
         return { success: true };
       } catch (error: any) {
-        const rawMessages = error.response?.data?.message || error.response?.data?.errors;
-        const fieldErrors: Record<string, string> = {};
-
-        const messages = Array.isArray(rawMessages)
-          ? rawMessages
-          : typeof rawMessages === 'string'
-            ? [rawMessages]
-            : [];
-
-        messages.forEach((msg: string) => {
-          const m = msg.toLowerCase();
-          let formattedMsg = msg;
-
-          Object.keys(fieldLabels).forEach(key => {
-            if (msg.includes(key)) {
-              formattedMsg = msg.replace(key, fieldLabels[key] || key);
-            }
-          });
-          if (m.includes('name')) fieldErrors.name = formattedMsg;
-          else if (m.includes('short')) fieldErrors.shortDescription = formattedMsg;
-          else if (m.includes('long')) fieldErrors.longDescription = formattedMsg;
-          else if (m.includes('email')) fieldErrors.email = formattedMsg;
-          else if (m.includes('amenity') || m.includes('amenities')) fieldErrors.amenityIds = formattedMsg;
-          else if (m.includes('custom')) fieldErrors.custom_amenities = msg;
-          else if (m.includes('phone')) fieldErrors.phoneNumber = formattedMsg;
-          else if (m.includes('location')) fieldErrors.location = formattedMsg;
-          else if (m.includes('google')) fieldErrors.googleMapUrl = formattedMsg;
-          else if (m.includes('image')) fieldErrors.images = formattedMsg;
-        });
-        return { success: false, errors: fieldErrors, message: typeof rawMessages === 'string' ? rawMessages : 'Please check the form for errors.' };
+        return this.handleError(error);
       } finally {
         this.isLoading = false;
       }
@@ -258,6 +190,41 @@ export const useHotelStore = defineStore('hotel', {
       } finally {
         this.isLoading = false;
       }
+    },
+
+    handleError(error: any) {
+      const rawMessages = error.response?.data?.message || error.response?.data?.errors;
+      const fieldErrors: Record<string, string> = {};
+
+      const messages = Array.isArray(rawMessages) ? rawMessages : [rawMessages || 'Server Error'];
+
+      messages.forEach((msg: string) => {
+        const m = msg.toLowerCase();
+        let formattedMsg = msg;
+
+        Object.keys(fieldLabels).forEach(key => {
+          if (m.includes(key.toLowerCase())) {
+            formattedMsg = msg.replace(new RegExp(key, 'gi'), fieldLabels[key]);
+          }
+        });
+
+        if (m.includes('name')) fieldErrors.name = formattedMsg;
+        else if (m.includes('short')) fieldErrors.shortDescription = formattedMsg;
+        else if (m.includes('long')) fieldErrors.longDescription = formattedMsg;
+        else if (m.includes('email')) fieldErrors.email = formattedMsg;
+        else if (m.includes('amenit')) fieldErrors.amenityIds = formattedMsg;
+        else if (m.includes('custom')) fieldErrors.custom_amenities = formattedMsg;
+        else if (m.includes('phone')) fieldErrors.phoneNumber = formattedMsg;
+        else if (m.includes('location')) fieldErrors.location = formattedMsg;
+        else if (m.includes('google')) fieldErrors.googleMapUrl = formattedMsg;
+        else if (m.includes('image')) fieldErrors.images = formattedMsg;
+      });
+
+      return {
+        success: false,
+        errors: fieldErrors,
+        message: fieldErrors.name || 'Please check the form for errors.'
+      };
     },
   }
 });

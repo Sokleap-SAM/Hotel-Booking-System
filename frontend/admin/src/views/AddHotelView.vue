@@ -46,23 +46,23 @@
 
       <div class="form-group full-width">
         <label>Amenities</label>
-        <div class="amenities-list" :class="{ 'error-border': errors.amenityIds }" >
-          <div v-for="amenity in hotelStore.amenitiesList" :key="amenity.id" class="checkbox-item" >
-            <input type="checkbox" :id="'am-' + amenity.id" :value="amenity.id" v-model="form.amenityIds" />
-            <label :for="'am-' + amenity.id">{{ amenity.name }}</label>
+        <div class="amenities-container" :class="{ 'error-border': errors.amenityIds }">
+          <div class="form-group full-width">
+            <div class="amenities-list">
+              <div v-for="amenity in hotelStore.amenitiesList" :key="amenity.id" class="checkbox-item">
+                <input type="checkbox" :id="'am-' + amenity.id" :value="amenity.id" v-model="form.amenityIds" />
+                <label :for="'am-' + amenity.id">{{ amenity.name }}</label>
+              </div>
+            </div>
           </div>
-        </div>
-        <span v-if="errors.amenityIds" class="error-text">{{ errors.amenityIds }}</span>
-      </div>
 
-      <div class="form-group full-width">
-        <label>Custom Amenities</label>
-        <div class="custom-input-wrapper">
-          <input v-model="form.custom_amenities" type="text"
-            placeholder="(e.g., Infinity Pool, Private Beach, Helicopter Pad)"
-            :class="{ 'input-error': errors.custom_amenities }" />
-          <p class="help-text">Note: You can select amenities above AND add custom amenities too</p>
-          <span v-if="errors.custom_amenities" class="error-text">{{ errors.custom_amenities }}</span>
+          <div class="form-group full-width">
+            <label>Custom Amenities</label>
+            <input v-model="form.custom_amenities" type="text"
+              placeholder="(e.g., Infinity Pool, Private Beach, Helicopter Pad)"
+              :class="{ 'input-error': errors.custom_amenities }" />
+            <p class="help-text">Note: You can select amenities above AND add custom amenities too</p>
+          </div>
         </div>
       </div>
 
@@ -87,7 +87,8 @@
       <div class="form-row">
         <div class="form-group">
           <label>Phone Number</label>
-          <input v-model="form.phoneNumber" type="text" required />
+          <input v-model="form.phoneNumber" type="text" required :class="{ 'input-error': errors.phoneNumber }"/>
+          <span v-if="errors.phoneNumber" class="error-text">{{ errors.phoneNumber }}</span>
         </div>
         <div class="form-group">
           <label>Email</label>
@@ -97,7 +98,9 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="save-btn" :disabled="hotelStore.isLoading">{{ hotelStore.isLoading ? 'Saving...' :
+        <button type="submit" class="save-btn" :disabled="hotelStore.isLoading">{{ hotelStore.isLoading ?
+          'Saving...'
+          :
           'Create Hotel' }}</button>
         <button type="button" class="cancel-btn" @click="$router.back()">Cancel</button>
       </div>
@@ -106,10 +109,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useHotelStore } from '@/stores/hotelStore';
 import backIcon from '@/assets/icons/back-icon.svg';
 import { useRouter } from 'vue-router';
+import { validateHotelForm } from '@/utils/hotel-validator';
 
 const hotelStore = useHotelStore();
 const imagePreviews = ref<string[]>([]);
@@ -136,18 +140,18 @@ const handleFiles = (e: Event) => {
   if (!target.files) return;
 
   const files = Array.from(target.files);
-  
+
   files.forEach(file => {
     form.value.images.push(file);
     const reader = new FileReader();
-    
+
     reader.onload = (event) => {
       const result = event.target?.result as string;
       if (result) {
         imagePreviews.value.push(result);
       }
     };
-    
+
     reader.readAsDataURL(file);
   });
   target.value = '';
@@ -161,19 +165,30 @@ const removeImage = (index: number) => {
 const handleCreate = async () => {
   errors.value = {};
 
-  if (!form.value.images || form.value.images.length === 0) {
-    errors.value.images = 'At least one hotel image is required';
+  const validation = validateHotelForm(form.value);
+
+  if (!validation.isValid) {
+    errors.value = validation.errors;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
-  
+
   const result = await hotelStore.createHotel(form.value);
 
   if (result.success) {
     router.push('/manage_hotel&room');
   } else {
     errors.value = { ...result.errors };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 };
+
+watch(form, () => {
+  if (Object.keys(errors.value).length > 0) {
+    const validation = validateHotelForm(form.value);
+    errors.value = validation.errors;
+  }
+}, { deep: true });
 </script>
 
 <style scoped>
@@ -235,6 +250,16 @@ input {
 
 input:focus {
   border-color: #0D4798;
+}
+
+.amenities {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.amenities-container {
+  padding: 15px;
 }
 
 .amenities-list {

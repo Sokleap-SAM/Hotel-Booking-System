@@ -15,6 +15,11 @@ export class HotelValidatorPipe implements PipeTransform {
       this.validateLocation(value.location);
     }
 
+    if(value.phoneNumber){
+      value.phoneNumber = this.validatePhoneNumber(value.phoneNumber);
+      this.formatCambodianPhoneNumber(value.phoneNumber);
+    }
+
     return value;
   }
 
@@ -65,13 +70,5 @@ export class HotelValidatorPipe implements PipeTransform {
         'Invalid Location Format. Expected: "100, st289, khan toulkok, Phnom Penh"',
       );
     }
-  }
-
-  private formatCustomAmenities(amenities: string): string {
-    return amenities
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0)
-      .join(', ');
   }
 }

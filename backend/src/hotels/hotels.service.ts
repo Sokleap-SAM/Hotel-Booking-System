@@ -31,7 +31,7 @@ export class HotelsService {
     if (typeof field === 'string') {
       try {
         return JSON.parse(field);
-      } catch (e) {
+      } catch {
         return [];
       }
     }

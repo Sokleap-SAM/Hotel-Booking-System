@@ -1,11 +1,13 @@
 <template>
-  <link
-    href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css"
-    rel="stylesheet"
-/>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
   <div>
     <HeaderScreen />
     <BackgroundHomeScreen />
+    <PopularHotel />
+    <MyBooking />
+    <WhyCamBook />
+    <ClientFeebBack />
+    <NewsLetter />
     <FooterScreen />
   </div>
 </template>
@@ -13,7 +15,12 @@
 <script lang="ts">
 import HeaderScreen from '@/components/homepage/HeaderScreen.vue'
 import FooterScreen from '@/components/homepage/FooterScreen.vue'
-import BackgroundHomeScreen from '@/components/homepage/BackgroundHomeScreen.vue';
+import BackgroundHomeScreen from '@/components/homepage/BackgroundHomeScreen.vue'
+import PopularHotel from '@/components/homepage/PopularHotel.vue'
+import MyBooking from '@/components/homepage/MyBooking.vue'
+import WhyCamBook from '@/components/homepage/WhyCamBook.vue'
+import ClientFeebBack from '@/components/homepage/ClientFeebBack.vue'
+import NewsLetter from '@/components/homepage/NewsLetter.vue'
 
 export default {
   name: 'HomeScreen',
@@ -21,6 +28,11 @@ export default {
     HeaderScreen,
     FooterScreen,
     BackgroundHomeScreen,
+    MyBooking,
+    WhyCamBook,
+    ClientFeebBack,
+    NewsLetter,
+    PopularHotel,
   },
 }
 </script>

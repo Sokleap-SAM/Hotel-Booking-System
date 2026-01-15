@@ -6,6 +6,8 @@ import ForgotPasswordScreen from '@/components/auth/ForgotPasswordScreen.vue'
 import ResetPWScreen from '@/components/auth/ResetPWScreen.vue'
 import HomeScreen from '@/view/HomeScreen.vue'
 import { useAuthStore } from '@/stores/auth'
+import Bookingpage from '@/view/BookingPage.vue'
+import BookingDetail from '@/view/BookingDetail.vue'
 
 const routes = [
   {
@@ -44,6 +46,16 @@ const routes = [
     component: HomeScreen,
     meta: { requiresAuth: true },
   },
+  {
+    path: '/Bookingpage',
+    name: 'Bookingpage',
+    component: Bookingpage,
+  },
+  {
+    path: '/BookingDetail',
+    name: 'BookingDetail',
+    component: BookingDetail,
+  }
 ]
 
 const router = createRouter({

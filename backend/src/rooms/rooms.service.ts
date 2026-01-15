@@ -92,7 +92,7 @@ export class RoomsService {
     const { hotelId, amenityIds, ...rest } = updateRoomDto;
 
     const finalAmenityIds =
-      amenityIds !== undefined ? amenityIds : room.amenities;
+      amenityIds !== undefined ? amenityIds : room.amenities.map((a) => a.id);
     const finalCustom =
       updateRoomDto.custom_amenities !== undefined
         ? updateRoomDto.custom_amenities

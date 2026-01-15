@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsOptional,
+} from 'class-validator';
 
 export class UserRegisterDto {
   @IsString()
@@ -22,4 +28,12 @@ export class UserRegisterDto {
   @IsNotEmpty()
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   confirmPassword: string;
+
+  @IsString()
+  @IsOptional()
+  profileImage?: string;
+
+  @IsString()
+  @IsOptional()
+  provider?: 'local' | 'google';
 }

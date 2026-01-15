@@ -45,12 +45,16 @@ export class CreateHotelDto {
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {
-        return JSON.parse(value) as number[];
+        const parsed: unknown = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return parsed as number[];
+        }
+        return [Number(parsed)];
       } catch {
-        return value;
+        return [];
       }
     }
-    return value;
+    return value as number[];
   })
   @IsArray({ message: 'amenityIds must be an array' })
   amenityIds?: number[];

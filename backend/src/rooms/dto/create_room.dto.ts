@@ -9,6 +9,7 @@ import {
   MinLength,
   MaxLength,
   IsEnum,
+  IsArray,
 } from 'class-validator';
 import { RoomCategory } from '../entities/room.entity';
 
@@ -56,7 +57,8 @@ export class CreateRoomDto {
   images: any;
 
   @IsOptional()
-  amenityIds: any;
+  @IsArray()
+  amenityIds: number[];
 
   @IsString()
   @IsOptional()

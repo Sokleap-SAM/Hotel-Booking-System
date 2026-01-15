@@ -3,7 +3,7 @@
     <div class="logo">CamBook</div>
     <nav class="nav-links">
       <a href="#">Home</a>
-      <a href="#">Book Now</a>
+      <a href="#" @click="goToBooking">Book Now</a>
       <a href="#">My Bookings</a>
       <a href="#">Contact Us</a>
     </nav>
@@ -21,8 +21,13 @@
         router.push('/login')
       }
 
+      const goToBooking = () => {
+        router.push('/Bookingpage')
+      }
+
       return {
         goToLogin,
+        goToBooking,
       }
     },
   }
@@ -58,6 +63,7 @@
 
 .nav-links a:hover {
   text-decoration: underline;
+  cursor: pointer;
 }
 
 .login-btn {

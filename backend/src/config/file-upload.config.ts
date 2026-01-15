@@ -29,3 +29,4 @@ export function createUploadConfig(folderName: string) {
 }
 
 export const hotelUploadConfig = createUploadConfig('hotels');
+export const profileUploadConfig = createUploadConfig('profiles');

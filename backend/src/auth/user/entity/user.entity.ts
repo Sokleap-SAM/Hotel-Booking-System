@@ -25,4 +25,7 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   resetPasswordExpires: Date | null;
+
+  @Column({ nullable: true })
+  profileImage: string;
 }

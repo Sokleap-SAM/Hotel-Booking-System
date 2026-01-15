@@ -5,6 +5,8 @@ import {
   UseGuards,
   Get,
   Body,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -12,21 +14,29 @@ import { UserRegisterDto } from './user/dto/user-register.dto';
 import { GoogleLoginDto } from './user/dto/google-login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { UserLoginDto } from './user/dto/user-login.dto';
+import { profileUploadConfig } from 'src/config/file-upload.config';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { User } from './user/entity/user.entity';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() userRegisterDto: UserRegisterDto) {
-    return this.authService.register(userRegisterDto);
+  @UseInterceptors(FileInterceptor('profileImage', profileUploadConfig))
+  async register(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() userRegisterDto: UserRegisterDto,
+  ) {
+    console.log('📁 File received:', file ? file.filename : 'NO FILE');
+    console.log('📁 File path:', file?.path);
+    return this.authService.register(userRegisterDto, file);
   }
 
+  // This Guard triggers the LocalStrategy
   @UseGuards(AuthGuard('local'))
   @Post('login')
-  async login(@Request() req, @Body() userLoginDto: UserLoginDto) {
-    // userLoginDto is validated by the pipe, but req.user is the one to use
+  async login(@Request() req: { user: User }) {
     return this.authService.login(req.user);
   }
 
@@ -51,10 +61,8 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
-  getProfile(@Request() req) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unused-vars, @typescript-eslint/no-unsafe-member-access
-    const { password, ...user } = req.user;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return user;
+  getProfile(@Request() req: { user: User }) {
+    // req.user is populated by the JwtStrategy
+    return req.user;
   }
 }

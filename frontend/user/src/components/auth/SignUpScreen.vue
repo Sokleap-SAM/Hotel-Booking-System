@@ -174,6 +174,7 @@ export default {
       formData.append('confirmPassword', confirmPassword.value)
       if (profileImage.value) {
         formData.append('profileImage', profileImage.value)
+        console.log('Profile image appended:', profileImage.value.name)
       }
 
       try {

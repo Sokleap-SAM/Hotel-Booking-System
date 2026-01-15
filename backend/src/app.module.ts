@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HotelsModule } from './hotels/hotels.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { AuthModule } from './auth/auth.module';
+import { HotelCardModule } from './hotelCard/hotelCard.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuthModule } from './auth/auth.module';
         synchronize: true, // Auto-creates tables (only for development!)
       }),
     }),
+    HotelCardModule,
     HotelsModule,
     RoomsModule,
     AuthModule,

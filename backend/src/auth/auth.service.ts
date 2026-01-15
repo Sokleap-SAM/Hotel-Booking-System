@@ -11,6 +11,8 @@ import { User } from './user/entity/user.entity';
 import { OAuth2Client } from 'google-auth-library';
 import { UserRegisterDto } from './user/dto/user-register.dto';
 import * as crypto from 'crypto';
+import { Express } from 'express';
+import 'multer';
 // import { MoreThan } from 'typeorm';
 
 @Injectable()
@@ -35,6 +37,7 @@ export class AuthService {
     return null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async login(user: User) {
     const payload = { email: user.email, sub: user.id };
     return {
@@ -42,13 +45,21 @@ export class AuthService {
     };
   }
 
-  async register(userDto: UserRegisterDto) {
+  async register(userDto: UserRegisterDto, file: Express.Multer.File) {
+    console.log('=== BACKEND SERVICE ===');
+    console.log('📁 File:', file ? 'EXISTS' : 'NULL');
+    console.log('📁 File path:', file?.path);
+    console.log('📝 DTO before:', userDto);
     if (userDto.password !== userDto.confirmPassword) {
       throw new BadRequestException('Passwords do not match');
     }
     const existingUser = await this.userService.findByEmail(userDto.email);
     if (existingUser) {
       throw new ConflictException('User already exists');
+    }
+    if (file) {
+      userDto.profileImage = file.path;
+      console.log(file.path);
     }
     return this.userService.create(userDto);
   }
@@ -65,7 +76,7 @@ export class AuthService {
           'Google authentication failed: no payload',
         );
       }
-      const { email, given_name, family_name } = payload;
+      const { email, given_name, family_name, picture } = payload;
 
       if (!email) {
         throw new UnauthorizedException(
@@ -80,13 +91,20 @@ export class AuthService {
         newUser.email = email;
         newUser.firstName = given_name || ' ';
         newUser.lastName = family_name || ' ';
+        newUser.profileImage = picture || '';
+        newUser.provider = 'google';
         // Google users might not have a password
         newUser.password = Math.random().toString(36).slice(-8); // Generate a random password
 
         user = await this.userService.create(newUser);
+      } else {
+        user.profileImage = picture || '';
+        user.provider = 'google';
+        await this.userService.save(user);
       }
 
       return this.login(user);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       throw new UnauthorizedException('Google authentication failed');
     }

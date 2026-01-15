@@ -16,7 +16,7 @@ export class UserService {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(userRegisterDto.password, salt);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, confirmPassword, ...userData } = userRegisterDto;
+    const { password, ...userData } = userRegisterDto;
     const user = this.userRepository.create({
       ...userData,
       password: hashedPassword,

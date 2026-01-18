@@ -33,7 +33,7 @@
         </div>
       </div>
 
-      <div class="amenities">
+      <div class="form-group full-width">
         <label>Amenities</label>
         <div class="amenities-container" :class="{ 'error-border': errors.amenityIds }">
           <div class="form-group full-width">
@@ -47,7 +47,7 @@
 
           <div class="form-group full-width">
             <label>Custom Amenities</label>
-            <input v-model="form.custom_amenities" type="text" placeholder="e.g. Infinity Pool, Private Beach"
+            <input v-model="form.custom_amenities" type="text" placeholder="(e.g., Mini Bar, Jacuzzi, Private Balcony)"
               :class="{ 'input-error': errors.custom_amenities }" />
             <p class="help-text">Note: You can select amenities above AND add custom amenities too</p>
           </div>
@@ -87,7 +87,7 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="save-btn" :disabled="hotelStore.isLoading">
+        <button type="submit" class="update-btn" :disabled="hotelStore.isLoading">
           {{ hotelStore.isLoading ? 'Updating...' : 'Update Hotel' }}
         </button>
         <button type="button" class="cancel-btn" @click="$router.back()">Cancel</button>
@@ -201,12 +201,12 @@ watch(form, () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px;
-  align-items: center;
   font-family: 'Lato', sans-serif;
 }
 
 .form-header {
   display: flex;
+  align-items: center;
   gap: 15px;
   margin-bottom: 30px;
 }
@@ -220,7 +220,7 @@ watch(form, () => {
 .hotel-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .form-row {
@@ -229,8 +229,12 @@ watch(form, () => {
   gap: 20px;
 }
 
-.form-group {
+.form-row .form-group {
   flex: 1;
+  min-width: 0;
+}
+
+.form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -241,8 +245,9 @@ watch(form, () => {
 }
 
 label {
-  font-weight: bold;
-  font-size: 18px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
 }
 
 input {
@@ -257,34 +262,37 @@ input:focus {
   border-color: #0D4798;
 }
 
-.amenities {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 .amenities-container {
-  padding: 15px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
 }
 
 .amenities-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  padding: 20px;
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  margin-bottom: 20px;
 }
 
 .checkbox-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  min-width: 150px;
 }
 
-.custom-input-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-item label {
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
 }
 
 .help-text {
@@ -336,25 +344,34 @@ input:focus {
   color: white;
   border: none;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
-  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-layer:hover {
+  background: rgba(200, 0, 0, 1);
 }
 
 .section-title {
-  margin-top: 20px;
+  margin: 0 0 10px 0;
   font-size: 24px;
   color: #0D4798;
+  font-weight: 700;
 }
 
 .form-actions {
   display: flex;
   flex-direction: row;
   gap: 15px;
+  margin-top: 20px;
 }
 
-.save-btn {
+.update-btn {
   background: #0D4798;
   color: white;
   padding: 15px 20px;
@@ -365,7 +382,11 @@ input:focus {
   font-weight: bold;
 }
 
-.save-btn:disabled {
+.update-btn:hover {
+  background-color: #07316d;
+}
+
+.update-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
 }
@@ -379,6 +400,17 @@ input:focus {
   cursor: pointer;
   font-size: 18px;
   font-weight: bold;
+}
+
+.cancel-btn:hover {
+  background-color: #cc0000;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
 }
 
 .error-text {
@@ -405,5 +437,15 @@ input:focus {
   background-color: #fff5f5;
   padding: 15px;
   border-radius: 15px;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+
+  .page-container {
+    padding: 20px;
+  }
 }
 </style>

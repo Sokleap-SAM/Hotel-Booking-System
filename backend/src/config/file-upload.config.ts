@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
@@ -29,3 +31,4 @@ export function createUploadConfig(folderName: string) {
 }
 
 export const hotelUploadConfig = createUploadConfig('hotels');
+export const roomUploadConfig = createUploadConfig('rooms');

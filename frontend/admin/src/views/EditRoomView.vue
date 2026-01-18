@@ -1,0 +1,488 @@
+<template>
+    <main class="page-container">
+        <header class="form-header">
+            <button class="back-btn" @click="$router.back()">
+                <img :src="backIcon" alt="Go back" class="btn-icon" />
+            </button>
+            <h1>Edit Room</h1>
+        </header>
+
+        <div v-if="isLoadingData" class="loading-state">Loading room data...</div>
+
+        <form v-else @submit.prevent="handleUpdate" class="room-form">
+            <h2 class="section-title">Room Information</h2>
+
+            <div class="form-group full-width">
+                <label>Room Name</label>
+                <input v-model="form.name" type="text" :class="{ 'input-error': errors.name }" required />
+                <span v-if="errors.name" class="error-text">{{ errors.name }}</span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Short Description</label>
+                    <input v-model="form.shortDescription" type="text"
+                        :class="{ 'input-error': errors.shortDescription }" required />
+                    <span v-if="errors.shortDescription" class="error-text">{{ errors.shortDescription }}</span>
+                </div>
+                <div class="form-group">
+                    <label>Full Description</label>
+                    <input v-model="form.longDescription" type="text" :class="{ 'input-error': errors.longDescription }"
+                        required />
+                    <span v-if="errors.longDescription" class="error-text">{{ errors.longDescription }}</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Room Type</label>
+                    <select v-model="form.type" required :class="{ 'input-error': errors.type }">
+                        <option value="" disabled>Select Type</option>
+                        <option v-for="category in roomStore.roomCategories" :key="category" :value="category">
+                            {{ category }}
+                        </option>
+                    </select>
+                    <span v-if="errors.type" class="error-text">{{ errors.type }}</span>
+                </div>
+                <div class="form-group">
+                    <label>Units Available</label>
+                    <input v-model.number="form.available" type="number" min="1" max="50" required
+                        :class="{ 'input-error': errors.available }" />
+                    <span v-if="errors.available" class="error-text">{{ errors.available }}</span>
+                </div>
+                <div class="form-group">
+                    <label>Price per Night ($)</label>
+                    <input v-model.number="form.price" type="number" step="0.01" min="0" required
+                        :class="{ 'input-error': errors.price }" />
+                    <span v-if="errors.price" class="error-text">{{ errors.price }}</span>
+                </div>
+                <div class="form-group">
+                    <label>Max Occupancy</label>
+                    <input v-model.number="form.maxOccupancy" type="number" min="1" max="10" required
+                        :class="{ 'input-error': errors.maxOccupancy }" />
+                    <span v-if="errors.maxOccupancy" class="error-text">{{ errors.maxOccupancy }}</span>
+                </div>
+                <div class="form-group">
+                    <label>Discount (%)</label>
+                    <input v-model.number="form.discountPercentage" type="number" min="0" max="100"
+                        :class="{ 'input-error': errors.discountPercentage }" />
+                    <span v-if="errors.discountPercentage" class="error-text">{{ errors.discountPercentage }}</span>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Amenities</label>
+                <div class="amenities-container" :class="{ 'error-border': errors.amenityIds }">
+                    <div class="form-group full-width">
+                        <div class="amenities-list">
+                            <div v-for="amenity in roomStore.amenitiesList" :key="amenity.id" class="checkbox-item">
+                                <input type="checkbox" :id="'am-' + amenity.id" :value="amenity.id"
+                                    v-model="form.amenityIds" />
+                                <label :for="'am-' + amenity.id">{{ amenity.name }}</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Custom Amenities</label>
+                        <input v-model="form.custom_amenities" type="text"
+                            placeholder="(e.g., Mini Bar, Jacuzzi, Private Balcony)"
+                            :class="{ 'input-error': errors.custom_amenities }" />
+                        <p class="help-text">Note: You can select amenities above AND add custom amenities too</p>
+                    </div>
+                </div>
+                <span v-if="errors.amenityIds" class="error-text">{{ errors.amenityIds }}</span>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Room Images</label>
+                <div class="image-upload-grid" :class="{ 'grid-error': errors.images }">
+                    <div v-for="(img, index) in imagePreviews" :key="index" class="preview-card">
+                        <img :src="renderImage(img)" />
+                        <button type="button" class="remove-layer" @click="removeImage(index)">x</button>
+                    </div>
+
+                    <label class="upload-box">
+                        <input type="file" multiple accept="image/*" @change="handleFiles" hidden />
+                        <span class="upload-icon">+</span>
+                        <span class="upload-text">Upload</span>
+                    </label>
+                </div>
+                <span v-if="errors.images" class="error-text">{{ errors.images }}</span>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="update-btn" :disabled="roomStore.isLoading">
+                    {{ roomStore.isLoading ? 'Updating...' : 'Update Room' }}
+                </button>
+                <button type="button" class="cancel-btn" @click="$router.back()">Cancel</button>
+            </div>
+        </form>
+    </main>
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useRoomStore } from '@/stores/roomStore';
+import backIcon from '@/assets/icons/back-icon.svg';
+import { validateRoomForm } from '@/utils/room-validator';
+
+const route = useRoute();
+const router = useRouter();
+const roomStore = useRoomStore();
+
+const hotelId = route.params.id as string;
+const roomId = route.params.roomId as string;
+const isLoadingData = ref(true);
+const imagePreviews = ref<(string | File)[]>([]);
+const errors = ref<Record<string, string>>({});
+
+const form = ref({
+    name: '',
+    shortDescription: '',
+    longDescription: '',
+    type: '',
+    available: 1,
+    price: 0,
+    maxOccupancy: 2,
+    discountPercentage: 0,
+    amenityIds: [] as number[],
+    custom_amenities: '',
+    images: [] as (File | string)[],
+    hotelId: hotelId,
+});
+
+onMounted(async () => {
+    await roomStore.fetchAmenitiesByCategory('room');
+
+    const data = await roomStore.getRoomForEdit(roomId);
+
+    if (data) {
+        form.value = {
+            ...data,
+            hotelId: hotelId,
+            images: data.images || []
+        };
+        imagePreviews.value = [...(data.images || [])];
+        isLoadingData.value = false;
+    } else {
+        alert('Failed to load hotel data.');
+        router.push('/manage_hotel&room');
+    }
+});
+
+const renderImage = (img: string | File) => {
+    if (img instanceof File) {
+        return URL.createObjectURL(img);
+    }
+    return img.startsWith('http') ? img : `http://localhost:3000${img}`;
+};
+
+const handleFiles = (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    if (!target.files) return;
+
+    const files = Array.from(target.files);
+    files.forEach(file => {
+        form.value.images.push(file);
+        imagePreviews.value.push(file);
+    });
+
+    target.value = '';
+};
+
+const removeImage = (index: number) => {
+    form.value.images.splice(index, 1);
+    imagePreviews.value.splice(index, 1);
+};
+
+const handleUpdate = async () => {
+    errors.value = {};
+
+    const validation = validateRoomForm(form.value);
+
+    if (!validation.isValid) {
+        errors.value = validation.errors;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+
+    const result = await roomStore.updateRoom(roomId, form.value);
+
+    if (result.success) {
+        router.push(`/manage_hotel&room/${form.value.hotelId}/rooms`);
+    } else {
+        errors.value = { ...result.errors };
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+};
+
+watch(form, () => {
+    if (Object.keys(errors.value).length > 0) {
+        const validation = validateRoomForm(form.value);
+        errors.value = validation.errors;
+    }
+}, { deep: true });
+</script>
+
+<style scoped>
+.page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+    font-family: 'Lato', sans-serif;
+}
+
+.form-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.back-btn {
+    background-color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.room-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 0;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+label {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+}
+
+input,
+select {
+    padding: 12px;
+    border: 1px solid #D9D9D9;
+    font-size: 16px;
+    border-radius: 12px;
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: #0D4798;
+}
+
+select {
+    cursor: pointer;
+    appearance: auto;
+}
+
+.amenities-container {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.amenities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+    margin-bottom: 20px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 150px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.help-text {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.image-upload-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.upload-box {
+    width: 120px;
+    height: 120px;
+    border: 2px dashed #D9D9D9;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #919090;
+}
+
+.preview-card {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.preview-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.remove-layer {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-layer:hover {
+    background: rgba(200, 0, 0, 1);
+}
+
+.section-title {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    color: #0D4798;
+    font-weight: 700;
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.update-btn {
+    background: #0D4798;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.update-btn:hover {
+    background-color: #07316d;
+}
+
+.update-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.cancel-btn {
+    background: #FF0000;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.cancel-btn:hover {
+    background-color: #cc0000;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #666;
+}
+
+.error-text {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.input-error {
+    border-color: #dc2626;
+    background-color: #fff5f5;
+}
+
+.error-border {
+    border: 2px solid #dc2626 !important;
+    border-radius: 12px;
+    background-color: #fff5f5;
+    padding: 10px;
+}
+
+.grid-error {
+    border: 2px dashed #dc2626 !important;
+    background-color: #fff5f5;
+    padding: 15px;
+    border-radius: 15px;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+
+    .page-container {
+        padding: 20px;
+    }
+}
+</style>

@@ -13,6 +13,8 @@ import {
   Amenity,
   AmenityCategory,
 } from 'src/amenities/entities/amenity.entity';
+import { join } from 'path';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class RoomsService {
@@ -22,37 +24,32 @@ export class RoomsService {
     @InjectRepository(Hotel)
     private hotelsRepository: Repository<Hotel>,
     @InjectRepository(Amenity)
-    private readonly amenitiesRepo: Repository<Amenity>,
+    private readonly amenitiesRepository: Repository<Amenity>,
   ) {}
 
-  async create(createRoomDto: CreateRoomDto): Promise<Room> {
-    const { hotelId, amenityIds, ...roomData } = createRoomDto;
+  async create(createRoomDto: CreateRoomDto, files: any[]): Promise<Room> {
+    const { hotelId, amenityIds, custom_amenities, ...roomData } =
+      createRoomDto;
+    const filePaths = files.map((f) => `/uploads/rooms/${f.filename}`);
 
-    if (!amenityIds?.length && !createRoomDto.custom_amenities?.trim()) {
-      throw new BadRequestException(
-        'Provide at least one standard or custom amenity.',
-      );
-    }
-
-    const amenities = amenityIds?.length
-      ? await this.amenitiesRepo.find({
-          where: {
-            id: In(amenityIds),
-            category: AmenityCategory.ROOM,
-          },
-        })
-      : [];
-
-    if (amenityIds?.length && amenities.length !== amenityIds.length) {
-      throw new BadRequestException(
-        'One or more selected amenities are not valid for rooms.',
-      );
-    }
+    const amenities = await this.amenitiesRepository.find({
+      where: {
+        id: In(amenityIds || []),
+        category: AmenityCategory.ROOM,
+      },
+    });
 
     const hotel = await this.hotelsRepository.findOneBy({ id: hotelId });
     if (!hotel) throw new NotFoundException(`Hotel ${hotelId} not found`);
 
-    const room = this.roomsRepository.create({ ...roomData, hotel, amenities });
+    const room = this.roomsRepository.create({
+      ...roomData,
+      amenities,
+      hotel,
+      custom_amenities: custom_amenities || '',
+      images: filePaths,
+    });
+
     return await this.roomsRepository.save(room);
   }
 
@@ -82,52 +79,59 @@ export class RoomsService {
     }));
   }
 
-  async update(id: string, updateRoomDto: UpdateRoomDto): Promise<Room> {
+  async update(
+    id: string,
+    updateRoomDto: UpdateRoomDto,
+    newFiles: any[],
+  ): Promise<Room> {
     const room = await this.roomsRepository.findOne({
       where: { id },
       relations: ['amenities'],
     });
+
     if (!room) throw new NotFoundException(`Room ${id} not found`);
 
-    const { hotelId, amenityIds, ...rest } = updateRoomDto;
+    const { amenityIds, existingImages, custom_amenities, ...rest } =
+      updateRoomDto;
 
-    const finalAmenityIds =
-      amenityIds !== undefined ? amenityIds : room.amenities;
-    const finalCustom =
-      updateRoomDto.custom_amenities !== undefined
-        ? updateRoomDto.custom_amenities
-        : room.custom_amenities;
+    const newPaths = newFiles.map((f) => `/uploads/rooms/${f.filename}`);
+    const currentExisting = (existingImages as string[]) || [];
+    const totalImagesAfterUpdate = [
+      ...((existingImages as string[]) || []),
+      ...newPaths,
+    ];
 
-    if (
-      (!finalAmenityIds ||
-        (Array.isArray(finalAmenityIds) && finalAmenityIds.length === 0)) &&
-      !finalCustom?.trim()
-    ) {
-      throw new BadRequestException(
-        'Room must have at least one standard or custom amenity.',
-      );
+    if (totalImagesAfterUpdate.length === 0) {
+      throw new BadRequestException('A room must have at least one image.');
     }
 
-    if (hotelId && hotelId !== room.hotelId) {
-      const hotel = await this.hotelsRepository.findOneBy({ id: hotelId });
-      if (!hotel) throw new NotFoundException(`Hotel ${hotelId} not found`);
-      room.hotel = hotel;
+    const imagesToDelete = room.images.filter(
+      (path) => !currentExisting.includes(path),
+    );
+
+    for (const path of imagesToDelete) {
+      try {
+        await unlink(join(process.cwd(), path));
+      } catch (err) {
+        console.error(`Failed to delete old image: ${path}`, err);
+      }
     }
 
-    if (amenityIds) {
-      const validAmenities = await this.amenitiesRepo.find({
+    room.images = totalImagesAfterUpdate;
+
+    if (custom_amenities && (!amenityIds || amenityIds.length === 0)) {
+      room.amenities = [];
+    } else if (Array.isArray(amenityIds) && amenityIds.length > 0) {
+      room.amenities = await this.amenitiesRepository.find({
         where: {
           id: In(amenityIds),
           category: AmenityCategory.ROOM,
         },
       });
+    }
 
-      if (validAmenities.length !== amenityIds.length) {
-        throw new BadRequestException(
-          'One or more selected amenities are not valid for rooms.',
-        );
-      }
-      room.amenities = validAmenities;
+    if (custom_amenities !== undefined) {
+      room.custom_amenities = custom_amenities?.trim() || '';
     }
 
     Object.assign(room, rest);
@@ -136,6 +140,16 @@ export class RoomsService {
 
   async remove(id: string): Promise<{ message: string }> {
     const room = await this.findOne(id);
+    if (room.images) {
+      for (const imagePath of room.images) {
+        try {
+          const fullPath = join(process.cwd(), imagePath);
+          await unlink(fullPath);
+        } catch (err) {
+          console.error(`Failed to delete image: ${imagePath}`, err);
+        }
+      }
+    }
     await this.roomsRepository.remove(room);
 
     return {
@@ -151,7 +165,7 @@ export class RoomsService {
     });
   }
 
-  async findDiscounted(minDiscount: number = 10): Promise<Room[]> {
+  async findDiscounted(minDiscount: number): Promise<Room[]> {
     return await this.roomsRepository.find({
       where: {
         discountPercentage: minDiscount,

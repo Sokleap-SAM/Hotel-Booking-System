@@ -4,22 +4,35 @@ import {
   Post,
   Body,
   Param,
-  Put,
   Delete,
   Patch,
-  ParseIntPipe,
+  UseInterceptors,
+  UploadedFiles,
+  ParseFilePipe,
 } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/create_room.dto';
 import { UpdateRoomDto } from './dto/update_room.dto';
+import { RoomValidatorPipe } from './pipes/room-validator.pipe';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { roomUploadConfig } from 'src/config/file-upload.config';
 
 @Controller('rooms')
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
   @Post()
-  create(@Body() createRoomDto: CreateRoomDto) {
-    return this.roomsService.create(createRoomDto);
+  @UseInterceptors(FilesInterceptor('images', 10, roomUploadConfig))
+  create(
+    @Body(new RoomValidatorPipe()) dto: CreateRoomDto,
+    @UploadedFiles(
+      new ParseFilePipe({
+        fileIsRequired: false,
+      }),
+    )
+    files: Express.Multer.File[],
+  ) {
+    return this.roomsService.create(dto, files);
   }
 
   @Get('available')
@@ -33,28 +46,26 @@ export class RoomsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: string) {
+  findOne(@Param('id') id: string) {
     return this.roomsService.findOne(id);
   }
-
-  @Put(':id')
-  update(
-    @Param('id', ParseIntPipe) id: string,
-    @Body() updateRoomDto: UpdateRoomDto,
-  ) {
-    return this.roomsService.update(id, updateRoomDto);
-  }
-
   @Patch(':id')
-  partialUpdate(
-    @Param('id', ParseIntPipe) id: string,
-    @Body() updateRoomDto: UpdateRoomDto,
+  @UseInterceptors(FilesInterceptor('images', 10, roomUploadConfig))
+  update(
+    @Param('id') id: string,
+    @Body(new RoomValidatorPipe()) dto: UpdateRoomDto,
+    @UploadedFiles(
+      new ParseFilePipe({
+        fileIsRequired: false,
+      }),
+    )
+    files?: Express.Multer.File[],
   ) {
-    return this.roomsService.update(id, updateRoomDto);
+    return this.roomsService.update(id, dto, files || []);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: string) {
+  remove(@Param('id') id: string) {
     return this.roomsService.remove(id);
   }
 }

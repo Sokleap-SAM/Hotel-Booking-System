@@ -1,7 +1,7 @@
 <template>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
   <div>
-    <HeaderScreen />
+    <HeaderScreen class="smart-header"/>
     <BackgroundHomeScreen />
     <PopularHotel />
     <MyBooking />
@@ -43,5 +43,11 @@ export default {
   flex-direction: column;
   min-height: 100vh;
   justify-content: space-between;
+}
+.smart-header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
 }
 </style>

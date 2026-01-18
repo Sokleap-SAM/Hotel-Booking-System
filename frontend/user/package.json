@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@remixicon/vue": "^4.8.0",
+    "@vuepic/vue-datepicker": "^12.1.0",
     "helmet": "^8.1.0",
     "jwt-decode": "^4.0.0",
     "pinia": "^3.0.4",

@@ -8,6 +8,7 @@ import HomeScreen from '@/view/HomeScreen.vue'
 import { useAuthStore } from '@/stores/auth'
 import Bookingpage from '@/view/BookingPage.vue'
 import BookingDetail from '@/view/BookingDetail.vue'
+import RoomDetailModal from '@/components/BookingDetail/RoomDetailModal.vue'
 
 const routes = [
   {
@@ -55,6 +56,11 @@ const routes = [
     path: '/BookingDetail',
     name: 'BookingDetail',
     component: BookingDetail,
+  },
+  {
+    path: '/RoomDetailModal',
+    name: 'RoomDetailModal',
+    component: RoomDetailModal,
   }
 ]
 

@@ -14,9 +14,10 @@
     <span>below and we'll verify your name</span>
     <div class="input-group">
       <label>Email Address</label>
-      <input type="email" id="email" placeholder="Enter your email" />
+      <input type="email" id="email" placeholder="Enter your email" v-model="email" />
     </div>
-    <button class="btn-Login" @click="goToResetPW">verify email</button>
+    <div v-if="error" class="error-message">{{ error }}</div>
+    <button class="btn-Login" @click="handleForgotPassword">verify email</button>
     <div class="back-link" @click="goToLogin">
       <i class="ri-arrow-left-line"></i>
       <span>Back to login</span>
@@ -25,33 +26,55 @@
 </template>
 
 <script lang="ts">
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 export default {
   name: 'ForgotPasswordScreen',
   setup() {
-
-    const router = useRouter()
+    const email = ref('');
+    const error = ref<string | null>(null);
+    const router = useRouter();
+    const authStore = useAuthStore();
     const goToLogin = () => {
       router.push('/login')
     }
 
-    const goToResetPW = () => {
-      router.push('/ResetPWScreen')
-    }
+    const handleForgotPassword = async () => {
+      error.value = null;
+      if (!email.value) {
+        error.value = 'Please enter your email address.';
+        return;
+      }
+      try {
+        const data = await authStore.forgotPassword(email.value);
+        router.push({ name: 'reset-password', params: { token: data.token } });
+      } catch (err) {
+        error.value = err.message || 'An unexpected error occurred.';
+      }
+    };
 
     return {
-      goToResetPW,
+      handleForgotPassword,
       goToLogin,
-    }
+      email,
+      error,
+    };
   }
 }
 </script>
 
 <style scoped>
+.error-message {
+  color: red;
+  margin-bottom: 15px;
+}
 /* Main card container */
 .container {
-  width: 450px;
-  height: 620px;
+  width: 90%;
+  max-width: 450px;
+  height: auto;
+  min-height: 620px;
   font-family: 'Lato', sans-serif;
   padding: 40px 20px;
   position: absolute;
@@ -169,5 +192,29 @@ input::placeholder {
 
 .back-link:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 20px 15px;
+    min-height: 0;
+  }
+
+  .circle {
+    width: 100px;
+    height: 100px;
+  }
+
+  .circle i {
+    font-size: 40px;
+  }
+
+  h2 {
+    font-size: 28px;
+  }
+
+  .btn-Login {
+    font-size: 18px;
+  }
 }
 </style>

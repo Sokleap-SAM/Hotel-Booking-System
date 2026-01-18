@@ -1,19 +1,22 @@
 <script lang="ts">
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
+  import background1 from '@/assets/Background.png'
+  import background2 from '@/assets/Background2.png'
+
   export default {
     name: 'AuthLogin',
     setup() {
       const route = useRoute();
 
       const backgroundStyle = computed(() => {
-        if (route.path === '/login') {
+        if (route.name === 'login') {
           return {
-            backgroundImage: "url('src/assets/Background.png')"
+            backgroundImage: `url(${background1})`
           }
         }
         return {
-          backgroundImage: "url('src/assets/Background2.png')"
+          backgroundImage: `url(${background2})`
         }
       })
       return {

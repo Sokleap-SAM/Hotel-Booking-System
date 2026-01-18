@@ -55,7 +55,7 @@
                 <span class="final-price">USD${{ room.finalPrice }}</span>
               </div>
               <p class="tax-note">Include tax and fee</p>
-              <button class="btn-table-book">Booking now</button>
+              <button class="btn-table-book" @click="goToPayment">Booking now</button>
               <p class="small-note">● It only takes 2 minutes</p>
               <p class="small-note">● You won't be charged yet</p>
             </div>
@@ -71,6 +71,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import RoomDetailModal from './RoomDetailModal.vue'
+import { useRouter } from 'vue-router';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 defineProps<{ rooms: any[] }>()
@@ -78,6 +79,11 @@ defineProps<{ rooms: any[] }>()
 // State for Modal
 const isModalOpen = ref(false)
 const activeRoom = ref(null)
+
+const router = useRouter()
+const goToPayment = () => {
+  router.push({ name: 'TransactionPayment' })
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const openDetail = (room: any) => {

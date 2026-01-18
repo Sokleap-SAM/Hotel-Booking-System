@@ -9,6 +9,8 @@ import { useAuthStore } from '@/stores/auth'
 import Bookingpage from '@/view/BookingPage.vue'
 import BookingDetail from '@/view/BookingDetail.vue'
 import RoomDetailModal from '@/components/BookingDetail/RoomDetailModal.vue'
+import TransactionPayment from "@/view/TransactionPayment.vue"
+import LastPayment from '@/view/LastPayment.vue'
 
 const routes = [
   {
@@ -61,6 +63,16 @@ const routes = [
     path: '/RoomDetailModal',
     name: 'RoomDetailModal',
     component: RoomDetailModal,
+  },
+  {
+    path: '/TransactionPayment',
+    name: 'TransactionPayment',
+    component: TransactionPayment,
+  },
+  {
+    path: '/LastPayment',
+    name: 'LastPayment',
+    component: LastPayment,
   }
 ]
 

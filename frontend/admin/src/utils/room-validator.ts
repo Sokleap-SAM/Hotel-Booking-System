@@ -19,11 +19,6 @@ export const validateRoomForm = (data: any) => {
     errors.longDescription = 'Full Description must be at least 40 characters.';
   }
 
-  const validTypes = ['Single', 'Double', 'Twin', 'Deluxe', 'Suite', 'Penthouse'];
-  if (!data.type || !validTypes.includes(data.type)) {
-    errors.type = 'Please select a valid room type.';
-  }
-
   if (data.available === undefined || data.available === null || data.available < 1) {
     errors.available = 'Available rooms must be at least 1.';
   } else if (data.available > 50) {

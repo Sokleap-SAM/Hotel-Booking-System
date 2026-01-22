@@ -19,10 +19,6 @@
           Highest Price
         </label>
         <label>
-          <input type="radio" name="sort" value="highest-rating" v-model="selectedSort" @change="handleSortChange" />
-          Best Rating
-        </label>
-        <label>
           <input type="radio" name="sort" value="highest-discount" v-model="selectedSort" @change="handleSortChange" />
           Biggest Discount
         </label>
@@ -42,11 +38,28 @@
           />
           {{ amenity.name }}
         </label>
+      </div>
+
+      <!-- Bed Type Filter -->
+      <div class="filter-group">
+        <p class="group-title">Bed Type</p>
+        <div v-if="hotelStores.bedTypesList.length === 0" class="loading-text">
+          Loading bed types...
+        </div>
+        <label v-for="bedType in hotelStores.bedTypesList" :key="bedType.id">
+          <input
+            type="checkbox"
+            :value="bedType.id"
+            v-model="selectedBedTypes"
+          />
+          {{ bedType.name }}
+        </label>
         <div class="filter-actions" v-if="hotelStores.amenitiesList.length > 0">
-          <button class="apply-btn" @click="applyAmenityFilter">Apply</button>
+          <button class="apply-btn" @click="applyFilters">Apply</button>
           <button class="clear-btn" @click="clearFilters">Clear All</button>
         </div>
       </div>
+
     </div>
   </div>
 </template>
@@ -61,13 +74,30 @@ export default defineComponent({
     const hotelStores = useHotelStore();
     const selectedSort = ref<SortOption>('default');
     const selectedAmenities = ref<number[]>([]);
+    const selectedBedTypes = ref<number[]>([]);
 
     onMounted(async () => {
-      await hotelStores.fetchAmenitiesByCategory('hotel');
+      await Promise.all([
+        hotelStores.fetchAmenitiesByCategory('hotel'),
+        hotelStores.fetchBedTypes()
+      ]);
     });
 
     const handleSortChange = async () => {
       await hotelStores.applySort(selectedSort.value);
+    };
+
+    const applyFilters = async () => {
+      applyAmenityFilter();
+      applyBedTypeFilter();
+    };
+
+    const applyBedTypeFilter = async () => {
+      if (selectedBedTypes.value.length > 0) {
+        await hotelStores.fetchHotelsByBedType(selectedBedTypes.value);
+      } else {
+        await hotelStores.applySort(selectedSort.value);
+      }
     };
 
     const applyAmenityFilter = async () => {
@@ -81,6 +111,7 @@ export default defineComponent({
     const clearFilters = async () => {
       selectedSort.value = 'default';
       selectedAmenities.value = [];
+      selectedBedTypes.value = [];
       await hotelStores.fetchHotels();
     };
 
@@ -88,8 +119,9 @@ export default defineComponent({
       hotelStores,
       selectedSort,
       selectedAmenities,
+      selectedBedTypes,
       handleSortChange,
-      applyAmenityFilter,
+      applyFilters,
       clearFilters,
     };
   },
@@ -108,9 +140,9 @@ export default defineComponent({
   flex-direction: column;
   background-color: #DFDFDF;
   width: 304px;
-  height: 550px;
+  height: 610px;
   border-radius: 10px;
-  padding: 20px;
+  padding: 15px;
   box-sizing: border-box; /* Ensures padding doesn't increase width */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -194,7 +226,8 @@ input[type="radio"], input[type="checkbox"] {
 }
 
 .clear-btn:hover {
-  background-color: #ccc;
+  color: white;
+  background-color: #ff0000;
 }
 
 .loading-text {

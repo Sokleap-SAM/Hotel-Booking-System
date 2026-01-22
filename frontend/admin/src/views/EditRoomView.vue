@@ -35,16 +35,6 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Room Type</label>
-                    <select v-model="form.type" required :class="{ 'input-error': errors.type }">
-                        <option value="" disabled>Select Type</option>
-                        <option v-for="category in roomStore.roomCategories" :key="category" :value="category">
-                            {{ category }}
-                        </option>
-                    </select>
-                    <span v-if="errors.type" class="error-text">{{ errors.type }}</span>
-                </div>
-                <div class="form-group">
                     <label>Units Available</label>
                     <input v-model.number="form.available" type="number" min="1" max="50" required
                         :class="{ 'input-error': errors.available }" />
@@ -68,6 +58,30 @@
                         :class="{ 'input-error': errors.discountPercentage }" />
                     <span v-if="errors.discountPercentage" class="error-text">{{ errors.discountPercentage }}</span>
                 </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Bed Configuration</label>
+                <div class="bed-types-container" :class="{ 'error-border': errors.roomBeds }">
+                    <div v-for="(bed, index) in form.roomBeds" :key="index" class="bed-row">
+                        <select v-model="bed.bedTypeId" class="bed-select">
+                            <option value="" disabled>Select Bed Type</option>
+                            <option v-for="bedType in roomStore.bedTypesList" :key="bedType.id" :value="bedType.id">
+                                {{ bedType.name }}
+                            </option>
+                        </select>
+                        <div class="quantity-input">
+                            <label>Qty:</label>
+                            <input v-model.number="bed.quantity" type="number" min="1" max="10" />
+                        </div>
+                        <button type="button" class="remove-bed-btn" @click="removeBed(index)"
+                            :disabled="form.roomBeds.length === 1">×</button>
+                    </div>
+                    <button type="button" class="add-bed-btn" @click="addBed">
+                        + Add Another Bed Type
+                    </button>
+                </div>
+                <span v-if="errors.roomBeds" class="error-text">{{ errors.roomBeds }}</span>
             </div>
 
             <div class="form-group full-width">
@@ -142,7 +156,6 @@ const form = ref({
     name: '',
     shortDescription: '',
     longDescription: '',
-    type: '',
     available: 1,
     price: 0,
     maxOccupancy: 2,
@@ -150,11 +163,15 @@ const form = ref({
     amenityIds: [] as number[],
     custom_amenities: '',
     images: [] as (File | string)[],
+    roomBeds: [{ bedTypeId: 0, quantity: 1 }] as { bedTypeId: number; quantity: number }[],
     hotelId: hotelId,
 });
 
 onMounted(async () => {
-    await roomStore.fetchAmenitiesByCategory('room');
+    await Promise.all([
+        roomStore.fetchAmenitiesByCategory('room'),
+        roomStore.fetchBedTypes()
+    ]);
 
     const data = await roomStore.getRoomForEdit(roomId);
 
@@ -162,7 +179,8 @@ onMounted(async () => {
         form.value = {
             ...data,
             hotelId: hotelId,
-            images: data.images || []
+            images: data.images || [],
+            roomBeds: data.roomBeds?.length > 0 ? data.roomBeds : [{ bedTypeId: 0, quantity: 1 }]
         };
         imagePreviews.value = [...(data.images || [])];
         isLoadingData.value = false;
@@ -171,6 +189,16 @@ onMounted(async () => {
         router.push('/manage_hotel&room');
     }
 });
+
+const addBed = () => {
+    form.value.roomBeds.push({ bedTypeId: 0, quantity: 1 });
+};
+
+const removeBed = (index: number) => {
+    if (form.value.roomBeds.length > 1) {
+        form.value.roomBeds.splice(index, 1);
+    }
+};
 
 const renderImage = (img: string | File) => {
     if (img instanceof File) {
@@ -474,6 +502,80 @@ select {
     background-color: #fff5f5;
     padding: 15px;
     border-radius: 15px;
+}
+
+.bed-types-container {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bed-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.bed-select {
+    flex: 1;
+    min-width: 150px;
+}
+
+.quantity-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quantity-input input {
+    width: 70px;
+    text-align: center;
+}
+
+.remove-bed-btn {
+    background: #ff4444;
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-bed-btn:hover:not(:disabled) {
+    background: #cc0000;
+}
+
+.remove-bed-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.add-bed-btn {
+    background: #0D4798;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    align-self: flex-start;
+}
+
+.add-bed-btn:hover {
+    background: #0a3a7d;
 }
 
 @media (max-width: 768px) {

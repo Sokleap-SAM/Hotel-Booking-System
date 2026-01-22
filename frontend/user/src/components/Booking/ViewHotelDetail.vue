@@ -1,8 +1,16 @@
 <template>
   <div class="list-container">
     <div class="tabs-header">
-      <button class="tab-btn active">Top Booking</button>
-      <button class="tab-btn">Best reviewed</button>
+      <button 
+        class="tab-btn" 
+        :class="{ active: activeTab === 'top-booking' }"
+        @click="handleTabChange('top-booking')"
+      >Top Booking</button>
+      <button 
+        class="tab-btn" 
+        :class="{ active: activeTab === 'best-reviewed' }"
+        @click="handleTabChange('best-reviewed')"
+      >Best reviewed</button>
     </div>
 
     <div v-if="hotelStores.isLoading" class="loading">Loading hotels...</div>
@@ -38,7 +46,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useHotelStore } from '@/stores/hotelStores';
 import defaultHotelImage from '@/assets/Angkorwat.png';
@@ -48,10 +56,22 @@ export default defineComponent({
   setup() {
     const router = useRouter();
     const hotelStores = useHotelStore();
+    const activeTab = ref('top-booking');
 
     onMounted(async () => {
-      await hotelStores.fetchHotels();
+      await hotelStores.fetchHotelsByHighestDiscount();
     });
+
+    const handleTabChange = async (tab: string) => {
+      if (activeTab.value === tab) return;
+      activeTab.value = tab;
+
+      if (tab === 'top-booking') {
+        await hotelStores.fetchHotelsByHighestDiscount();
+      } else if (tab === 'best-reviewed') {
+        await hotelStores.fetchHotelsByHighestRating();
+      }
+    };
 
     const getHotelImage = (hotel: any) => {
       if (hotel.images && hotel.images.length > 0) {
@@ -86,6 +106,8 @@ export default defineComponent({
 
     return {
       hotelStores,
+      activeTab,
+      handleTabChange,
       getHotelImage,
       getLowestPrice,
       hasDiscount,

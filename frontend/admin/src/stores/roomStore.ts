@@ -4,13 +4,15 @@ import { toRaw } from 'vue';
 
 const api = axios.create({ baseURL: 'http://localhost:3000' });
 
-export enum RoomCategory {
-  SINGLE = 'Single',
-  DOUBLE = 'Double',
-  TWIN = 'Twin',
-  DELUXE = 'Deluxe',
-  SUITE = 'Suite',
-  PENTHOUSE = 'Penthouse',
+export interface BedType {
+  id: number;
+  name: string;
+}
+
+export interface RoomBed {
+  bedTypeId: number;
+  quantity: number;
+  bedType?: BedType;
 }
 
 export interface Room {
@@ -18,7 +20,6 @@ export interface Room {
   name: string;
   shortDescription: string;
   longDescription: string;
-  type: RoomCategory;
   available: number;
   price: number;
   maxOccupancy: number;
@@ -26,6 +27,7 @@ export interface Room {
   images: string[];
   amenities: any[];
   custom_amenities: string;
+  roomBeds: RoomBed[];
   hotelId: string;
   hotel?: any;
   createdAt: Date;
@@ -35,7 +37,6 @@ export interface RoomFormData {
   name: string;
   shortDescription: string;
   longDescription: string;
-  type: RoomCategory;
   available: number;
   price: number;
   maxOccupancy: number;
@@ -43,6 +44,7 @@ export interface RoomFormData {
   images: (File | string)[];
   amenityIds: number[];
   custom_amenities: string;
+  roomBeds: RoomBed[];
   hotelId: string;
 }
 
@@ -66,6 +68,7 @@ export const useRoomStore = defineStore('room', {
     rooms: [] as Room[],
     currentRoom: null as Room | null,
     amenitiesList: [] as any[],
+    bedTypesList: [] as BedType[],
     isLoading: false,
     searchQuery: '',
   }),
@@ -80,10 +83,9 @@ export const useRoomStore = defineStore('room', {
 
       return state.rooms.filter((room) => {
         const name = (room.name || '').toLowerCase();
-        const type = (room.type || '').toLowerCase();
         const hotelName = (room.hotel?.name || '').toLowerCase();
 
-        return name.includes(query) || type.includes(query) || hotelName.includes(query);
+        return name.includes(query) || hotelName.includes(query);
       });
     },
 
@@ -101,8 +103,6 @@ export const useRoomStore = defineStore('room', {
             : null,
       }));
     },
-
-    roomCategories: () => Object.values(RoomCategory),
   },
 
   actions: {
@@ -117,7 +117,6 @@ export const useRoomStore = defineStore('room', {
         'name',
         'shortDescription',
         'longDescription',
-        'type',
         'hotelId',
       ];
 
@@ -146,6 +145,14 @@ export const useRoomStore = defineStore('room', {
             .join(', ')
         : '';
       formData.append('custom_amenities', cleanCustom);
+
+      // Handle roomBeds array
+      if (Array.isArray(data.roomBeds) && data.roomBeds.length > 0) {
+        const validBeds = data.roomBeds.filter(
+          (bed: RoomBed) => bed.bedTypeId && bed.quantity > 0
+        );
+        formData.append('roomBeds', JSON.stringify(validBeds));
+      }
 
       if (Array.isArray(data.images)) {
         data.images.forEach((item: any) => {
@@ -203,6 +210,10 @@ export const useRoomStore = defineStore('room', {
             custom_amenities: room.custom_amenities || '',
             images: room.images || [],
             existingImages: room.images || [],
+            roomBeds: room.roomBeds?.map((rb: any) => ({
+              bedTypeId: rb.bedTypeId || rb.bedType?.id,
+              quantity: rb.quantity,
+            })) || [],
           };
         }
         return null;
@@ -256,6 +267,16 @@ export const useRoomStore = defineStore('room', {
       } catch (error) {
         console.error('Error fetching amenities:', error);
         this.amenitiesList = [];
+      }
+    },
+
+    async fetchBedTypes() {
+      try {
+        const { data } = await api.get('/bed-types');
+        this.bedTypesList = data;
+      } catch (error) {
+        console.error('Error fetching bed types:', error);
+        this.bedTypesList = [];
       }
     },
 

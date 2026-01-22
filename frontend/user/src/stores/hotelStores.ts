@@ -5,6 +5,11 @@ const api = axios.create({ baseURL: 'http://localhost:3000' })
 
 export type SortOption = 'default' | 'lowest-price' | 'highest-price' | 'highest-rating' | 'highest-discount'
 
+export interface BedType {
+  id: number
+  name: string
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fieldLabels: Record<string, string> = {
   name: 'Hotel Name',
@@ -25,10 +30,12 @@ export const useHotelStore = defineStore('hotel', {
     hotels: [] as any[],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     amenitiesList: [] as any[],
+    bedTypesList: [] as BedType[],
     isLoading: false,
     searchQuery: '',
     currentSort: 'default' as SortOption,
     selectedAmenityIds: [] as number[],
+    selectedBedTypeIds: [] as number[],
   }),
 
   getters: {
@@ -142,6 +149,30 @@ export const useHotelStore = defineStore('hotel', {
         console.error('Fetch hotels by amenities error:', error)
       } finally {
         this.isLoading = false
+      }
+    },
+
+    async fetchHotelsByBedType(bedTypeIds: number[]) {
+      this.isLoading = true
+      this.selectedBedTypeIds = bedTypeIds
+      try {
+        const idsParam = bedTypeIds.join(',')
+        const { data } = await api.get(`/hotels/filter/by-bed-type?bedTypeIds=${idsParam}`)
+        this.hotels = data
+      } catch (error) {
+        console.error('Fetch hotels by bed type error:', error)
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchBedTypes() {
+      try {
+        const { data } = await api.get('/bed-types')
+        this.bedTypesList = data
+      } catch (error) {
+        console.error('Error fetching bed types:', error)
+        this.bedTypesList = []
       }
     },
 

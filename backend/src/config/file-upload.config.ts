@@ -32,3 +32,4 @@ export function createUploadConfig(folderName: string) {
 
 export const hotelUploadConfig = createUploadConfig('hotels');
 export const roomUploadConfig = createUploadConfig('rooms');
+export const profileUploadConfig = createUploadConfig('profiles');

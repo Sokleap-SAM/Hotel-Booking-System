@@ -3,38 +3,96 @@
     <div class="filter-content">
       <h3 class="filter-header">Filter by:</h3>
 
+      <!-- Sort Options -->
       <div class="filter-group">
-        <p class="group-title">Score / Rating</p>
-        <label><input type="radio" name="rating" /> 4.5 & up</label>
-        <label><input type="radio" name="rating" /> 4 & up</label>
-        <label><input type="radio" name="rating" /> 3.5 & up</label>
-        <label><input type="radio" name="rating" /> 3 & up</label>
-        <label><input type="radio" name="rating" /> Lower than 3</label>
+        <p class="group-title">Sort By</p>
+        <label>
+          <input type="radio" name="sort" value="default" v-model="selectedSort" @change="handleSortChange" />
+          Default
+        </label>
+        <label>
+          <input type="radio" name="sort" value="lowest-price" v-model="selectedSort" @change="handleSortChange" />
+          Lowest Price
+        </label>
+        <label>
+          <input type="radio" name="sort" value="highest-price" v-model="selectedSort" @change="handleSortChange" />
+          Highest Price
+        </label>
+        <label>
+          <input type="radio" name="sort" value="highest-rating" v-model="selectedSort" @change="handleSortChange" />
+          Best Rating
+        </label>
+        <label>
+          <input type="radio" name="sort" value="highest-discount" v-model="selectedSort" @change="handleSortChange" />
+          Biggest Discount
+        </label>
       </div>
 
+      <!-- Amenities Filter -->
       <div class="filter-group">
-        <p class="group-title">Duration</p>
-        <label><input type="radio" /> 1-3 hours</label>
-        <label><input type="radio" /> Half-day</label>
-        <label><input type="radio" /> Full-day</label>
-        <label><input type="radio" /> Multi-day</label>
-      </div>
-
-      <div class="filter-group">
-        <p class="group-title">Price Range</p>
-        <label><input type="radio" name="price" /> Lowest Price</label>
-        <label><input type="radio" name="price" /> Mid-range</label>
-        <label><input type="radio" name="price" /> Premium</label>
+        <p class="group-title">Amenities</p>
+        <div v-if="hotelStores.amenitiesList.length === 0" class="loading-text">
+          Loading amenities...
+        </div>
+        <label v-for="amenity in hotelStores.amenitiesList" :key="amenity.id">
+          <input
+            type="checkbox"
+            :value="amenity.id"
+            v-model="selectedAmenities"
+          />
+          {{ amenity.name }}
+        </label>
+        <div class="filter-actions" v-if="hotelStores.amenitiesList.length > 0">
+          <button class="apply-btn" @click="applyAmenityFilter">Apply</button>
+          <button class="clear-btn" @click="clearFilters">Clear All</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
+import { useHotelStore, type SortOption } from '@/stores/hotelStores';
 
 export default defineComponent({
   name: 'FilterComponent',
+  setup() {
+    const hotelStores = useHotelStore();
+    const selectedSort = ref<SortOption>('default');
+    const selectedAmenities = ref<number[]>([]);
+
+    onMounted(async () => {
+      await hotelStores.fetchAmenitiesByCategory('hotel');
+    });
+
+    const handleSortChange = async () => {
+      await hotelStores.applySort(selectedSort.value);
+    };
+
+    const applyAmenityFilter = async () => {
+      if (selectedAmenities.value.length > 0) {
+        await hotelStores.fetchHotelsByAmenities(selectedAmenities.value);
+      } else {
+        await hotelStores.applySort(selectedSort.value);
+      }
+    };
+
+    const clearFilters = async () => {
+      selectedSort.value = 'default';
+      selectedAmenities.value = [];
+      await hotelStores.fetchHotels();
+    };
+
+    return {
+      hotelStores,
+      selectedSort,
+      selectedAmenities,
+      handleSortChange,
+      applyAmenityFilter,
+      clearFilters,
+    };
+  },
 });
 </script>
 
@@ -102,5 +160,46 @@ input[type="radio"], input[type="checkbox"] {
   cursor: pointer;
   width: 16px;
   height: 16px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.apply-btn, .clear-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.apply-btn {
+  background-color: #1a73e8;
+  color: white;
+}
+
+.apply-btn:hover {
+  background-color: #1557b0;
+}
+
+.clear-btn {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.clear-btn:hover {
+  background-color: #ccc;
+}
+
+.loading-text {
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
 }
 </style>

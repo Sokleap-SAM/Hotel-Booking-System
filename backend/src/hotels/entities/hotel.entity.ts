@@ -9,10 +9,29 @@ import {
   JoinTable,
 } from 'typeorm';
 
+export enum HotelStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  SUSPEND = 'suspend',
+}
+
 @Entity()
 export class Hotel {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({
+    type: 'enum',
+    enum: HotelStatus,
+    default: HotelStatus.ACTIVE,
+  })
+  status: HotelStatus;
+
+  @Column({ type: 'decimal', precision: 2, scale: 1, default: 0 })
+  avgRating: number;
+
+  @Column({ type: 'int', nullable: true, default: 0 })
+  totalRating: number;
 
   @Column()
   name: string;

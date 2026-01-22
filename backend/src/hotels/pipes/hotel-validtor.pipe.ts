@@ -1,11 +1,27 @@
-import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
+import {
+  PipeTransform,
+  Injectable,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
+import { Amenity, AmenityCategory } from 'src/amenities/entities/amenity.entity';
 
 @Injectable()
 export class HotelValidatorPipe implements PipeTransform {
-  transform(value: any) {
+  constructor(
+    @InjectRepository(Amenity)
+    private amenityRepository: Repository<Amenity>,
+  ) {}
+
+  async transform(value: any) {
     if (!value || typeof value !== 'object') return value;
 
     this.validateAtLeastOneAmenity(value);
+
+    if (value.amenityIds && Array.isArray(value.amenityIds) && value.amenityIds.length > 0) {
+      await this.validateAmenityIdsExist(value.amenityIds);
+    }
 
     if (value.googleMapUrl) {
       this.validateGoogleMapDomain(value.googleMapUrl);
@@ -68,6 +84,24 @@ export class HotelValidatorPipe implements PipeTransform {
     if (!locationRegex.test(location)) {
       throw new BadRequestException(
         'Invalid Location Format. Expected: "100, st289, khan toulkok, Phnom Penh"',
+      );
+    }
+  }
+
+  private async validateAmenityIdsExist(amenityIds: number[]): Promise<void> {
+    const validAmenities = await this.amenityRepository.find({
+      where: {
+        id: In(amenityIds),
+        category: AmenityCategory.HOTEL,
+      },
+    });
+
+    const validIds = validAmenities.map((a) => a.id);
+    const invalidIds = amenityIds.filter((id) => !validIds.includes(id));
+
+    if (invalidIds.length > 0) {
+      throw new BadRequestException(
+        `Invalid amenity IDs: ${invalidIds.join(', ')}. Please select valid hotel amenities.`,
       );
     }
   }

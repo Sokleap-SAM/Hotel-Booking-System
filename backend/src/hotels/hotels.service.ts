@@ -4,8 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { Hotel } from './entities/hotel.entity';
+import { Between, In, Repository } from 'typeorm';
+import { Hotel, HotelStatus } from './entities/hotel.entity';
 import { CreateHotelDto } from './dto/create_hotel.dto';
 import { UpdateHotelDto } from './dto/update_hotel.dto';
 import {
@@ -14,6 +14,7 @@ import {
 } from 'src/amenities/entities/amenity.entity';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
+import { RoomCategory } from 'src/rooms/entities/room.entity';
 
 @Injectable()
 export class HotelsService {
@@ -135,5 +136,90 @@ export class HotelsService {
     return {
       message: `Hotel ${id} deleted successfully`,
     };
+  }
+
+  async getAvailableHotelByLowestPrice(): Promise<Hotel[]> {
+    const hotels = await this.hotelsRepository
+      .createQueryBuilder('hotel')
+      .leftJoinAndSelect('hotel.rooms', 'room')
+      .leftJoinAndSelect('hotel.amenities', 'amenity')
+      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .orderBy('room.price', 'ASC')
+      .getMany();
+
+    return hotels;
+  }
+
+  async getAvailableHotelByHighestPrice(): Promise<Hotel[]> {
+    const hotels = await this.hotelsRepository
+      .createQueryBuilder('hotel')
+      .leftJoinAndSelect('hotel.rooms', 'room')
+      .leftJoinAndSelect('hotel.amenities', 'amenity')
+      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .orderBy('room.price', 'DESC')
+      .getMany();
+
+    return hotels;
+  }
+
+  async getAvailableHotelByHighestRating(): Promise<Hotel[]> {
+    return await this.hotelsRepository.find({
+      where: {
+        status: HotelStatus.ACTIVE,
+      },
+      relations: ['rooms', 'amenities'],
+      order: {
+        avgRating: 'DESC',
+      },
+    });
+  }
+
+  async getAvailableHotelBySelectedAmenities(
+    amenityIds: number[],
+  ): Promise<Hotel[]> {
+    if (!amenityIds || amenityIds.length === 0) {
+      return await this.hotelsRepository.find({
+        where: { status: HotelStatus.ACTIVE },
+        relations: ['rooms', 'amenities'],
+      });
+    }
+
+    const hotels = await this.hotelsRepository
+      .createQueryBuilder('hotel')
+      .leftJoinAndSelect('hotel.rooms', 'room')
+      .leftJoinAndSelect('hotel.amenities', 'amenity')
+      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .andWhere('amenity.id IN (:...amenityIds)', { amenityIds })
+      .getMany();
+
+    return hotels.filter((hotel) => {
+      const hotelAmenityIds = hotel.amenities.map((a) => a.id);
+      return amenityIds.every((id) => hotelAmenityIds.includes(id));
+    });
+  }
+
+  async getAvailableHotelByRoomType(roomType: RoomCategory): Promise<Hotel[]> {
+    const hotels = await this.hotelsRepository
+      .createQueryBuilder('hotel')
+      .leftJoinAndSelect('hotel.rooms', 'room')
+      .leftJoinAndSelect('hotel.amenities', 'amenity')
+      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .andWhere('room.type = :roomType', { roomType })
+      .getMany();
+
+    return hotels;
+  }
+
+  async getAvailableHotelByHighestDiscount(): Promise<Hotel[]> {
+    const hotels = await this.hotelsRepository
+      .createQueryBuilder('hotel')
+      .leftJoinAndSelect('hotel.rooms', 'room')
+      .leftJoinAndSelect('hotel.amenities', 'amenity')
+      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .andWhere('room.discountPercentage > 0')
+      .orderBy('room.discountPercentage', 'DESC')
+      .getMany();
+
+    return hotels;
   }
 }

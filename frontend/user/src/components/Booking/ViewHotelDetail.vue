@@ -5,22 +5,32 @@
       <button class="tab-btn">Best reviewed</button>
     </div>
 
-    <div class="hotel-cards" @click="goToBookingDetail">
-      <div v-for="hotel in hotels" :key="hotel.id" class="card">
+    <div v-if="hotelStores.isLoading" class="loading">Loading hotels...</div>
+
+    <div v-else-if="hotelStores.hotels.length === 0" class="no-results">
+      No hotels found matching your criteria.
+    </div>
+
+    <div v-else class="hotel-cards">
+      <div v-for="hotel in hotelStores.hotels" :key="hotel.id" class="card" @click="goToBookingDetail(hotel.id)">
         <div class="image-wrapper">
-          <img :src="hotel.imageUrl" :alt="hotel.name" class="hotel-image" />
+          <img :src="getHotelImage(hotel)" :alt="hotel.name" class="hotel-image" />
         </div>
 
         <div class="details">
           <h2 class="hotel-name">{{ hotel.name }}</h2>
-          <p class="description">{{ hotel.description }}</p>
+          <p class="description">{{ hotel.shortDescription || hotel.longDescription }}</p>
 
           <div class="rating">
             <span class="star">⭐</span>
-            <span class="score">{{ hotel.rating }}</span>
+            <span class="score">{{ hotel.avgRating || 'N/A' }}</span>
           </div>
 
-          <div class="price-tag">From US${{ hotel.price }}</div>
+          <div v-if="hasDiscount(hotel)" class="discount-tag">
+            Up to {{ getHighestDiscount(hotel) }}% OFF
+          </div>
+
+          <div class="price-tag">From US${{ getLowestPrice(hotel) }}</div>
         </div>
       </div>
     </div>
@@ -28,42 +38,58 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import angkorImage from '@/assets/Angkorwat.png';
-import pubStreetImage from '@/assets/Pubstreet.png';
+import { defineComponent, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useHotelStore } from '@/stores/hotelStores';
+import defaultHotelImage from '@/assets/Angkorwat.png';
 
 export default defineComponent({
   name: 'ViewHotelDetail',
   setup() {
-    const hotels = ref([
-      {
-        id: 1,
-        name: 'Angkor Village Hotel',
-        description: 'Stay close to Angkor Wat at a peaceful hotel with clean rooms, friendly staff, and beautiful views. You can relax by the pool, enjoy tasty food, and get help with temple tours.',
-        rating: 4.5,
-        price: 50,
-        // 2. Assign the imported variable here
-        imageUrl: angkorImage
-      },
-      {
-        id: 2,
-        name: 'Koulen Central Hotel',
-        description: 'Experience modern comfort in the heart of Siem Reap. Featuring a stunning rooftop pool and within walking distance to Pub Street, this hotel is perfect for city explorers.',
-        rating: 4.0,
-        price: 30,
-        // 2. Assign the imported variable here
-        imageUrl: pubStreetImage
-      },
-    ]);
-    
     const router = useRouter();
-    const goToBookingDetail = () => {
-      router.push('/BookingDetail');
-    }
+    const hotelStores = useHotelStore();
+
+    onMounted(async () => {
+      await hotelStores.fetchHotels();
+    });
+
+    const getHotelImage = (hotel: any) => {
+      if (hotel.images && hotel.images.length > 0) {
+        return `http://localhost:3000${hotel.images[0]}`;
+      }
+      return defaultHotelImage;
+    };
+
+    const getLowestPrice = (hotel: any) => {
+      if (hotel.rooms && hotel.rooms.length > 0) {
+        const prices = hotel.rooms.map((room: any) => room.price || 0);
+        return Math.min(...prices);
+      }
+      return 'N/A';
+    };
+
+    const hasDiscount = (hotel: any) => {
+      return hotel.rooms?.some((room: any) => room.discountPercentage > 0);
+    };
+
+    const getHighestDiscount = (hotel: any) => {
+      if (hotel.rooms && hotel.rooms.length > 0) {
+        const discounts = hotel.rooms.map((room: any) => room.discountPercentage || 0);
+        return Math.max(...discounts);
+      }
+      return 0;
+    };
+
+    const goToBookingDetail = (hotelId: number) => {
+      router.push(`/BookingDetail/${hotelId}`);
+    };
 
     return {
-      hotels,
+      hotelStores,
+      getHotelImage,
+      getLowestPrice,
+      hasDiscount,
+      getHighestDiscount,
       goToBookingDetail,
     };
   }

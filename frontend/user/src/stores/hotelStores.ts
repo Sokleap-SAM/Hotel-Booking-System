@@ -2,6 +2,9 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 const api = axios.create({ baseURL: 'http://localhost:3000' })
+
+export type SortOption = 'default' | 'lowest-price' | 'highest-price' | 'highest-rating' | 'highest-discount'
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fieldLabels: Record<string, string> = {
   name: 'Hotel Name',
@@ -24,6 +27,8 @@ export const useHotelStore = defineStore('hotel', {
     amenitiesList: [] as any[],
     isLoading: false,
     searchQuery: '',
+    currentSort: 'default' as SortOption,
+    selectedAmenityIds: [] as number[],
   }),
 
   getters: {
@@ -66,10 +71,96 @@ export const useHotelStore = defineStore('hotel', {
       try {
         const { data } = await api.get('/hotels')
         this.hotels = data
+        this.currentSort = 'default'
       } catch (error) {
         console.error('Fetch hotels error:', error)
       } finally {
         this.isLoading = false
+      }
+    },
+
+    async fetchHotelsByLowestPrice() {
+      this.isLoading = true
+      try {
+        const { data } = await api.get('/hotels/filter/lowest-price')
+        this.hotels = data
+        this.currentSort = 'lowest-price'
+      } catch (error) {
+        console.error('Fetch hotels by lowest price error:', error)
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchHotelsByHighestPrice() {
+      this.isLoading = true
+      try {
+        const { data } = await api.get('/hotels/filter/highest-price')
+        this.hotels = data
+        this.currentSort = 'highest-price'
+      } catch (error) {
+        console.error('Fetch hotels by highest price error:', error)
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchHotelsByHighestRating() {
+      this.isLoading = true
+      try {
+        const { data } = await api.get('/hotels/filter/highest-rating')
+        this.hotels = data
+        this.currentSort = 'highest-rating'
+      } catch (error) {
+        console.error('Fetch hotels by highest rating error:', error)
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchHotelsByHighestDiscount() {
+      this.isLoading = true
+      try {
+        const { data } = await api.get('/hotels/filter/highest-discount')
+        this.hotels = data
+        this.currentSort = 'highest-discount'
+      } catch (error) {
+        console.error('Fetch hotels by highest discount error:', error)
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchHotelsByAmenities(amenityIds: number[]) {
+      this.isLoading = true
+      this.selectedAmenityIds = amenityIds
+      try {
+        const idsParam = amenityIds.join(',')
+        const { data } = await api.get(`/hotels/filter/by-amenities?amenityIds=${idsParam}`)
+        this.hotels = data
+      } catch (error) {
+        console.error('Fetch hotels by amenities error:', error)
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async applySort(sortOption: SortOption) {
+      switch (sortOption) {
+        case 'lowest-price':
+          await this.fetchHotelsByLowestPrice()
+          break
+        case 'highest-price':
+          await this.fetchHotelsByHighestPrice()
+          break
+        case 'highest-rating':
+          await this.fetchHotelsByHighestRating()
+          break
+        case 'highest-discount':
+          await this.fetchHotelsByHighestDiscount()
+          break
+        default:
+          await this.fetchHotels()
       }
     },
 

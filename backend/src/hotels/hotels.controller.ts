@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Patch,
+  Query,
   UseInterceptors,
   UploadedFiles,
   ParseFilePipe,
@@ -19,12 +20,15 @@ import { HotelValidatorPipe } from './pipes/hotel-validtor.pipe';
 
 @Controller('hotels')
 export class HotelsController {
-  constructor(private readonly hotelsService: HotelsService) {}
+  constructor(
+    private readonly hotelsService: HotelsService,
+    private readonly hotelValidatorPipe: HotelValidatorPipe,
+  ) {}
 
   @Post()
   @UseInterceptors(FilesInterceptor('images', 10, hotelUploadConfig))
   create(
-    @Body(new HotelValidatorPipe()) dto: CreateHotelDto,
+    @Body(HotelValidatorPipe) dto: CreateHotelDto,
     @UploadedFiles(
       new ParseFilePipe({
         fileIsRequired: false,
@@ -40,6 +44,36 @@ export class HotelsController {
     return this.hotelsService.findAll();
   }
 
+  @Get('filter/lowest-price')
+  findAvailableHotelsByLowestPrice() {
+    return this.hotelsService.getAvailableHotelByLowestPrice();
+  }
+
+  @Get('filter/highest-price')
+  findAvailableHotelsByHighestPrice() {
+    return this.hotelsService.getAvailableHotelByHighestPrice();
+  }
+
+  @Get('filter/highest-rating')
+  findAvailableHotelsByHighestRating() {
+    return this.hotelsService.getAvailableHotelByHighestRating();
+  }
+
+  @Get('filter/highest-discount')
+  findAvailableHotelsByHighestDiscount() {
+    return this.hotelsService.getAvailableHotelByHighestDiscount();
+  }
+
+  @Get('filter/by-amenities')
+  findAvailableHotelsBySelectedAmenities(
+    @Query('amenityIds') amenityIds: string,
+  ) {
+    const ids = amenityIds
+      ? amenityIds.split(',').map((id) => parseInt(id, 10)).filter((id) => !isNaN(id))
+      : [];
+    return this.hotelsService.getAvailableHotelBySelectedAmenities(ids);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.hotelsService.findOne(id);
@@ -49,7 +83,7 @@ export class HotelsController {
   @UseInterceptors(FilesInterceptor('images', 10, hotelUploadConfig))
   update(
     @Param('id') id: string,
-    @Body(new HotelValidatorPipe()) dto: UpdateHotelDto,
+    @Body(HotelValidatorPipe) dto: UpdateHotelDto,
     @UploadedFiles(
       new ParseFilePipe({
         fileIsRequired: false,

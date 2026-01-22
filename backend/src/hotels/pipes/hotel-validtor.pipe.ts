@@ -1,11 +1,10 @@
-import {
-  PipeTransform,
-  Injectable,
-  BadRequestException,
-} from '@nestjs/common';
+import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { Amenity, AmenityCategory } from 'src/amenities/entities/amenity.entity';
+import {
+  Amenity,
+  AmenityCategory,
+} from 'src/amenities/entities/amenity.entity';
 
 @Injectable()
 export class HotelValidatorPipe implements PipeTransform {
@@ -19,7 +18,11 @@ export class HotelValidatorPipe implements PipeTransform {
 
     this.validateAtLeastOneAmenity(value);
 
-    if (value.amenityIds && Array.isArray(value.amenityIds) && value.amenityIds.length > 0) {
+    if (
+      value.amenityIds &&
+      Array.isArray(value.amenityIds) &&
+      value.amenityIds.length > 0
+    ) {
       await this.validateAmenityIdsExist(value.amenityIds);
     }
 
@@ -31,9 +34,9 @@ export class HotelValidatorPipe implements PipeTransform {
       this.validateLocation(value.location);
     }
 
-    if(value.phoneNumber){
-      value.phoneNumber = this.validatePhoneNumber(value.phoneNumber);
-      this.formatCambodianPhoneNumber(value.phoneNumber);
+    if (value.phoneNumber) {
+      this.validatePhoneNumber(value.phoneNumber);
+      value.phoneNumber = this.formatCambodianPhoneNumber(value.phoneNumber);
     }
 
     return value;
@@ -80,7 +83,7 @@ export class HotelValidatorPipe implements PipeTransform {
   }
 
   private validateLocation(location: string): void {
-    const locationRegex = /^\d{1,3},\s?st\d{1,3},\s?khan\s[\w\s]+,\s?[\w\s]+$/i;
+    const locationRegex = /^\d{1,3},\s?st[\w\s]+,\s?[\w\s]+,\s?[\w\s]+$/i;
     if (!locationRegex.test(location)) {
       throw new BadRequestException(
         'Invalid Location Format. Expected: "100, st289, khan toulkok, Phnom Penh"',

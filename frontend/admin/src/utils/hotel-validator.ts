@@ -18,9 +18,9 @@ export const validateHotelForm = (data: any) => {
   }
 
   const cleanedLocation = data.location ? data.location.trim() : '';
-  const locationRegex = /^\d{1,3},\s?st\d{1,3},\s?khan\s[\w\s]+,\s?[\w\s]+$/i;
+  const locationRegex = /^\d{1,3},\s?st[\w\s]+,\s?[\w\s]+,\s?[\w\s]+$/i;
   if (!locationRegex.test(cleanedLocation)) {
-    errors.location = 'Format must be: "100, st289, khan toulkok, Phnom Penh"';
+    errors.location = 'Format must be: "100, st7 Makara, Krong Siem Reap, Siem Reap"';
   }
 
   const cleanedGoogleMapUrl = data.googleMapUrl ? data.googleMapUrl.trim() : '';

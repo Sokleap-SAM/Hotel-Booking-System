@@ -1,5 +1,6 @@
 import { Amenity } from 'src/amenities/entities/amenity.entity';
 import { Hotel } from 'src/hotels/entities/hotel.entity';
+import { RoomBed } from './room-bed.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -8,16 +9,8 @@ import {
   JoinColumn,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
-
-export enum RoomCategory {
-  SINGLE = 'Single',
-  DOUBLE = 'Double',
-  TWIN = 'Twin',
-  DELUXE = 'Deluxe',
-  SUITE = 'Suite',
-  PENTHOUSE = 'Penthouse',
-}
 
 @Entity()
 export class Room {
@@ -33,12 +26,14 @@ export class Room {
   @Column('text')
   longDescription: string;
 
-  @Column({
-    type: 'enum',
-    enum: RoomCategory,
-    default: RoomCategory.SINGLE,
+  @OneToMany(() => RoomBed, (roomBed) => roomBed.room, {
+    cascade: true,
+    eager: true,
   })
-  type: RoomCategory;
+  roomBeds: RoomBed[];
+
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  roomSize: number;
 
   @Column()
   available: number;

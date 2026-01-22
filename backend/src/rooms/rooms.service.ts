@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { Room, RoomCategory } from './entities/room.entity';
+import { Room } from './entities/room.entity';
+import { RoomBed } from './entities/room-bed.entity';
 import { Hotel } from '../hotels/entities/hotel.entity';
 import { CreateRoomDto } from './dto/create_room.dto';
 import { UpdateRoomDto } from './dto/update_room.dto';
@@ -21,6 +22,8 @@ export class RoomsService {
   constructor(
     @InjectRepository(Room)
     private roomsRepository: Repository<Room>,
+    @InjectRepository(RoomBed)
+    private roomBedRepository: Repository<RoomBed>,
     @InjectRepository(Hotel)
     private hotelsRepository: Repository<Hotel>,
     @InjectRepository(Amenity)
@@ -28,7 +31,7 @@ export class RoomsService {
   ) {}
 
   async create(createRoomDto: CreateRoomDto, files: any[]): Promise<Room> {
-    const { hotelId, amenityIds, custom_amenities, ...roomData } =
+    const { hotelId, amenityIds, custom_amenities, roomBeds, ...roomData } =
       createRoomDto;
     const filePaths = files.map((f) => `/uploads/rooms/${f.filename}`);
 
@@ -50,13 +53,27 @@ export class RoomsService {
       images: filePaths,
     });
 
-    return await this.roomsRepository.save(room);
+    const savedRoom = await this.roomsRepository.save(room);
+
+    // Create room beds if provided
+    if (roomBeds && roomBeds.length > 0) {
+      const roomBedEntities = roomBeds.map((bed) =>
+        this.roomBedRepository.create({
+          roomId: savedRoom.id,
+          bedTypeId: bed.bedTypeId,
+          quantity: bed.quantity,
+        }),
+      );
+      await this.roomBedRepository.save(roomBedEntities);
+    }
+
+    return await this.findOne(savedRoom.id);
   }
 
   async findOne(id: string): Promise<Room> {
     const room = await this.roomsRepository.findOne({
       where: { id },
-      relations: ['hotel', 'amenities'],
+      relations: ['hotel', 'amenities', 'roomBeds', 'roomBeds.bedType'],
     });
 
     if (!room) {
@@ -69,7 +86,7 @@ export class RoomsService {
   async findByHotel(hotelId: string): Promise<any[]> {
     const rooms = await this.roomsRepository.find({
       where: { hotelId },
-      relations: ['hotel', 'amenities'],
+      relations: ['hotel', 'amenities', 'roomBeds', 'roomBeds.bedType'],
       order: { price: 'ASC' },
     });
 
@@ -86,12 +103,12 @@ export class RoomsService {
   ): Promise<Room> {
     const room = await this.roomsRepository.findOne({
       where: { id },
-      relations: ['amenities'],
+      relations: ['amenities', 'roomBeds'],
     });
 
     if (!room) throw new NotFoundException(`Room ${id} not found`);
 
-    const { amenityIds, existingImages, custom_amenities, ...rest } =
+    const { amenityIds, existingImages, custom_amenities, roomBeds, ...rest } =
       updateRoomDto;
 
     const newPaths = newFiles.map((f) => `/uploads/rooms/${f.filename}`);
@@ -134,6 +151,24 @@ export class RoomsService {
       room.custom_amenities = custom_amenities?.trim() || '';
     }
 
+    // Update room beds if provided
+    if (roomBeds !== undefined) {
+      // Remove existing room beds
+      await this.roomBedRepository.delete({ roomId: id });
+
+      // Create new room beds
+      if (roomBeds && roomBeds.length > 0) {
+        const roomBedEntities = roomBeds.map((bed) =>
+          this.roomBedRepository.create({
+            roomId: id,
+            bedTypeId: bed.bedTypeId,
+            quantity: bed.quantity,
+          }),
+        );
+        await this.roomBedRepository.save(roomBedEntities);
+      }
+    }
+
     Object.assign(room, rest);
     return await this.roomsRepository.save(room);
   }
@@ -173,13 +208,6 @@ export class RoomsService {
       },
       relations: ['hotel'],
       order: { discountPercentage: 'DESC' },
-    });
-  }
-
-  async findByCategory(category: RoomCategory): Promise<Room[]> {
-    return await this.roomsRepository.find({
-      where: { type: category, available: 1 },
-      relations: ['hotel', 'amenities'],
     });
   }
 }

@@ -11,11 +11,9 @@ import {
   IsInt,
   MinLength,
   MaxLength,
-  IsEnum,
   IsNotEmpty,
   IsArray,
 } from 'class-validator';
-import { RoomCategory } from '../entities/room.entity';
 import { Transform } from 'class-transformer';
 
 export class CreateRoomDto {
@@ -39,11 +37,26 @@ export class CreateRoomDto {
   @MinLength(40)
   longDescription: string;
 
-  @IsEnum(RoomCategory, {
-    message:
-      'Room type must be a valid category (Single, Double, Twin, Deluxe, Suite, Penthouse)',
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return [];
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(value) ? value : [];
   })
-  type: RoomCategory;
+  @IsArray()
+  roomBeds?: { bedTypeId: number; quantity: number }[];
+
+  @Transform(({ value }) => parseFloat(value))
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  roomSize?: number;
 
   @Transform(({ value }) => parseInt(value, 10))
   @IsInt()

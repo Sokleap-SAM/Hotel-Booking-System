@@ -12,4 +12,19 @@ export class UpdateRoomDto extends PartialType(CreateRoomDto) {
   })
   @IsArray()
   existingImages?: string[];
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return undefined;
+      }
+    }
+    return Array.isArray(value) ? value : undefined;
+  })
+  @IsArray()
+  roomBeds?: { bedTypeId: number; quantity: number }[];
 }

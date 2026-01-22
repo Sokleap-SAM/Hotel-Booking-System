@@ -69,9 +69,23 @@ export class HotelsController {
     @Query('amenityIds') amenityIds: string,
   ) {
     const ids = amenityIds
-      ? amenityIds.split(',').map((id) => parseInt(id, 10)).filter((id) => !isNaN(id))
+      ? amenityIds
+          .split(',')
+          .map((id) => parseInt(id, 10))
+          .filter((id) => !isNaN(id))
       : [];
     return this.hotelsService.getAvailableHotelBySelectedAmenities(ids);
+  }
+
+  @Get('filter/by-bed-type')
+  findAvailableHotelsByBedType(@Query('bedTypeIds') bedTypeIds: string) {
+    const ids = bedTypeIds
+      ? bedTypeIds
+          .split(',')
+          .map((id) => parseInt(id, 10))
+          .filter((id) => !isNaN(id))
+      : [];
+    return this.hotelsService.getAvailableHotelByBedType(ids);
   }
 
   @Get(':id')

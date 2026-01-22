@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Hotel, HotelStatus } from './entities/hotel.entity';
 import { CreateHotelDto } from './dto/create_hotel.dto';
 import { UpdateHotelDto } from './dto/update_hotel.dto';
@@ -14,7 +14,6 @@ import {
 } from 'src/amenities/entities/amenity.entity';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
-import { RoomCategory } from 'src/rooms/entities/room.entity';
 
 @Injectable()
 export class HotelsService {
@@ -198,13 +197,22 @@ export class HotelsService {
     });
   }
 
-  async getAvailableHotelByRoomType(roomType: RoomCategory): Promise<Hotel[]> {
+  async getAvailableHotelByBedType(bedTypeIds: number[]): Promise<Hotel[]> {
+    if (!bedTypeIds || bedTypeIds.length === 0) {
+      return await this.hotelsRepository.find({
+        where: { status: HotelStatus.ACTIVE },
+        relations: ['rooms', 'amenities'],
+      });
+    }
+
     const hotels = await this.hotelsRepository
       .createQueryBuilder('hotel')
       .leftJoinAndSelect('hotel.rooms', 'room')
+      .leftJoinAndSelect('room.roomBeds', 'roomBed')
+      .leftJoinAndSelect('roomBed.bedType', 'bedType')
       .leftJoinAndSelect('hotel.amenities', 'amenity')
       .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
-      .andWhere('room.type = :roomType', { roomType })
+      .andWhere('roomBed.bedTypeId IN (:...bedTypeIds)', { bedTypeIds })
       .getMany();
 
     return hotels;

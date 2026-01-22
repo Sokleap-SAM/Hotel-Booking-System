@@ -6,6 +6,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HotelsModule } from './hotels/hotels.module';
 import { RoomsModule } from './rooms/rooms.module';
+import { BedTypesModule } from './bed-types/bed-types.module';
+import { AmenitiesModule } from './amenities/amenities.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { RoomsModule } from './rooms/rooms.module';
     }),
     HotelsModule,
     RoomsModule,
+    BedTypesModule,
+    AmenitiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

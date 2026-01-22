@@ -2,61 +2,81 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
 
   <div class="booking-page-container">
-    <header class="blue-header" :style="backgroundHeader">
-      <div class="nav-bar">
-        <div class="logo">CamBook.com</div>
-        <button class="profile-btn">
-          <i class="ri-user-line"></i>
-        </button>
-      </div>
-    </header>
+    <!-- Loading State -->
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Loading hotel details...</p>
+    </div>
 
-    <main class="main-content">
+    <!-- Error State -->
+    <div v-else-if="error" class="error-container">
+      <i class="ri-error-warning-line"></i>
+      <p>{{ error }}</p>
+      <button @click="loadHotelData">Try Again</button>
+    </div>
 
-      <div class="hotel-info-row">
-        <div class="title-group">
-          <nav class="breadcrumbs">Home > Siem Reap > Angkor Village Hotel</nav>
-          <h1 class="hotel-name">Angkor Village Hotel</h1>
+    <!-- Main Content -->
+    <template v-else-if="hotel">
+      <header class="blue-header" :style="backgroundHeader">
+        <div class="nav-bar">
+          <div class="logo">CamBook.com</div>
+          <button class="profile-btn">
+            <i class="ri-user-line"></i>
+          </button>
+        </div>
+      </header>
+
+      <main class="main-content">
+
+        <div class="hotel-info-row">
+          <div class="title-group">
+            <nav class="breadcrumbs">Home > {{ hotel.name }}</nav>
+            <h1 class="hotel-name">{{ hotel.name }}</h1>
+          </div>
+
+          <div class="action-group">
+            <button class="icon-btn"><i class="ri-heart-line"></i></button>
+            <button class="icon-btn"><i class="ri-share-line"></i></button>
+            <button class="book-now-btn">Booking</button>
+          </div>
         </div>
 
-        <div class="action-group">
-          <button class="icon-btn"><i class="ri-heart-line"></i></button>
-          <button class="icon-btn"><i class="ri-share-line"></i></button>
-          <button class="book-now-btn">Booking</button>
+        <div class="media-grid">
+          <PhotoGallery class="gallery-section" :images="hotel.images" />
+          <MapCard
+            class="map-section"
+            :rating="hotel.avgRating"
+            :mapUrl="hotel.googleMapUrl"
+          />
         </div>
-      </div>
 
-      <div class="media-grid">
-        <PhotoGallery class="gallery-section" />
-        <MapCard
-          class="map-section"
-          :rating="4.5"
-          :mapUrl="mockMapLink"
+        <BookingDescription :descriptionData="descriptionData" />
+
+        <GuestReviews
+          :overallScore="hotel.avgRating"
+          :totalReviews="hotel.totalRating?.toString() || '0'"
+          :categories="ratingCategories"
         />
-      </div>
 
-      <BookingDescription :descriptionData="mockDescription" />
+        <AvailabilitySection
+          :bookingDates="bookingDates"
+          :guestConfig="guestConfig"
+          :rooms="rooms"
+          :isLoading="roomsLoading"
+        />
 
-      <GuestReviews
-        :overallScore="9.7"
-        totalReviews="1,244"
-        :categories="mockRatings"
-      />
-
-      <AvailabilitySection
-        bookingDates="Sat, Dec 20 --- Sun, Dec 21"
-        guestConfig="2 adults : 0 children . 1 room"
-        :rooms="mockRooms"
-      />
-
-    </main>
-    <FooterScreen />
+      </main>
+      <FooterScreen />
+    </template>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import background from '@/assets/Background2.png';
+import { useHotelStore } from '@/stores/hotelStores';
+import { useRoomStore } from '@/stores/roomStores';
 
 // Import Child Components from src/components/BookingDetail/
 import PhotoGallery from '@/components/BookingDetail/PhotoGallery.vue';
@@ -65,6 +85,24 @@ import BookingDescription from '@/components/BookingDetail/BookingDescription.vu
 import GuestReviews from '@/components/BookingDetail/GuestReviews.vue';
 import AvailabilitySection from '@/components/BookingDetail/AvailabilitySection.vue';
 import FooterScreen from '@/components/homepage/FooterScreen.vue';
+
+interface Hotel {
+  id: string;
+  name: string;
+  shortDescription: string;
+  longDescription: string;
+  location: string;
+  googleMapUrl: string;
+  images: string[];
+  avgRating: number;
+  totalRating: number;
+  custom_amenities?: string;
+  amenities?: { id: number; name: string }[];
+  phoneNumber: string;
+  email: string;
+  status: 'active' | 'inactive' | 'suspend';
+  createdAt: Date;
+}
 
 export default defineComponent({
   name: 'BookingPage',
@@ -76,62 +114,99 @@ export default defineComponent({
     AvailabilitySection,
     FooterScreen,
   },
-  setup() {
+  props: {
+    hotelId: {
+      type: String,
+      required: false,
+    }
+  },
+  setup(props) {
+    const route = useRoute();
+    const hotelStore = useHotelStore();
+    const roomStore = useRoomStore();
+
+    // State
+    const hotel = ref<Hotel | null>(null);
+    const isLoading = ref(true);
+    const error = ref<string | null>(null);
+    const bookingDates = ref('Select dates');
+    const guestConfig = ref('2 adults : 0 children . 1 room');
+
     // Dynamic Header Background
     const backgroundHeader = {
       backgroundImage: `url(${background})`
     };
 
-    // --- MOCK DATA FOR FUTURE NESTJS INTEGRATION ---
-    const mockMapLink = ref("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3881.0258123!2d103.856!3d13.36!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTPCsDIxJzM2LjAiTiAxMDPCsDUxJzIxLjYiRQ!5e0!3m2!1sen!2skh!4v123456789");
+    // Computed properties
+    const rooms = computed(() => roomStore.rooms);
+    const roomsLoading = computed(() => roomStore.isLoading);
 
-    const mockDescription = ref({
-      title: "Get the celebrity treatment with world-class service at Angkor Village Hotel - Small Luxury Hotels of the World",
-      paragraphs: [
-        "This boutique hotel offers a quiet stay with Khmer-style architecture and landscaped gardens. It features a freeform outdoor pool, an open-air restaurant serving authentic Khmer dishes, and a bar.",
-        "Rooms are spacious with wooden interiors, garden or lotus pond views, and modern comforts like tea/coffee facilities, a safe, and rain showers."
-      ],
-      highlight: "Couples especially love the location, rating it 9.8/10 for a two-person trip."
+    const descriptionData = computed(() => ({
+      title: hotel.value?.shortDescription || '',
+      paragraphs: hotel.value?.longDescription ? [hotel.value.longDescription] : [],
+      highlight: hotel.value?.custom_amenities || '',
+      location: hotel.value?.location || '',
+      phoneNumber: hotel.value?.phoneNumber || '',
+      email: hotel.value?.email || '',
+      amenities: hotel.value?.amenities || []
+    }));
+
+    const ratingCategories = computed(() => [
+      { label: 'Staff', score: hotel.value?.avgRating || 0, icon: 'ri-group-line' },
+      { label: 'Facilities', score: hotel.value?.avgRating || 0, icon: 'ri-hotel-line' },
+      { label: 'Comfort', score: hotel.value?.avgRating || 0, icon: 'ri-hotel-bed-line' },
+      { label: 'Value for money', score: hotel.value?.avgRating || 0, icon: 'ri-money-dollar-circle-line' },
+      { label: 'Location', score: hotel.value?.avgRating || 0, icon: 'ri-map-pin-line' },
+      { label: 'WiFi', score: hotel.value?.avgRating || 0, icon: 'ri-wifi-line' }
+    ]);
+
+    // Load hotel and rooms data
+    const loadHotelData = async () => {
+      const id = props.hotelId || (route.params.hotelId as string);
+      
+      if (!id) {
+        error.value = 'No hotel ID provided';
+        isLoading.value = false;
+        return;
+      }
+
+      isLoading.value = true;
+      error.value = null;
+
+      try {
+        // Fetch hotel details
+        const hotelData = await hotelStore.getHotelById(id);
+        if (!hotelData) {
+          throw new Error('Hotel not found');
+        }
+        hotel.value = hotelData;
+
+        // Fetch rooms for this hotel
+        await roomStore.fetchRoomsByHotel(id);
+      } catch (err) {
+        console.error('Error loading hotel data:', err);
+        error.value = 'Failed to load hotel details. Please try again.';
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    onMounted(() => {
+      loadHotelData();
     });
 
-    const mockRatings = ref([
-      { label: 'Staff', score: 9.9, icon: 'ri-group-line' },
-      { label: 'Facilities', score: 9.6, icon: 'ri-hotel-line' },
-      { label: 'Comfort', score: 9.6, icon: 'ri-hotel-bed-line' },
-      { label: 'Value for money', score: 9.9, icon: 'ri-money-dollar-circle-line' },
-      { label: 'Location', score: 9.6, icon: 'ri-map-pin-line' },
-      { label: 'WiFi', score: 9.6, icon: 'ri-wifi-line' }
-    ]);
-
-    const mockRooms = ref([
-      {
-        name: "2 twin beds",
-        description: "The garden view twin room is located on the ground floor and overlooks our beautiful garden...",
-        maxGuests: 2,
-        price: 50,
-        finalPrice: 35,
-        discount: 30,
-        breakfast: true,
-        stock: 1
-      },
-      {
-        name: "1 queen bed",
-        description: "Our traditionally Khmer designed garden view room offers a comfortable and spacious stay...",
-        maxGuests: 2,
-        price: 80,
-        finalPrice: 56,
-        discount: 30,
-        breakfast: true,
-        stock: 3
-      }
-    ]);
-
     return {
+      hotel,
+      rooms,
+      roomsLoading,
+      isLoading,
+      error,
       backgroundHeader,
-      mockMapLink,
-      mockDescription,
-      mockRatings,
-      mockRooms
+      descriptionData,
+      ratingCategories,
+      bookingDates,
+      guestConfig,
+      loadHotelData,
     };
   }
 });
@@ -246,5 +321,69 @@ export default defineComponent({
   .blue-header { padding: 20px 30px; }
   .main-content { padding: 0 20px; }
   .hotel-name { font-size: 2rem; }
+}
+
+/* Loading & Error States */
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e0e0e0;
+  border-top-color: #1a73e8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+  margin-top: 15px;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.error-container i {
+  font-size: 60px;
+  color: #e74c3c;
+  margin-bottom: 15px;
+}
+
+.error-container p {
+  color: #333;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.error-container button {
+  background: #1a73e8;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.error-container button:hover {
+  background: #1557b0;
 }
 </style>

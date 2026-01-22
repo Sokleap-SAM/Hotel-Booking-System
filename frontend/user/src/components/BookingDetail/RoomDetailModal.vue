@@ -8,73 +8,90 @@
       <div class="modal-layout">
         <div class="gallery-col">
           <div class="main-img-wrapper">
-            <img :src="mainImage" alt="Room Main View" class="main-img" />
+            <img :src="mainImage" alt="Room Main View" class="main-img" @error="handleImageError" />
           </div>
           <div class="thumb-grid">
-            <img v-for="(thumb, index) in thumbnails" :key="index" :src="thumb" class="thumb-img" />
+            <img 
+              v-for="(thumb, index) in thumbnails" 
+              :key="index" 
+              :src="thumb" 
+              class="thumb-img"
+              :class="{ active: selectedThumbIndex === index }"
+              @click="selectImage(index)"
+              @error="handleThumbError($event)"
+            />
           </div>
         </div>
 
         <div class="details-col">
           <div class="tag-row">
-            <span class="info-tag"><i class="ri-door-open-line"></i> 1 room</span>
-            <span class="info-tag"><i class="ri-expand-diagonal-line"></i> 40 m²</span>
-            <span class="info-tag"><i class="ri-temp-cold-line"></i> air conditioning</span>
-            <span class="info-tag"><i class="ri-heavy-showers-line"></i> Private bathroom</span>
+            <span class="info-tag"><i class="ri-door-open-line"></i> {{ room?.type || 'Standard' }}</span>
+            <span class="info-tag"><i class="ri-group-line"></i> Max {{ room?.maxGuests || room?.maxOccupancy || 2 }} guests</span>
+            <span class="info-tag" v-if="room?.available"><i class="ri-checkbox-circle-line"></i> {{ room.available }} available</span>
           </div>
 
-          <h2 class="section-title">Room Size 40 m²</h2>
-          <ul class="bed-list">
-            <li>2 twin beds</li>
-          </ul>
-          <p class="rating-subtext">Comfy beds, 9.1 — Based on 344 reviews</p>
-
-          <p class="description">
-            {{
-              room?.description ||
-              'The garden view twin room is located on the ground floor and overlooks our beautiful garden providing a peaceful and serene atmosphere...'
-            }}
+          <h2 class="section-title">{{ room?.name || 'Room' }}</h2>
+          
+          <div class="price-info">
+            <span class="current-price">USD ${{ finalPrice }}</span>
+            <span class="original-price" v-if="(room?.discount ?? 0) > 0">USD ${{ room?.price }}</span>
+            <span class="discount-badge" v-if="(room?.discount ?? 0) > 0">{{ room?.discount }}% OFF</span>
+          </div>
+          
+          <p class="rating-subtext" v-if="(room?.stock ?? 0) < 5 && (room?.stock ?? 0) > 0">
+            <i class="ri-alarm-warning-line"></i> Only {{ room?.stock }} rooms left!
           </p>
 
-          <div class="amenities-section">
+          <p class="description">
+            {{ room?.longDescription || room?.description || 'No description available for this room.' }}
+          </p>
+
+          <div class="amenities-section" v-if="(room?.amenities?.length ?? 0) > 0 || room?.custom_amenities">
             <div class="amenity-group">
-              <h4>Hotel Amenities:</h4>
-              <div class="amenity-split">
-                <ul>
-                  <li>Free Wifi</li>
-                  <li>Free Breakfast</li>
-                  <li>Private bathroom</li>
-                  <li>Gym</li>
-                </ul>
-                <ul>
-                  <li>Swimming Pool</li>
-                </ul>
+              <h4><i class="ri-service-line"></i> Room Amenities</h4>
+              <div class="amenity-tags">
+                <span class="amenity-tag" v-for="amenity in room?.amenities" :key="amenity.id">
+                  <i class="ri-checkbox-circle-fill"></i> {{ amenity.name }}
+                </span>
+              </div>
+              <p class="custom-amenities" v-if="room?.custom_amenities">
+                <strong>Additional:</strong> {{ room.custom_amenities }}
+              </p>
+            </div>
+          </div>
+
+          <div class="room-details-grid">
+            <div class="detail-item" v-if="room?.type">
+              <i class="ri-hotel-bed-line"></i>
+              <div>
+                <span class="detail-label">Room Type</span>
+                <span class="detail-value">{{ room.type }}</span>
               </div>
             </div>
-
-            <div class="amenity-group">
-              <h4>Room Facilities:</h4>
-              <div class="amenity-split">
-                <ul>
-                  <li>Fridge</li>
-                  <li>TV</li>
-                  <li>Tea/Coffee</li>
-                  <li>Towel</li>
-                  <li>Bathrobes</li>
-                  <li>Slippers</li>
-                  <li>Air dryer</li>
-                </ul>
-                <ul>
-                  <li>Toiletries</li>
-                  <li>Garden View</li>
-                </ul>
+            <div class="detail-item">
+              <i class="ri-group-line"></i>
+              <div>
+                <span class="detail-label">Max Occupancy</span>
+                <span class="detail-value">{{ room?.maxGuests || room?.maxOccupancy || 2 }} persons</span>
+              </div>
+            </div>
+            <div class="detail-item" v-if="room?.available !== undefined">
+              <i class="ri-calendar-check-line"></i>
+              <div>
+                <span class="detail-label">Availability</span>
+                <span class="detail-value">{{ room.available }} rooms</span>
               </div>
             </div>
           </div>
 
-          <p class="smoking-text"><strong>Smoking:</strong> No smoking</p>
-
-          <button class="btn-primary">Choose your option</button>
+          <div class="booking-actions">
+            <div class="total-price">
+              <span class="label">Total Price</span>
+              <span class="amount">USD ${{ finalPrice }}</span>
+              <span class="tax-note">Includes taxes and fees</span>
+            </div>
+            <button class="btn-primary">Book Now</button>
+          </div>
         </div>
       </div>
     </div>
@@ -82,28 +99,103 @@
 </template>
 
 <script lang="ts">
-// Import local images from your assets folder
-import roomMain from '@/assets/Angkorwat.png'
-import thumb1 from '@/assets/hotel1.jpg'
-import thumb2 from '@/assets/Pubstreet.png'
-import thumb3 from '@/assets/hotel1.jpg'
-import thumb4 from '@/assets/hotel1.jpg'
+import { computed, ref } from 'vue'
+import defaultRoomImage from '@/assets/hotel1.jpg'
+
+interface Amenity {
+  id: number;
+  name: string;
+}
+
+interface Room {
+  id: string;
+  name: string;
+  description?: string;
+  longDescription?: string;
+  type?: string;
+  maxGuests?: number;
+  maxOccupancy?: number;
+  price: number;
+  finalPrice?: number;
+  discount?: number;
+  discountPercentage?: number;
+  available?: number;
+  stock?: number;
+  images?: string[];
+  amenities?: Amenity[];
+  custom_amenities?: string;
+}
 
 export default {
   props: {
     room: {
-      type: Object,
+      type: Object as () => Room,
       required: true,
     },
   },
   emits: ['close'],
-  data() {
-    return {
-      // Assigning the imported local images to data properties
-      mainImage: roomMain,
-      thumbnails: [thumb1, thumb2, thumb3, thumb4],
+  setup(props) {
+    const selectedThumbIndex = ref(0)
+    
+    const roomImages = computed(() => {
+      if (props.room?.images && props.room.images.length > 0) {
+        return props.room.images.map((img: string) => {
+          // Handle full URLs
+          if (img.startsWith('http')) return img
+          // Handle paths starting with /uploads/
+          if (img.startsWith('/uploads/')) return `http://localhost:3000${img}`
+          // Handle paths starting with uploads/
+          if (img.startsWith('uploads/')) return `http://localhost:3000/${img}`
+          // Default case - assume it's a relative path
+          return `http://localhost:3000/uploads/rooms/${img}`
+        })
+      }
+      return [defaultRoomImage]
+    })
+    
+    const mainImage = computed(() => {
+      return roomImages.value[selectedThumbIndex.value] || defaultRoomImage
+    })
+    
+    const thumbnails = computed(() => {
+      return roomImages.value.slice(0, 8)
+    })
+    
+    const finalPrice = computed(() => {
+      if (props.room?.finalPrice) return props.room.finalPrice
+      if (props.room?.discount && props.room?.price) {
+        return Math.round(props.room.price * (1 - props.room.discount / 100))
+      }
+      if (props.room?.discountPercentage && props.room?.price) {
+        return Math.round(props.room.price * (1 - props.room.discountPercentage / 100))
+      }
+      return props.room?.price || 0
+    })
+    
+    const selectImage = (index: number) => {
+      selectedThumbIndex.value = index
     }
-  },
+    
+    const handleImageError = (event: Event) => {
+      const img = event.target as HTMLImageElement
+      img.src = defaultRoomImage
+    }
+    
+    const handleThumbError = (event: Event) => {
+      const img = event.target as HTMLImageElement
+      img.src = defaultRoomImage
+    }
+    
+    return {
+      mainImage,
+      thumbnails,
+      finalPrice,
+      selectedThumbIndex,
+      selectImage,
+      handleImageError,
+      handleThumbError,
+    }
+  }
 }
 </script>
 
@@ -182,6 +274,17 @@ export default {
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.thumb-img:hover {
+  border-color: #006ce4;
+}
+
+.thumb-img.active {
+  border-color: #003580;
 }
 
 /* 6. Right Column: Information (THIS ENABLES SCROLLING) */
@@ -212,50 +315,165 @@ export default {
 
 /* Text Styling */
 .section-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  color: #1a1a1a;
 }
-.bed-list {
-  padding-left: 20px;
-  margin-bottom: 10px;
-  list-style: disc;
+
+/* Price Info */
+.price-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
 }
+
+.current-price {
+  font-size: 24px;
+  font-weight: 800;
+  color: #003580;
+}
+
+.original-price {
+  font-size: 16px;
+  color: #888;
+  text-decoration: line-through;
+}
+
+.discount-badge {
+  background: #00a550;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .rating-subtext {
   font-size: 14px;
-  color: #666;
+  color: #e74c3c;
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
+
 .description {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.7;
   color: #444;
   margin-bottom: 25px;
 }
 
 /* Amenities Layout */
+.amenities-section {
+  margin-bottom: 25px;
+}
+
 .amenity-group h4 {
   font-size: 16px;
   margin-bottom: 12px;
   font-weight: 600;
-}
-.amenity-split {
   display: flex;
-  margin-bottom: 25px;
-}
-.amenity-split ul {
-  flex: 1;
-  padding-left: 20px;
-  font-size: 14px;
-  list-style: disc;
-}
-.amenity-split li {
-  margin-bottom: 6px;
+  align-items: center;
+  gap: 8px;
+  color: #1a1a1a;
 }
 
-.smoking-text {
-  margin: 25px 0;
-  font-size: 15px;
+.amenity-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.amenity-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #e8f4fd;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #003580;
+}
+
+.amenity-tag i {
+  color: #00a550;
+}
+
+.custom-amenities {
+  font-size: 14px;
+  color: #666;
+  margin-top: 10px;
+}
+
+/* Room Details Grid */
+.room-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-item i {
+  font-size: 24px;
+  color: #003580;
+}
+
+.detail-item div {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: #888;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Booking Actions */
+.booking-actions {
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+  margin-top: 10px;
+}
+
+.total-price {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.total-price .label {
+  font-size: 14px;
+  color: #666;
+}
+
+.total-price .amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: #003580;
+}
+
+.total-price .tax-note {
+  font-size: 12px;
+  color: #888;
 }
 
 /* 7. Action Button */
@@ -269,7 +487,6 @@ export default {
   font-size: 18px;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 10px;
   transition: background 0.3s;
 }
 
@@ -293,5 +510,22 @@ export default {
 
 .details-col::-webkit-scrollbar-thumb:hover {
   background: #999;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-layout {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  
+  .gallery-col {
+    flex: none;
+  }
+  
+  .details-col {
+    overflow-y: visible;
+    padding-right: 0;
+  }
 }
 </style>

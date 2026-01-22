@@ -1,11 +1,11 @@
 <template>
   <div class="gallery-container">
     <div class="main-image">
-      <img :src="localImages[0]" alt="Hotel Main View" />
+      <img :src="displayImages[0]" alt="Hotel Main View" />
     </div>
 
     <div class="thumbnails">
-      <div v-for="(img, index) in localImages.slice(1, 3)" :key="index" class="thumb-wrapper">
+      <div v-for="(img, index) in displayImages.slice(1, 3)" :key="index" class="thumb-wrapper">
         <img :src="img" alt="Hotel Detail" />
       </div>
     </div>
@@ -13,12 +13,29 @@
 </template>
 
 <script setup lang="ts">
-// Replace these with your actual filenames in src/assets/
+import { computed } from 'vue';
+
+// Default fallback images
 import hotel1 from '@/assets/Angkorwat.png';
 import hotel2 from '@/assets/hotel1.jpg';
 import hotel3 from '@/assets/Pubstreet.png';
 
-const localImages = [hotel1, hotel2, hotel3];
+const props = defineProps<{
+  images?: string[];
+}>();
+
+const fallbackImages = [hotel1, hotel2, hotel3];
+const baseUrl = 'http://localhost:3000';
+
+const displayImages = computed(() => {
+  if (props.images && props.images.length > 0) {
+    // Convert relative paths to full URLs
+    return props.images.map(img => 
+      img.startsWith('http') ? img : `${baseUrl}${img}`
+    );
+  }
+  return fallbackImages;
+});
 </script>
 
 <style scoped>

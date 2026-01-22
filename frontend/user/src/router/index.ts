@@ -53,9 +53,10 @@ const routes = [
     component: Bookingpage,
   },
   {
-    path: '/BookingDetail',
+    path: '/BookingDetail/:hotelId',
     name: 'BookingDetail',
     component: BookingDetail,
+    props: true,
   },
   {
     path: '/RoomDetailModal',

@@ -11,6 +11,7 @@ import BookingDetail from '@/view/BookingDetail.vue'
 import RoomDetailModal from '@/components/BookingDetail/RoomDetailModal.vue'
 import TransactionPayment from "@/view/TransactionPayment.vue"
 import LastPayment from '@/view/LastPayment.vue'
+import ProfileDetail from '@/view/ProfileDetail.vue'
 
 const routes = [
   {
@@ -73,6 +74,11 @@ const routes = [
     path: '/LastPayment',
     name: 'LastPayment',
     component: LastPayment,
+  },
+  {
+    path: '/ProfileDetail',
+    name: 'ProfileDetail',
+    component: ProfileDetail,
   }
 ]
 

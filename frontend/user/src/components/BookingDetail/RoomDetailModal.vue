@@ -3,7 +3,7 @@
     <div class="modal-container">
       <button class="close-btn-top" @click="$emit('close')">
         <i class="ri-close-line"></i>
-      </button>
+      </button> 
 
       <div class="modal-layout">
         <div class="gallery-col">

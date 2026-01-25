@@ -5,7 +5,7 @@
     <header class="blue-header" :style="backgroundHeader">
       <div class="nav-bar">
         <div class="logo">CamBook.com</div>
-        <button class="profile-btn">
+        <button class="profile-btn" @click="isProfileOpen = true">
           <i class="ri-user-line"></i>
         </button>
       </div>
@@ -40,6 +40,8 @@
       />
     </main>
     <FooterScreen />
+
+    <ProfileDetail v-if="isProfileOpen" @close="isProfileOpen = false" />
   </div>
 </template>
 
@@ -54,6 +56,7 @@ import BookingDescription from '@/components/BookingDetail/BookingDescription.vu
 import GuestReviews from '@/components/BookingDetail/GuestReviews.vue'
 import AvailabilitySection from '@/components/BookingDetail/AvailabilitySection.vue'
 import FooterScreen from '@/components/homepage/FooterScreen.vue'
+import ProfileDetail from '@/view/ProfileDetail.vue'
 
 export default defineComponent({
   name: 'BookingPage',
@@ -64,12 +67,15 @@ export default defineComponent({
     GuestReviews,
     AvailabilitySection,
     FooterScreen,
+    ProfileDetail,
   },
   setup() {
     // Dynamic Header Background
     const backgroundHeader = {
       backgroundImage: `url(${background})`,
     }
+
+    const isProfileOpen = ref(false) // State to control visibility
 
     // --- MOCK DATA FOR FUTURE NESTJS INTEGRATION ---
     const mockMapLink = ref(
@@ -126,6 +132,7 @@ export default defineComponent({
       mockDescription,
       mockRatings,
       mockRooms,
+      isProfileOpen, // Return the state
     }
   },
 })

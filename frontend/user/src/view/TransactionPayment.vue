@@ -5,7 +5,7 @@
     <header class="blue-header" :style="backgroundHeader">
       <nav class="nav-bar">
         <div class="logo">CamBook.com</div>
-        <button class="profile-btn"><i class="ri-user-line"></i></button>
+        <button class="profile-btn" @click="isProfileOpen = true"><i class="ri-user-line"></i></button>
       </nav>
     </header>
 
@@ -45,16 +45,19 @@
     </main>
 
     <FooterScreen />
+    <ProfileDetail v-if="isProfileOpen" @close="isProfileOpen = false" />
   </div>
 </template>
 
 <script lang="ts">
+import { ref } from 'vue' // Import ref
 import { defineComponent } from 'vue'
 import background from '@/assets/Background2.png'
 import FooterScreen from '@/components/homepage/FooterScreen.vue'
 import BookingSummary from '@/components/Transaction/BookingSummary.vue'
 import UserDetailsForm from '@/components/Transaction/UserDetailsForm.vue'
 import SpecialRequests from '@/components/Transaction/SpecialRequests.vue'
+import ProfileDetail from '@/view/ProfileDetail.vue'
 
 export default defineComponent({
   name: 'TransactionPayment',
@@ -63,6 +66,7 @@ export default defineComponent({
     BookingSummary,
     UserDetailsForm,
     SpecialRequests,
+    ProfileDetail,
   },
   setup() {
     // Dynamic background for the header
@@ -70,8 +74,11 @@ export default defineComponent({
       backgroundImage: `url(${background})`,
     }
 
+    const isProfileOpen = ref(false) // State to control visibility
+
     return {
       backgroundHeader,
+      isProfileOpen, // Return the state
     }
   },
 })

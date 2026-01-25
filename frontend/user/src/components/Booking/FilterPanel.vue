@@ -14,10 +14,10 @@
 
       <div class="filter-group">
         <p class="group-title">Duration</p>
-        <label><input type="radio" /> 1-3 hours</label>
-        <label><input type="radio" /> Half-day</label>
-        <label><input type="radio" /> Full-day</label>
-        <label><input type="radio" /> Multi-day</label>
+        <label><input type="radio" name="duration" /> 1-3 hours</label>
+        <label><input type="radio" name="duration" /> Half-day</label>
+        <label><input type="radio" name="duration" /> Full-day</label>
+        <label><input type="radio" name="duration" /> Multi-day</label>
       </div>
 
       <div class="filter-group">

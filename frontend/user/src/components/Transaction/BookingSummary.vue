@@ -101,7 +101,7 @@ export default defineComponent({
   font-weight: 500;
 }
 .price-card {
-  background-color: #f2f2f2;
+  background-color: #D9D9D9;
   padding: 20px;
 }
 .total-row {

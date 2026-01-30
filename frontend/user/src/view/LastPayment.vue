@@ -5,7 +5,9 @@
     <header class="blue-header" :style="backgroundHeader">
       <nav class="nav-bar">
         <div class="logo">CamBook.com</div>
-        <button class="profile-btn" @click="isProfileOpen = true" ><i class="ri-user-line"></i></button>
+        <button class="profile-btn" @click="isProfileOpen = true">
+          <i class="ri-user-line"></i>
+        </button>
       </nav>
     </header>
 
@@ -38,6 +40,10 @@
           <UserDetailsForm />
         </div>
 
+        <div class="Proof-payment-section">
+          <dropimage />
+        </div>
+
         <div class="fill-request">
           <Policy />
         </div>
@@ -50,14 +56,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { ref } from 'vue' // Import ref
+import { defineComponent, ref } from 'vue'
 import background from '@/assets/Background2.png'
 import FooterScreen from '@/components/homepage/FooterScreen.vue'
 import BookingSummary from '@/components/Transaction/BookingSummary.vue'
 import ProfileDetail from '@/view/ProfileDetail.vue'
 import UserDetailsForm from '@/components/Transaction/Payment.vue'
 import Policy from '@/components/Transaction/Policy.vue'
+import dropimage from '@/components/Transaction/ProofPayment.vue'
 
 export default defineComponent({
   name: 'TransactionPayment',
@@ -67,14 +73,14 @@ export default defineComponent({
     ProfileDetail,
     UserDetailsForm,
     Policy,
+    dropimage,
   },
   setup() {
-    // Dynamic background for the header
     const backgroundHeader = {
       backgroundImage: `url(${background})`,
     }
 
-    const isProfileOpen = ref(false) // State to control visibility
+    const isProfileOpen = ref(false)
 
     return {
       backgroundHeader,
@@ -83,7 +89,6 @@ export default defineComponent({
   },
 })
 </script>
-
 
 <style scoped>
 /* Base Container */
@@ -159,10 +164,6 @@ export default defineComponent({
   font-size: 14px;
 }
 .step-icon.completed,
-.step-icon.active {
-  background-color: #0046be;
-  color: white;
-}
 .step-icon.inactive {
   background-color: #0046be;
   color: white;
@@ -193,7 +194,7 @@ export default defineComponent({
   transform: rotate(45deg);
 }
 
-/* Layout Grid Logic */
+/* Layout Grid */
 .content-body {
   flex: 1;
   padding: 20px 80px;
@@ -202,16 +203,17 @@ export default defineComponent({
 
 .booking-layout-grid {
   display: grid;
-  grid-template-columns: 400px 1fr; /* 400px for left side, remaining for right */
+  grid-template-columns: 400px 1fr;
   gap: 20px;
   max-width: 1100px;
   margin: 0 auto;
   align-items: start;
 }
 
-/* THE MODIFICATION: Full width for Special Requests */
+/* UPDATED: Full width for both Payment and Policy sections */
+.Proof-payment-section,
 .fill-request {
-  grid-column: 1 / -1; /* Spans from column 1 to the end */
+  grid-column: 1 / -1; /* This makes it span both columns */
   width: 100%;
   margin-top: 10px;
 }
@@ -228,7 +230,8 @@ export default defineComponent({
     grid-template-columns: 1fr;
     padding: 0 20px;
   }
-  .fill-request {
+  .fill-request,
+  .Proof-payment-section {
     grid-column: auto;
   }
   .content-body {
@@ -240,4 +243,3 @@ export default defineComponent({
   }
 }
 </style>
-

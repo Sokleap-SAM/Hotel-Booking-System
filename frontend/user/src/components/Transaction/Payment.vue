@@ -22,7 +22,7 @@
         <p class="khqr-bold">KHQR</p>
         <p class="next-steps-title">Here’s what happens next</p>
         <ul class="steps-list">
-          <li>Just scan it and pay it.</li>
+          <li>Just scan it and pay it and take a screenshot of the payment proof.</li>
           <li>Check the box to verify that you already pay it</li>
           <li>You’ll get a confirmation once it’s complete.</li>
         </ul>

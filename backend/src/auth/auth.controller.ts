@@ -7,16 +7,17 @@ import {
   Body,
   UseInterceptors,
   UploadedFile,
+  Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './user/dto/user-register.dto';
-import { GoogleLoginDto } from './user/dto/google-login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { profileUploadConfig } from 'src/config/file-upload.config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from './user/entity/user.entity';
+import type { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -36,14 +37,23 @@ export class AuthController {
   // This Guard triggers the LocalStrategy
   @UseGuards(AuthGuard('local'))
   @Post('login')
-  async login(@Request() req: { user: User }) {
+  login(@Request() req: { user: User }) {
     return this.authService.login(req.user);
   }
 
-  @Post('google/login')
-  async googleLogin(@Body() googleLoginDto: GoogleLoginDto) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.authService.googleLogin(googleLoginDto.token);
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    // Guard redirects
+  }
+
+  @Get('google/redirect')
+  @UseGuards(AuthGuard('google'))
+  googleAuthRedirect(@Request() req: { user: User }, @Res() res: Response) {
+    const { access_token } = this.authService.googleLogin(req.user);
+    // Redirect to your frontend application with the token
+    // In a real app, you would have the frontend URL in your config
+    res.redirect(`http://localhost:5173/login/success?token=${access_token}`);
   }
 
   @Post('forgot-password')

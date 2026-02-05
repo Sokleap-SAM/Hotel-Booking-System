@@ -1,5 +1,5 @@
 <template>
-    <link
+  <link
     href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
     rel="stylesheet"
   />
@@ -24,8 +24,12 @@
 
         <div class="circle-box">
           <svg viewBox="0 0 36 36" class="circular-chart">
-            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-            <path class="circle"
+            <path
+              class="circle-bg"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path
+              class="circle"
               :stroke-dasharray="`${item.score * 10}, 100`"
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
@@ -39,16 +43,16 @@
 
 <script setup lang="ts">
 interface RatingCategory {
-  label: string;
-  score: number;
-  icon: string;
+  label: string
+  score: number
+  icon: string
 }
 
 defineProps<{
-  overallScore: number;
-  totalReviews: string;
-  categories: RatingCategory[];
-}>();
+  overallScore: number
+  totalReviews: string
+  categories: RatingCategory[]
+}>()
 </script>
 
 <style scoped>
@@ -119,11 +123,23 @@ defineProps<{
 }
 
 /* Circular Progress Styling */
-.circle-box { width: 160px; height: 150px; }
+.circle-box {
+  width: 160px;
+  height: 150px;
+}
 
-.circular-chart { display: block; margin: 10px auto; max-width: 100%; max-height: 100%; }
+.circular-chart {
+  display: block;
+  margin: 10px auto;
+  max-width: 100%;
+  max-height: 100%;
+}
 
-.circle-bg { fill: none; stroke: #eee; stroke-width: 2.8; }
+.circle-bg {
+  fill: none;
+  stroke: #eee;
+  stroke-width: 2.8;
+}
 
 .circle {
   fill: none;

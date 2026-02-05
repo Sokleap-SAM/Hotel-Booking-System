@@ -5,11 +5,7 @@
       <h3 class="des">Subscribe to the CamBook newsletter to stay ahead of exclusive offers</h3>
 
       <div class="subscribe-wrapper">
-        <input
-          type="email"
-          placeholder="Enter your email"
-          class="email-input"
-        />
+        <input type="email" placeholder="Enter your email" class="email-input" />
         <button class="subscribe-btn">Subcribe</button>
       </div>
     </div>
@@ -63,7 +59,7 @@
   background-color: white;
   border-radius: 50px; /* Pill shape */
   overflow: hidden; /* Ensures button corners don't overlap border-radius */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .email-input {

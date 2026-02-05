@@ -3,14 +3,11 @@
     <div class="title">Popular Hotels</div>
 
     <div v-for="hotel in hotelStore.hotels" :key="hotel.id" class="container">
-      <div class="containerImg" :style="{ backgroundImage: `url(${hotel.image_url})` }">
-        </div>
+      <div class="containerImg" :style="{ backgroundImage: `url(${hotel.image_url})` }"></div>
 
       <div class="containerDes">
         <div class="des-left">
-          <div class="location-info">
-            <i class="ri-map-pin-fill"></i> {{ hotel.location }}
-          </div>
+          <div class="location-info"><i class="ri-map-pin-fill"></i> {{ hotel.location }}</div>
 
           <div class="rating">
             <i
@@ -25,7 +22,8 @@
         </div>
 
         <button class="explore-btn" @click="goToHotel(hotel.id)">Explore Now</button>
-      </div> </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -48,29 +46,29 @@ const goToHotel = (id: number) => {
 .positionHotel {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;      /* Allows the title to take the top row and cards the second */
-  gap: 20px;            /* Space between cards */
-  padding-left: 80px;   /* Replaces transform for cleaner alignment */
+  flex-wrap: wrap; /* Allows the title to take the top row and cards the second */
+  gap: 20px; /* Space between cards */
+  padding-left: 80px; /* Replaces transform for cleaner alignment */
   padding-right: 20px;
 }
 
 /* The Title - Forced to take up the full top row */
 .title {
-  flex: 0 0 100%;       /* Makes the title span the entire width */
+  flex: 0 0 100%; /* Makes the title span the entire width */
   font-size: 32px;
   font-weight: bold;
   margin-top: 30px;
-  margin-bottom: 10px;  /* Reduced margin to keep it close to cards */
+  margin-bottom: 10px; /* Reduced margin to keep it close to cards */
 }
 
 /* The Hotel Card */
 .container {
-  flex: 0 0 auto;       /* Prevents cards from shrinking */
+  flex: 0 0 auto; /* Prevents cards from shrinking */
   border-radius: 20px;
   margin-bottom: 30px;
   background-color: #eaeaea;
   padding: 15px;
-  width: 350px;         /* Reduced width so they fit in a row better */
+  width: 350px; /* Reduced width so they fit in a row better */
   height: 440px;
 
   /* Internal card layout */

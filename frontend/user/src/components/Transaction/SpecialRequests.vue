@@ -21,7 +21,7 @@
 
 <script lang="ts">
 import { defineComponent, reactive } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: 'SpecialRequests',

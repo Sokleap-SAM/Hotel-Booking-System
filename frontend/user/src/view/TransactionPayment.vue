@@ -5,7 +5,9 @@
     <header class="blue-header" :style="backgroundHeader">
       <nav class="nav-bar">
         <div class="logo">CamBook.com</div>
-        <button class="profile-btn" @click="isProfileOpen = true"><i class="ri-user-line"></i></button>
+        <button class="profile-btn" @click="isProfileOpen = true">
+          <i class="ri-user-line"></i>
+        </button>
       </nav>
     </header>
 

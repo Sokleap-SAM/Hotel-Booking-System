@@ -1,5 +1,5 @@
 <template>
-    <link
+  <link
     href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
     rel="stylesheet"
   />
@@ -23,14 +23,14 @@
 <script setup lang="ts">
 // Defining Props makes it easy to replace mock data with Backend data later
 interface DescriptionData {
-  title: string;
-  paragraphs: string[];
-  highlight: string;
+  title: string
+  paragraphs: string[]
+  highlight: string
 }
 
 defineProps<{
   descriptionData: DescriptionData
-}>();
+}>()
 </script>
 
 <style scoped>

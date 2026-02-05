@@ -28,10 +28,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import angkorImage from '@/assets/Angkorwat.png';
-import pubStreetImage from '@/assets/Pubstreet.png';
-import { useRouter } from 'vue-router';
+import { defineComponent, ref } from 'vue'
+import angkorImage from '@/assets/Angkorwat.png'
+import pubStreetImage from '@/assets/Pubstreet.png'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: 'ViewHotelDetail',
@@ -40,34 +40,36 @@ export default defineComponent({
       {
         id: 1,
         name: 'Angkor Village Hotel',
-        description: 'Stay close to Angkor Wat at a peaceful hotel with clean rooms, friendly staff, and beautiful views. You can relax by the pool, enjoy tasty food, and get help with temple tours.',
+        description:
+          'Stay close to Angkor Wat at a peaceful hotel with clean rooms, friendly staff, and beautiful views. You can relax by the pool, enjoy tasty food, and get help with temple tours.',
         rating: 4.5,
         price: 50,
         // 2. Assign the imported variable here
-        imageUrl: angkorImage
+        imageUrl: angkorImage,
       },
       {
         id: 2,
         name: 'Koulen Central Hotel',
-        description: 'Experience modern comfort in the heart of Siem Reap. Featuring a stunning rooftop pool and within walking distance to Pub Street, this hotel is perfect for city explorers.',
+        description:
+          'Experience modern comfort in the heart of Siem Reap. Featuring a stunning rooftop pool and within walking distance to Pub Street, this hotel is perfect for city explorers.',
         rating: 4.0,
         price: 30,
         // 2. Assign the imported variable here
-        imageUrl: pubStreetImage
+        imageUrl: pubStreetImage,
       },
-    ]);
-    
-    const router = useRouter();
+    ])
+
+    const router = useRouter()
     const goToBookingDetail = () => {
-      router.push('/BookingDetail');
+      router.push('/BookingDetail')
     }
 
     return {
       hotels,
       goToBookingDetail,
-    };
-  }
-});
+    }
+  },
+})
 </script>
 
 <style scoped>

@@ -36,11 +36,9 @@ export default defineComponent({
   },
   setup() {
     // 2. Initial state uses the imported local image
-    const user = ref<{ profileImage: string }>(
-      {
-        profileImage: localAvatar,
-      }
-    )
+    const user = ref<{ profileImage: string }>({
+      profileImage: localAvatar,
+    })
 
     const handleLogout = (): void => {
       console.log('Logging out...')

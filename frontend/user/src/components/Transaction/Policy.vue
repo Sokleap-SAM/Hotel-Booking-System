@@ -9,17 +9,23 @@
       <div class="checkbox-item marketing-text">
         <input type="checkbox" id="marketing" v-model="policyData.marketingConsent" />
         <label for="marketing">
-          I agree to receiving marketing emails from Booking.com, including promotions, personalized recommendations, rewards, travel experiences, and updates about Booking.com's products and services.
+          I agree to receiving marketing emails from Booking.com, including promotions, personalized
+          recommendations, rewards, travel experiences, and updates about Booking.com's products and
+          services.
         </label>
       </div>
     </div>
 
     <div class="legal-disclaimer">
       <p>
-        By signing up, you allow us to tailor offers and content to your interests by monitoring how you use Booking.com through tracking technologies. Unsubscribe anytime through your account settings or the link in any marketing email. Read our <a>privacy policy</a>.
+        By signing up, you allow us to tailor offers and content to your interests by monitoring how
+        you use Booking.com through tracking technologies. Unsubscribe anytime through your account
+        settings or the link in any marketing email. Read our <a>privacy policy</a>.
       </p>
       <p>
-        Your booking is directly with Angkor Village Hotel - Small Luxury Hotels of the World and by completing this booking you agree to the booking conditions, <a>general terms</a>, <a>privacy policy</a>, and <a>Wallet terms</a>.
+        Your booking is directly with Angkor Village Hotel - Small Luxury Hotels of the World and by
+        completing this booking you agree to the booking conditions, <a>general terms</a>,
+        <a>privacy policy</a>, and <a>Wallet terms</a>.
       </p>
     </div>
 
@@ -44,10 +50,10 @@ export default defineComponent({
 
     const handleCompleteBooking = () => {
       if (!policyData.verifiedPayment) {
-        alert('Please verify your payment before completing.');
-        return;
+        alert('Please verify your payment before completing.')
+        return
       }
-      console.log('Finalizing Booking:', policyData);
+      console.log('Finalizing Booking:', policyData)
       // Future: axios.post('/bookings/complete', policyData)
     }
 

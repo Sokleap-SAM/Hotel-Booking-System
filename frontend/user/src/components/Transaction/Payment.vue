@@ -114,10 +114,22 @@ export default defineComponent({
 }
 
 /* Instructions */
-.khqr-bold { font-weight: bold; margin-bottom: 10px; }
-.next-steps-title { font-weight: bold; font-size: 0.9rem; }
-.steps-list { padding-left: 18px; margin-bottom: 20px; }
-.steps-list li { font-size: 0.85rem; margin-bottom: 5px; }
+.khqr-bold {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.next-steps-title {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+.steps-list {
+  padding-left: 18px;
+  margin-bottom: 20px;
+}
+.steps-list li {
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+}
 
 /* The QR Image Container */
 .qr-display-container {

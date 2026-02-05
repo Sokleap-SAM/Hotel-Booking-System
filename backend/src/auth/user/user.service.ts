@@ -15,13 +15,25 @@ export class UserService {
   async create(userRegisterDto: UserRegisterDto): Promise<User> {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(userRegisterDto.password, salt);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userData } = userRegisterDto;
+
+    console.log('UserService.create: userRegisterDto received:', userRegisterDto);
+
     const user = this.userRepository.create({
       ...userData,
       password: hashedPassword,
     });
-    return this.userRepository.save(user);
+
+    console.log('UserService.create: User entity created:', user);
+
+    try {
+      const savedUser = await this.userRepository.save(user);
+      console.log('UserService.create: User saved successfully:', savedUser);
+      return savedUser;
+    } catch (error) {
+      console.error('UserService.create: Error saving user to database:', error);
+      throw error; // Re-throw the error to ensure it's still handled by NestJS
+    }
   }
 
   async findByEmail(email: string): Promise<User | null> {

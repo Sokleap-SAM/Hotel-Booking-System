@@ -29,7 +29,7 @@
 import { defineComponent, ref } from 'vue'
 // Import local image if you have one in assets, otherwise use mock string
 // import hotelImage from '@/assets/hotel-sample.jpg'
-import angkorwat from '@/assets/Angkorwat.png';
+import angkorwat from '@/assets/Angkorwat.png'
 
 export default defineComponent({
   name: 'BookingSummary',
@@ -101,7 +101,7 @@ export default defineComponent({
   font-weight: 500;
 }
 .price-card {
-  background-color: #D9D9D9;
+  background-color: #d9d9d9;
   padding: 20px;
 }
 .total-row {

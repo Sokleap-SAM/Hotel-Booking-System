@@ -102,7 +102,7 @@ const clearFile = () => {
 defineExpose({
   selectedFile,
   clearFile,
-  errorMessage
+  errorMessage,
 })
 </script>
 

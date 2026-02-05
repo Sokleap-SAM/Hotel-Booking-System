@@ -31,11 +31,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'FilterComponent',
-});
+})
 </script>
 
 <style scoped>
@@ -48,7 +48,7 @@ export default defineComponent({
 
   display: flex;
   flex-direction: column;
-  background-color: #DFDFDF;
+  background-color: #dfdfdf;
   width: 304px;
   height: 550px;
   border-radius: 10px;
@@ -98,7 +98,8 @@ label:hover {
   opacity: 0.7;
 }
 
-input[type="radio"], input[type="checkbox"] {
+input[type='radio'],
+input[type='checkbox'] {
   cursor: pointer;
   width: 16px;
   height: 16px;

@@ -8,28 +8,25 @@ import { UserService } from './user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from './user/entity/user.entity';
-import { OAuth2Client } from 'google-auth-library';
 import { UserRegisterDto } from './user/dto/user-register.dto';
 import * as crypto from 'crypto';
 import { Express } from 'express';
 import 'multer';
-// import { MoreThan } from 'typeorm';
 
 @Injectable()
 export class AuthService {
-  private googleClient: OAuth2Client;
-
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-  ) {
-    // IMPORTANT: Store client ID in environment variables
-    this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-  }
+  ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userService.findByEmail(email);
-    if (user && (await bcrypt.compare(pass, user.password))) {
+    if (
+      user &&
+      user.provider === 'local' &&
+      (await bcrypt.compare(pass, user.password))
+    ) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user;
       return result;
@@ -37,20 +34,59 @@ export class AuthService {
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async login(user: User) {
+  async validateOAuthLogin(
+    email: string,
+    provider: 'google',
+    firstName: string,
+    lastName: string,
+  ): Promise<User> {
+    let user = await this.userService.findByEmail(email);
+    if (user) {
+      return user;
+    }
+
+    // Create a new user if they don't exist
+    const newUserDto = new UserRegisterDto();
+    newUserDto.email = email;
+    newUserDto.provider = provider;
+    // For OAuth users, we can generate a random password or leave it null
+    // if your user entity and logic allows it.
+    newUserDto.password = crypto.randomBytes(16).toString('hex');
+
+    newUserDto.firstName = firstName || ' '; // Use the passed firstName, default to space
+    newUserDto.lastName = lastName || ' ';   // Use the passed lastName, default to space
+
+    console.log('validateOAuthLogin: newUserDto before creation:', newUserDto);
+
+    try {
+      user = await this.userService.create(newUserDto);
+      console.log('validateOAuthLogin: User created successfully:', user);
+    } catch (error) {
+      console.error('validateOAuthLogin: Error creating user:', error);
+      throw error; // Re-throw the error to ensure it's still handled by NestJS
+    }
+    return user;
+  }
+
+  login(user: User) {
     const payload = { email: user.email, sub: user.id };
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
 
+  googleLogin(user: User) {
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    return this.login(user);
+  }
   async register(userDto: UserRegisterDto, file: Express.Multer.File) {
     console.log('=== BACKEND SERVICE ===');
     console.log('📁 File:', file ? 'EXISTS' : 'NULL');
     console.log('📁 File path:', file?.path);
     console.log('📝 DTO before:', userDto);
-    if (userDto.password !== userDto.confirmPassword) {
+    if (userDto.confirmPassword && userDto.password !== userDto.confirmPassword) {
       throw new BadRequestException('Passwords do not match');
     }
     const existingUser = await this.userService.findByEmail(userDto.email);
@@ -61,53 +97,8 @@ export class AuthService {
       userDto.profileImage = file.path;
       console.log(file.path);
     }
+    userDto.provider = 'local';
     return this.userService.create(userDto);
-  }
-
-  async googleLogin(token: string): Promise<any> {
-    try {
-      const ticket = await this.googleClient.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      const payload = ticket.getPayload();
-      if (!payload) {
-        throw new UnauthorizedException(
-          'Google authentication failed: no payload',
-        );
-      }
-      const { email, given_name, family_name, picture } = payload;
-
-      if (!email) {
-        throw new UnauthorizedException(
-          'Google authentication failed: no email',
-        );
-      }
-
-      let user = await this.userService.findByEmail(email);
-
-      if (!user) {
-        const newUser = new UserRegisterDto();
-        newUser.email = email;
-        newUser.firstName = given_name || ' ';
-        newUser.lastName = family_name || ' ';
-        newUser.profileImage = picture || '';
-        newUser.provider = 'google';
-        // Google users might not have a password
-        newUser.password = Math.random().toString(36).slice(-8); // Generate a random password
-
-        user = await this.userService.create(newUser);
-      } else {
-        user.profileImage = picture || '';
-        user.provider = 'google';
-        await this.userService.save(user);
-      }
-
-      return this.login(user);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      throw new UnauthorizedException('Google authentication failed');
-    }
   }
 
   async forgotPassword(

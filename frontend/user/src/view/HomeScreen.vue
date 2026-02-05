@@ -1,7 +1,7 @@
 <template>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
   <div>
-    <HeaderScreen class="smart-header"/>
+    <HeaderScreen class="smart-header" />
     <BackgroundHomeScreen />
     <PopularHotel />
     <MyBooking />

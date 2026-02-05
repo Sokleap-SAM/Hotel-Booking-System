@@ -21,8 +21,18 @@
         <label>Password</label>
         <span v-if="!isEditingPassword" class="value">************</span>
         <div v-else class="password-fields">
-          <input type="password" v-model="newPassword" placeholder="New Password" class="value-input" />
-          <input type="password" v-model="confirmPassword" placeholder="Confirm New Password" class="value-input" />
+          <input
+            type="password"
+            v-model="newPassword"
+            placeholder="New Password"
+            class="value-input"
+          />
+          <input
+            type="password"
+            v-model="confirmPassword"
+            placeholder="Confirm New Password"
+            class="value-input"
+          />
         </div>
         <button @click="togglePasswordEdit" class="edit-field-btn">
           {{ isEditingPassword ? 'Cancel' : 'Change' }}

@@ -14,11 +14,11 @@
 
 <script setup lang="ts">
 // Replace these with your actual filenames in src/assets/
-import hotel1 from '@/assets/Angkorwat.png';
-import hotel2 from '@/assets/hotel1.jpg';
-import hotel3 from '@/assets/Pubstreet.png';
+import hotel1 from '@/assets/Angkorwat.png'
+import hotel2 from '@/assets/hotel1.jpg'
+import hotel3 from '@/assets/Pubstreet.png'
 
-const localImages = [hotel1, hotel2, hotel3];
+const localImages = [hotel1, hotel2, hotel3]
 </script>
 
 <style scoped>

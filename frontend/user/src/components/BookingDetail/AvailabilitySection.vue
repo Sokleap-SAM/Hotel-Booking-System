@@ -34,25 +34,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { VueDatePicker } from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css'; // Don't forget the CSS!
-import RoomTable from './RoomTable.vue';
+import { ref } from 'vue'
+import { VueDatePicker } from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css' // Don't forget the CSS!
+import RoomTable from './RoomTable.vue'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = defineProps<{
-  guestConfig: string;
+  guestConfig: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rooms: any[];
-}>();
+  rooms: any[]
+}>()
 
 // Date Range logic: Default to [Today, Tomorrow]
-const dateRange = ref([new Date(), new Date(Date.now() + 86400000)]);
+const dateRange = ref([new Date(), new Date(Date.now() + 86400000)])
 
 const handleSearch = () => {
-  console.log("Searching for dates:", dateRange.value);
+  console.log('Searching for dates:', dateRange.value)
   // This is where you would call your NestJS API in the future
-};
+}
 </script>
 
 <style scoped>

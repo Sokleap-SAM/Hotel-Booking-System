@@ -13,9 +13,10 @@
         :src="mapUrl"
         width="100%"
         height="100%"
-        style="border:0;"
+        style="border: 0"
         :allowfullscreen="true"
-        loading="lazy">
+        loading="lazy"
+      >
       </iframe>
 
       <div class="map-overlay">
@@ -29,14 +30,14 @@
 defineProps({
   rating: {
     type: Number,
-    default: 4.5
+    default: 4.5,
   },
   mapUrl: {
     type: String,
     // // Default placeholder map link
     // default: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3881.0258123!2d103.856!3d13.36!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTPCsDIxJzM2LjAiTiAxMDPCsDUxJzIxLjYiRQ!5e0!3m2!1sen!2skh!4v123456789"
-  }
-});
+  },
+})
 </script>
 
 <style scoped>
@@ -87,7 +88,7 @@ defineProps({
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.05); /* Light tint */
+  background: rgba(0, 0, 0, 0.05); /* Light tint */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -103,6 +104,6 @@ defineProps({
   border-radius: 5px;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 </style>

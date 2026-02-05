@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AuthLogin from '@/view/AuthLogin.vue'
 import LoginScreen from '@/components/auth/LoginScreen.vue'
+import LoginSuccess from '@/components/auth/LoginSuccess.vue'
 import SignUpScreen from '@/components/auth/SignUpScreen.vue'
 import ForgotPasswordScreen from '@/components/auth/ForgotPasswordScreen.vue'
 import ResetPWScreen from '@/components/auth/ResetPWScreen.vue'
@@ -9,7 +10,7 @@ import { useAuthStore } from '@/stores/auth'
 import Bookingpage from '@/view/BookingPage.vue'
 import BookingDetail from '@/view/BookingDetail.vue'
 import RoomDetailModal from '@/components/BookingDetail/RoomDetailModal.vue'
-import TransactionPayment from "@/view/TransactionPayment.vue"
+import TransactionPayment from '@/view/TransactionPayment.vue'
 import LastPayment from '@/view/LastPayment.vue'
 import ProfileDetail from '@/view/ProfileDetail.vue'
 
@@ -26,6 +27,11 @@ const routes = [
         path: 'login',
         name: 'login',
         component: LoginScreen,
+      },
+      {
+        path: 'login/success',
+        name: 'login-success',
+        component: LoginSuccess,
       },
       {
         path: 'signup',
@@ -79,7 +85,7 @@ const routes = [
     path: '/ProfileDetail',
     name: 'ProfileDetail',
     component: ProfileDetail,
-  }
+  },
 ]
 
 const router = createRouter({
@@ -89,7 +95,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
 
   if (requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'login' })

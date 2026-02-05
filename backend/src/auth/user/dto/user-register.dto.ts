@@ -25,9 +25,9 @@ export class UserRegisterDto {
   password: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional() // Made optional for OAuth
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  confirmPassword: string;
+  confirmPassword?: string;
 
   @IsString()
   @IsOptional()

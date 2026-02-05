@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import RoomDetailModal from './RoomDetailModal.vue'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 defineProps<{ rooms: any[] }>()

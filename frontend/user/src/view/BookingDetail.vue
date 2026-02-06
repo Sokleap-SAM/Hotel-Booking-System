@@ -63,6 +63,10 @@
           :guestConfig="guestConfig"
           :rooms="rooms"
           :isLoading="roomsLoading"
+          :hotelId="hotel.id"
+          :hotelName="hotel.name"
+          :hotelLocation="hotel.location"
+          :hotelImages="hotel.images"
         />
 
       </main>

@@ -42,7 +42,16 @@
     </div>
 
     <!-- Rooms Table -->
-    <RoomTable v-else :rooms="formattedRooms" />
+    <RoomTable 
+      v-else 
+      :rooms="formattedRooms"
+      :hotel-id="hotelId"
+      :hotel-name="hotelName"
+      :hotel-location="hotelLocation"
+      :hotel-images="hotelImages"
+      :check-in-date="checkInDateString"
+      :check-out-date="checkOutDateString"
+    />
   </section>
 </template>
 
@@ -79,10 +88,25 @@ const props = defineProps<{
   guestConfig: string;
   rooms: Room[];
   isLoading?: boolean;
+  hotelId?: string;
+  hotelName?: string;
+  hotelLocation?: string;
+  hotelImages?: string[];
 }>();
 
 // Date Range logic: Default to [Today, Tomorrow]
 const dateRange = ref([new Date(), new Date(Date.now() + 86400000)]);
+
+// Convert dates to string format for the RoomTable
+const checkInDateString = computed(() => {
+  if (!dateRange.value?.[0]) return '';
+  return dateRange.value[0].toISOString().split('T')[0];
+});
+
+const checkOutDateString = computed(() => {
+  if (!dateRange.value?.[1]) return '';
+  return dateRange.value[1].toISOString().split('T')[0];
+});
 
 // Format rooms to match the RoomTable expected structure
 const formattedRooms = computed(() => {

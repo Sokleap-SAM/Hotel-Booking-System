@@ -23,17 +23,15 @@
       </div>
     </div>
 
-    <button class="search-button">
-      Search
-    </button>
+    <button class="search-button">Search</button>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 export default defineComponent({
-  name: 'SearchBar'
-});
+  name: 'SearchBar',
+})
 </script>
 
 <style scoped>
@@ -48,7 +46,7 @@ export default defineComponent({
   height: 121px;
   background-color: white;
   border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   z-index: 10;
 
   /* Flexbox settings to align the 4 items */
@@ -77,7 +75,7 @@ export default defineComponent({
 }
 
 .search-item:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
 }
 

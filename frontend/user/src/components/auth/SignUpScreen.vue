@@ -9,12 +9,7 @@
     <h2>Sign up</h2>
     <div v-if="error" class="error-message">{{ error }}</div>
     <div class="upload-wrapper">
-      <div
-        class="drop-zone"
-        @click="triggerFileInput"
-        @dragover.prevent
-        @drop.prevent="handleDrop"
-      >
+      <div class="drop-zone" @click="triggerFileInput" @dragover.prevent @drop.prevent="handleDrop">
         <input
           type="file"
           ref="fileInput"
@@ -207,7 +202,7 @@ export default {
       fileInput,
       triggerFileInput,
       handleFileSelect,
-      handleDrop
+      handleDrop,
     }
   }
 }

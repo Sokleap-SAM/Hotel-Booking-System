@@ -12,25 +12,25 @@
 </template>
 
 <script lang="ts">
-  import { useRouter } from 'vue-router'
-  export default {
-    name: 'HeaderScreen',
-    setup() {
-      const router = useRouter()
-      const goToLogin = () => {
-        router.push('/login')
-      }
+import { useRouter } from 'vue-router'
+export default {
+  name: 'HeaderScreen',
+  setup() {
+    const router = useRouter()
+    const goToLogin = () => {
+      router.push('/login')
+    }
 
-      const goToBooking = () => {
-        router.push('/Bookingpage')
-      }
+    const goToBooking = () => {
+      router.push('/Bookingpage')
+    }
 
-      return {
-        goToLogin,
-        goToBooking,
-      }
-    },
-  }
+    return {
+      goToLogin,
+      goToBooking,
+    }
+  },
+}
 </script>
 
 <style scoped>
@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #0D4798;
+  background-color: #0d4798;
   padding: 10px 20px;
   color: white;
   font-family: 'Lato', sans-serif;

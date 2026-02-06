@@ -24,8 +24,7 @@
     "jwt-decode": "^4.0.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.25",
-    "vue-router": "^4.6.3",
-    "vue3-google-login": "^2.0.34"
+    "vue-router": "^4.6.3"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.3",

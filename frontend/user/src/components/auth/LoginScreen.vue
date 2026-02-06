@@ -33,7 +33,9 @@
     <button class="btn-Login" @click="handleLogin">Login</button>
     <div style="text-align: center; margin-top: 20px">Or continue with</div>
     <div class="container-google">
-      <GoogleLogin :click="callback" />
+      <a href="http://localhost:3000/auth/google">
+        <img src="@/assets/google.png" alt="Google login" style="width: 100%; height: auto" />
+      </a>
     </div>
     <div class="create-account">
       <span style="text-align: center; margin-top: 20px">Don't have an account yet?</span>
@@ -58,12 +60,6 @@ export default {
     const authStore = useAuthStore()
     const router = useRouter()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const callback = (response: any) => {
-      console.log('Encoded JWT ID token: ' + response.credential)
-      // Google Login logic to be implemented
-    }
-
     const goToSignup = () => {
       router.push('/signup')
     }
@@ -77,18 +73,18 @@ export default {
     }
 
     const handleLogin = async () => {
-      error.value = null;
+      error.value = null
       if (!email.value || !password.value) {
-        error.value = 'Please enter both email and password.';
-        return;
+        error.value = 'Please enter both email and password.'
+        return
       }
       try {
-        await authStore.login({ email: email.value, password: password.value });
-        router.push('/home');
+        await authStore.login({ email: email.value, password: password.value })
+        router.push('/home')
       } catch (err) {
-        error.value = err.message || 'An unexpected error occurred.';
+        error.value = err.message || 'An unexpected error occurred.'
       }
-    };
+    }
 
     return {
       goToSignup,
@@ -97,7 +93,6 @@ export default {
       password,
       passwordFieldType,
       togglePassword,
-      callback,
       handleLogin,
       error,
     }

@@ -93,8 +93,8 @@ export default {
     const password = ref('')
     const confirmPassword = ref('')
     const passwordFieldType = ref('password')
-    const confirmPasswordFieldType = ref('password');
-    const error = ref<string | null>(null);
+    const confirmPasswordFieldType = ref('password')
+    const error = ref<string | null>(null)
 
     // Validation Logic
     const hasMinLength = computed(() => password.value.length >= 8)
@@ -129,10 +129,7 @@ export default {
         return
       }
       const allValid =
-        hasMinLength.value &&
-        hasUppercase.value &&
-        hasLowercase.value &&
-        hasNumber.value
+        hasMinLength.value && hasUppercase.value && hasLowercase.value && hasNumber.value
       if (!allValid) {
         error.value = 'Password does not meet the requirements.'
         return
@@ -148,7 +145,7 @@ export default {
     }
 
     return {
-      handleResetPassword, 
+      handleResetPassword,
       hasMinLength,
       hasUppercase,
       hasLowercase,
@@ -160,7 +157,7 @@ export default {
       togglePassword,
       goToEnterEmail,
       error,
-    };
+    }
   },
 }
 </script>
@@ -349,7 +346,11 @@ input::placeholder {
 
 /* Responsive Hide for extremely small screens */
 @media (max-height: 650px) {
-  .circle { display: none; } /* Hides key icon to save space on small laptops */
-  .container { padding: 10px 20px; }
+  .circle {
+    display: none;
+  } /* Hides key icon to save space on small laptops */
+  .container {
+    padding: 10px 20px;
+  }
 }
 </style>

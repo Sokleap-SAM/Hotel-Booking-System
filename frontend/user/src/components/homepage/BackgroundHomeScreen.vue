@@ -119,15 +119,15 @@
   border-radius: 8px;
   cursor: pointer;
 }
-.location:hover ,
-.calender:hover ,
+.location:hover,
+.calender:hover,
 .guestAndRoom:hover {
-  background-color: #1967D3;
+  background-color: #1967d3;
   color: white;
 }
 .search:hover {
   background-color: white;
-  color: #1967D3;
+  color: #1967d3;
 }
 .search {
   font-size: 20px;
@@ -140,7 +140,7 @@
 
   width: 20%;
   height: 60px;
-  background-color: #1967D3;
+  background-color: #1967d3;
   color: white;
   border-radius: 8px;
   cursor: pointer;

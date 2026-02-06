@@ -6,16 +6,13 @@
       <h2 class="booking-text">Haven’t Booking yet?</h2>
 
       <div class="button-wrapper">
-        <button class="explore-btn">
-          Explore Now
-        </button>
+        <button class="explore-btn">Explore Now</button>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <style scoped>
 .positionHotel {
@@ -41,9 +38,9 @@
   border-radius: 20px;
   margin-bottom: 30px;
   background-color: #eaeaea; /* Light grey from image */
-  padding: 30px;             /* Adjusted padding for internal spacing */
-  width: 440px;              /* Original Width */
-  height: 440px;             /* Original Height */
+  padding: 30px; /* Adjusted padding for internal spacing */
+  width: 440px; /* Original Width */
+  height: 440px; /* Original Height */
 
   display: flex;
   flex-direction: column;

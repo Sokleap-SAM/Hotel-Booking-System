@@ -66,7 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
       throw error
     }
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   async function register(userInfo: FormData) {
     try {
       const response = await fetch(

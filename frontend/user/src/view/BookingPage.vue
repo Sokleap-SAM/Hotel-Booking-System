@@ -3,39 +3,47 @@
   <div class="bookingpage" :style="backgroundHeader">
     <div class="RowHeader">
       <div class="title">CamBook.com</div>
-      <button class="Profile">
+      <button class="Profile" @click="isProfileOpen = true">
         <i class="ri-user-line"></i>
       </button>
     </div>
     <MenuPanel />
     <FilterPanel />
     <ViewHotelDetail />
+
+    <ProfileDetail v-if="isProfileOpen" @close="isProfileOpen = false" />
   </div>
 </template>
 
 <script lang="ts">
-  import  background from '@/assets/Background2.png'
-  import MenuPanel from '@/components/Booking/MenuPanel.vue';
-  import FilterPanel from '@/components/Booking/FilterPanel.vue';
-  import ViewHotelDetail from '@/components/Booking/ViewHotelDetail.vue';
+import { ref } from 'vue' // Import ref
+import background from '@/assets/Background2.png'
+import MenuPanel from '@/components/Booking/MenuPanel.vue'
+import FilterPanel from '@/components/Booking/FilterPanel.vue'
+import ViewHotelDetail from '@/components/Booking/ViewHotelDetail.vue'
+import ProfileDetail from '@/view/ProfileDetail.vue'
 
-  export default {
-    name: 'BookingPage',
-    setup() {
-      const backgroundHeader = {
-        backgroundImage: `url(${background})`
-      }
+export default {
+  name: 'BookingPage',
+  components: {
+    MenuPanel,
+    FilterPanel,
+    ViewHotelDetail,
+    ProfileDetail, // Register component
+  },
+  setup() {
+    const isProfileOpen = ref(false) // State to control visibility
 
-      return {
-        backgroundHeader,
-      }
-    },
-    components: {
-      MenuPanel,
-      FilterPanel,
-      ViewHotelDetail,
-    },
-  }
+    const backgroundHeader = {
+      backgroundImage: `url(${background})`,
+    }
+
+    return {
+      backgroundHeader,
+      isProfileOpen, // Return the state
+    }
+  },
+}
 </script>
 
 <style scoped>
@@ -83,7 +91,7 @@
 }
 .Profile i {
   font-size: 24px;
-  color: #0D4798;
+  color: #0d4798;
   line-height: 50px;
   text-align: center;
   display: block;

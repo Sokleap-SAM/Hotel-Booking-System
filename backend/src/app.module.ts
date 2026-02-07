@@ -10,6 +10,9 @@ import { AuthModule } from './auth/auth.module';
 import { HotelCardModule } from './hotelCard/hotelCard.module';
 import { BedTypesModule } from './bed-types/bed-types.module';
 import { AmenitiesModule } from './amenities/amenities.module';
+import { BookingModule } from './booking/booking.module';
+import { RatingsModule } from './ratings/ratings.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -38,6 +41,9 @@ import { AmenitiesModule } from './amenities/amenities.module';
     AuthModule,
     BedTypesModule,
     AmenitiesModule,
+    BookingModule,
+    RatingsModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

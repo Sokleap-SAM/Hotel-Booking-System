@@ -39,6 +39,9 @@ export class Booking {
   })
   status: BookingStatus;
 
+  @Column({ nullable: true })
+  rejectionReason: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

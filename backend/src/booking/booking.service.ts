@@ -15,8 +15,6 @@ export class BookingService {
   constructor(
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
-    @InjectRepository(BookingItem)
-    private readonly bookingItemRepository: Repository<BookingItem>,
     @InjectRepository(Room)
     private readonly roomRepository: Repository<Room>,
   ) {}
@@ -24,7 +22,6 @@ export class BookingService {
   async create(userId: string, createBookingDto: CreateBookingDto) {
     const { roomSelections } = createBookingDto;
 
-    // Validate rooms and calculate total price
     let totalPrice = 0;
     const bookingItems: Partial<BookingItem>[] = [];
 
@@ -39,7 +36,6 @@ export class BookingService {
         );
       }
 
-      // Validate dates
       const checkIn = new Date(selection.checkIn);
       const checkOut = new Date(selection.checkOut);
 
@@ -49,12 +45,10 @@ export class BookingService {
         );
       }
 
-      // Calculate nights
       const nights = Math.ceil(
         (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24),
       );
 
-      // Calculate price with discount
       const basePrice = Number(room.price);
       const discount = room.discountPercentage || 0;
       const discountedPrice = basePrice * (1 - discount / 100);
@@ -74,7 +68,6 @@ export class BookingService {
     const tax = totalPrice * 0.1;
     totalPrice = Math.round((totalPrice + tax) * 100) / 100;
 
-    // Create booking with items
     const booking = this.bookingRepository.create({
       userId,
       totalPrice,
@@ -138,6 +131,41 @@ export class BookingService {
     }
 
     booking.status = BookingStatus.CONFIRMED;
+    return await this.bookingRepository.save(booking);
+  }
+
+  async findAllAdmin() {
+    return await this.bookingRepository.find({
+      relations: [
+        'bookingItems',
+        'bookingItems.room',
+        'bookingItems.room.hotel',
+        'user',
+      ],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async approve(id: string) {
+    const booking = await this.findOne(id);
+
+    if (booking.status !== BookingStatus.PENDING) {
+      throw new BadRequestException('Only pending bookings can be approved');
+    }
+
+    booking.status = BookingStatus.CONFIRMED;
+    return await this.bookingRepository.save(booking);
+  }
+
+  async reject(id: string, reason: string) {
+    const booking = await this.findOne(id);
+
+    if (booking.status !== BookingStatus.PENDING) {
+      throw new BadRequestException('Only pending bookings can be rejected');
+    }
+
+    booking.status = BookingStatus.CANCELLED;
+    booking.rejectionReason = reason;
     return await this.bookingRepository.save(booking);
   }
 

@@ -1,5 +1,6 @@
 import { Amenity } from 'src/amenities/entities/amenity.entity';
 import { Room } from 'src/rooms/entities/room.entity';
+import { Rating } from 'src/ratings/entities/rating.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -66,6 +67,9 @@ export class Hotel {
 
   @OneToMany(() => Room, (room) => room.hotel)
   rooms: Room[];
+
+  @OneToMany(() => Rating, (rating) => rating.hotel)
+  ratings: Rating[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

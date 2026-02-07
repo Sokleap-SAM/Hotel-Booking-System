@@ -6,6 +6,8 @@ import EditHotelView from '../views/EditHotelView.vue'
 import RoomManagementView from '../views/RoomManagementView.vue'
 import AddRoomView from '../views/AddRoomView.vue'
 import EditRoomView from '../views/EditRoomView.vue'
+import AmenityManagementView from '../views/AmenityManagementView.vue'
+import BookingManagementView from '../views/BookingManagementView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,6 +49,28 @@ const router = createRouter({
           path: ':id/rooms/edit/:roomId',
           name: 'edit-room',
           component: EditRoomView,
+        },
+      ]
+    },
+    {
+      path: '/amenities',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'amenity-management',
+          component: AmenityManagementView,
+        },
+      ]
+    },
+    {
+      path: '/bookings',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'booking-management',
+          component: BookingManagementView,
         },
       ]
     }

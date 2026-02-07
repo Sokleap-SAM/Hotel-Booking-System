@@ -11,36 +11,60 @@
       <textarea v-model="requestsData.text" class="request-textarea" rows="4"></textarea>
     </div>
 
+    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
     <div class="button-wrapper">
-      <button @click="goTohandleNext" class="next-btn">
-        Next: Final details <i class="ri-arrow-right-s-line"></i>
+      <button @click="submitBooking" class="next-btn" :disabled="isSubmitting">
+        <span v-if="isSubmitting">Submitting...</span>
+        <span v-else>Submit Booking <i class="ri-check-line"></i></span>
       </button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useBookingStore } from '@/stores/bookingStore'
 
 export default defineComponent({
   name: 'SpecialRequests',
   setup() {
-    // Reactive data ready for NestJS POST request
+    const router = useRouter()
+    const bookingStore = useBookingStore()
+
     const requestsData = reactive({
       text: '',
     })
+    const isSubmitting = ref(false)
+    const errorMessage = ref('')
 
-    const router = useRouter()
-    const goTohandleNext = () => {
-      console.log('Sending to Backend:', requestsData.text)
-      router.push('/LastPayment')
-      // Future: axios.post('/bookings/requests', requestsData)
+    const submitBooking = async () => {
+      isSubmitting.value = true
+      errorMessage.value = ''
+
+      try {
+        // Create booking with pending status
+        const booking = await bookingStore.createBooking()
+        if (!booking) {
+          throw new Error('Failed to create booking')
+        }
+
+        // Navigate to confirmation page (shows pending approval status)
+        router.push({ name: 'BookingConfirmation' })
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } }, message?: string }
+        errorMessage.value = error.response?.data?.message || error.message || 'Failed to submit booking. Please try again.'
+      } finally {
+        isSubmitting.value = false
+      }
     }
 
     return {
       requestsData,
-      goTohandleNext,
+      isSubmitting,
+      errorMessage,
+      submitBooking,
     }
   },
 })
@@ -104,7 +128,21 @@ export default defineComponent({
   transition: background 0.2s;
 }
 
-.next-btn:hover {
+.next-btn:hover:not(:disabled) {
   background-color: #0056b3;
+}
+
+.next-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.9rem;
+  margin-top: 15px;
+  padding: 10px;
+  background: #f8d7da;
+  border-radius: 4px;
 }
 </style>

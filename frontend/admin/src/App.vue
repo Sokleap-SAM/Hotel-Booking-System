@@ -19,13 +19,13 @@ body {
 }
 
 .main-layout {
-  display: flex;
   min-height: 100vh;
-  width: 90vw;
+  width: 100vw;
 }
 
 .content-area {
-  flex-grow: 1;
+  margin-left: 280px;
+  min-height: 100vh;
   background-color: #ffffff;
   overflow-y: auto;
 }

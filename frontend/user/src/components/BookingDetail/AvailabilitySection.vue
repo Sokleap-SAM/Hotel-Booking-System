@@ -11,7 +11,7 @@
           :min-date="new Date()"
           :enable-time-picker="false"
           placeholder="Select Check-in - Check-out"
-          format="eee, MMM dd"
+          format="MM/dd/yyyy"
           auto-apply
           :teleport="true"
         >
@@ -21,9 +21,19 @@
         </VueDatePicker>
       </div>
 
-      <div class="input-group">
+      <div class="guest-group">
         <i class="ri-user-line"></i>
-        <span>{{ guestConfig }}</span>
+        <select v-model="adults" class="guest-select">
+          <option v-for="n in 10" :key="n" :value="n">{{ n }} adult{{ n > 1 ? 's' : '' }}</option>
+        </select>
+        <span class="separator">:</span>
+        <select v-model="children" class="guest-select">
+          <option v-for="n in 11" :key="n - 1" :value="n - 1">{{ n - 1 }} children</option>
+        </select>
+        <span class="separator">.</span>
+        <select v-model="roomCount" class="guest-select">
+          <option v-for="n in 10" :key="n" :value="n">{{ n }} room{{ n > 1 ? 's' : '' }}</option>
+        </select>
       </div>
 
       <button class="change-search-btn" @click="handleSearch">Change search</button>
@@ -35,16 +45,23 @@
       <p>Loading rooms...</p>
     </div>
 
-    <!-- Empty State -->
+    <!-- Empty State - No rooms at all -->
     <div v-else-if="rooms.length === 0" class="no-rooms">
       <i class="ri-hotel-bed-line"></i>
       <p>No rooms available for this hotel</p>
     </div>
 
+    <!-- No matching rooms for guest count -->
+    <div v-else-if="filteredRooms.length === 0" class="no-rooms">
+      <i class="ri-user-line"></i>
+      <p>No rooms available for {{ totalGuests }} guest{{ totalGuests > 1 ? 's' : '' }}</p>
+      <p class="hint">Try reducing the number of guests or search for a different hotel</p>
+    </div>
+
     <!-- Rooms Table -->
     <RoomTable 
       v-else 
-      :rooms="formattedRooms"
+      :rooms="filteredRooms"
       :hotel-id="hotelId"
       :hotel-name="hotelName"
       :hotel-location="hotelLocation"
@@ -57,9 +74,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import RoomTable from './RoomTable.vue';
+
+const router = useRouter();
 
 interface Amenity {
   id: number;
@@ -94,8 +114,17 @@ const props = defineProps<{
   hotelImages?: string[];
 }>();
 
-// Date Range logic: Default to [Today, Tomorrow]
-const dateRange = ref([new Date(), new Date(Date.now() + 86400000)]);
+const today = new Date();
+today.setHours(7, 0, 0, 0);
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+
+const dateRange = ref([today, tomorrow]);
+
+// Guest selection
+const adults = ref(2);
+const children = ref(0);
+const roomCount = ref(1);
 
 // Convert dates to string format for the RoomTable
 const checkInDateString = computed(() => {
@@ -133,9 +162,17 @@ const formattedRooms = computed(() => {
   }));
 });
 
+// Total guests count
+const totalGuests = computed(() => adults.value + children.value);
+
+// Filter rooms based on guest count - only show rooms that can accommodate all guests
+const filteredRooms = computed(() => {
+  return formattedRooms.value.filter(room => room.maxOccupancy >= totalGuests.value);
+});
+
 const handleSearch = () => {
-  console.log("Searching for dates:", dateRange.value);
-  // Emit event or call API for date-based search
+  // Navigate back to home to search for other hotels
+  router.push({ name: 'home' });
 };
 </script>
 
@@ -182,6 +219,46 @@ const handleSearch = () => {
   font-weight: 700;
   color: #333;
   height: 46px;
+}
+
+.guest-group {
+  flex: 1;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #333;
+  height: 46px;
+}
+
+.guest-group i {
+  color: #003580;
+  font-size: 1.1rem;
+}
+
+.guest-select {
+  border: none;
+  background: transparent;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.guest-select:focus {
+  outline: none;
+}
+
+.separator {
+  color: #666;
+}
+
+.room-count {
+  font-size: 0.9rem;
 }
 
 .change-search-btn {
@@ -246,5 +323,11 @@ const handleSearch = () => {
 .no-rooms p {
   color: #666;
   font-size: 1.1rem;
+}
+
+.no-rooms .hint {
+  font-size: 0.9rem;
+  color: #999;
+  margin-top: 8px;
 }
 </style>

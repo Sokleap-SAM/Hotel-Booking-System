@@ -9,12 +9,15 @@ import { Repository } from 'typeorm';
 import { Amenity, AmenityCategory } from './entities/amenity.entity';
 import { CreateAmenityDto } from './dto/create-amenity.dto';
 import { UpdateAmenityDto } from './dto/update-amenity.dto';
+import { Hotel } from '../hotels/entities/hotel.entity';
 
 @Injectable()
 export class AmenitiesService implements OnModuleInit {
   constructor(
     @InjectRepository(Amenity)
     private amenityRepository: Repository<Amenity>,
+    @InjectRepository(Hotel)
+    private hotelRepository: Repository<Hotel>,
   ) {}
 
   async onModuleInit() {
@@ -108,8 +111,29 @@ export class AmenitiesService implements OnModuleInit {
     return await this.amenityRepository.save(amenity);
   }
 
-  async remove(id: number): Promise<void> {
-    const amenity = await this.findOne(id);
+  async remove(
+    id: number,
+  ): Promise<{ message: string; deletedHotels: number }> {
+    const amenity = await this.amenityRepository.findOne({
+      where: { id },
+      relations: ['hotels'],
+    });
+
+    if (!amenity) {
+      throw new NotFoundException(`Amenity with ID ${id} not found`);
+    }
+
+    // Delete all hotels that contain this amenity
+    const deletedHotelCount = amenity.hotels?.length || 0;
+    if (amenity.hotels && amenity.hotels.length > 0) {
+      await this.hotelRepository.remove(amenity.hotels);
+    }
+
     await this.amenityRepository.remove(amenity);
+
+    return {
+      message: `Amenity "${amenity.name}" deleted successfully along with ${deletedHotelCount} hotel(s)`,
+      deletedHotels: deletedHotelCount,
+    };
   }
 }

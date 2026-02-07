@@ -13,6 +13,8 @@ import RoomDetailModal from '@/components/BookingDetail/RoomDetailModal.vue'
 import TransactionPayment from '@/view/TransactionPayment.vue'
 import LastPayment from '@/view/LastPayment.vue'
 import ProfileDetail from '@/view/ProfileDetail.vue'
+import BookingConfirmation from '@/view/BookingConfirmation.vue'
+import MyBookings from '@/view/MyBookings.vue'
 
 const routes = [
   {
@@ -62,7 +64,7 @@ const routes = [
     component: Bookingpage,
   },
   {
-    path: '/BookingDetail',
+    path: '/BookingDetail/:hotelId',
     name: 'BookingDetail',
     component: BookingDetail,
   },
@@ -85,6 +87,18 @@ const routes = [
     path: '/ProfileDetail',
     name: 'ProfileDetail',
     component: ProfileDetail,
+  },
+  {
+    path: '/BookingConfirmation',
+    name: 'BookingConfirmation',
+    component: BookingConfirmation,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/MyBookings',
+    name: 'MyBookings',
+    component: MyBookings,
+    meta: { requiresAuth: true },
   },
 ]
 

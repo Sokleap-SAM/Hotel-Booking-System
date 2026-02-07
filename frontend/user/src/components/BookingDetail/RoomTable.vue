@@ -53,7 +53,7 @@
             </select>
           </td>
           <td class="col-action">
-            <div class="booking-summary">
+            <div class="booking-summary" v-if="getRoomQuantity(room.id) > 0">
               <p class="summary-text">{{ getRoomQuantity(room.id) }} room(s) for</p>
               <div class="price-container">
                 <span class="original-price-strike" v-if="room.discountPercentage">
@@ -63,7 +63,7 @@
                   USD${{ calculateRoomTotal(room).toFixed(2) }}
                 </span>
               </div>
-              <p class="tax-note">{{ nights }} night(s) • Include tax and fee</p>
+              <p class="tax-note">{{ nights }} night(s)</p>
             </div>
           </td>
         </tr>
@@ -72,27 +72,53 @@
 
     <!-- Booking Summary Footer -->
     <div class="booking-footer" v-if="hasSelectedRooms">
-      <div class="summary-info">
-        <div class="summary-details">
-          <span class="room-count">{{ totalSelectedRooms }} room(s) selected</span>
-          <span class="night-count">{{ nights }} night(s)</span>
+      <div class="summary-container">
+        <!-- Room Details -->
+        <div class="room-details-section">
+          <div v-for="(selection, roomId) in bookingStore.roomSelections" :key="roomId" class="room-item">
+            <div class="room-item-left">
+              <span class="room-item-name">{{ selection.roomName }}</span>
+              <span class="room-item-info">{{ selection.quantity }} room(s) × {{ nights }} night(s)</span>
+            </div>
+            <div class="room-item-right">
+              <span class="original-price" v-if="selection.discount > 0">
+                USD${{ (selection.pricePerNight * selection.quantity * nights).toFixed(2) }}
+              </span>
+              <span class="discounted-price">
+                USD${{ (selection.pricePerNight * (1 - selection.discount / 100) * selection.quantity * nights).toFixed(2) }}
+              </span>
+            </div>
+          </div>
         </div>
-        <div class="price-summary">
-          <span class="subtotal-label">Subtotal:</span>
-          <span class="subtotal-value">USD${{ displaySubtotal }}</span>
-          <span class="tax-label">Tax (10%):</span>
-          <span class="tax-value">USD${{ displayTaxAmount }}</span>
-          <span class="total-label">Total:</span>
-          <span class="total-value">USD${{ displayTotalPrice }}</span>
+
+        <!-- Price Summary -->
+        <div class="price-summary-section">
+          <div class="price-row">
+            <span class="price-label">{{ totalSelectedRooms }} room(s) selected</span>
+            <span class="price-label">{{ nights }} night(s)</span>
+          </div>
+          <div class="price-row subtotal-row">
+            <span class="price-label">Subtotal (after discount):</span>
+            <span class="price-value">USD${{ displaySubtotal }}</span>
+          </div>
+          <div class="price-row tax-row">
+            <span class="price-label">Tax (10%):</span>
+            <span class="price-value">USD${{ displayTax }}</span>
+          </div>
+          <div class="price-row total-row">
+            <span class="total-label">Total:</span>
+            <span class="total-value">USD${{ displayTotal }}</span>
+          </div>
         </div>
       </div>
+      
       <button class="btn-reserve" @click="handleReserve" :disabled="isCalculating">
         <span v-if="isCalculating">Calculating...</span>
         <span v-else>Reserve Now</span>
       </button>
     </div>
 
-    <RoomDetailModal v-if="isModalOpen" :room="activeRoom" @close="isModalOpen = false" />
+    <RoomDetailModal v-if="isModalOpen && activeRoom" :room="activeRoom" @close="isModalOpen = false" />
   </div>
 </template>
 
@@ -149,9 +175,9 @@ const nights = computed(() => {
 
 const hasSelectedRooms = computed(() => bookingStore.hasSelectedRooms)
 const totalSelectedRooms = computed(() => bookingStore.totalSelectedRooms)
-const displayTotalPrice = computed(() => bookingStore.displayTotalPrice)
 const displaySubtotal = computed(() => bookingStore.displaySubtotal)
-const displayTaxAmount = computed(() => bookingStore.displayTaxAmount)
+const displayTax = computed(() => bookingStore.displayTaxAmount)
+const displayTotal = computed(() => bookingStore.displayTotalPrice)
 const isCalculating = computed(() => bookingStore.isCalculating)
 
 // Methods
@@ -194,16 +220,17 @@ const handleRoomSelection = async (room: Room, event: Event) => {
 }
 
 const handleReserve = () => {
-  // Navigate to checkout page
-  router.push({
-    name: 'Checkout',
-    params: { hotelId: props.hotelId }
-  })
+  // Navigate to transaction payment page
+  router.push({ name: 'TransactionPayment' })
   emit('reserve')
 }
 
 // Initialize store with hotel info and dates
 onMounted(() => {
+  // Clear any previous selections
+  bookingStore.clearSelections()
+  roomSelections.value = {}
+  
   if (props.hotelId && props.hotelName) {
     bookingStore.setHotelInfo({
       id: props.hotelId,
@@ -218,7 +245,7 @@ onMounted(() => {
   }
 })
 
-// Watch for date changes
+// Watch for date changes from props
 watch(
   () => [props.checkInDate, props.checkOutDate],
   ([newCheckIn, newCheckOut]) => {
@@ -240,6 +267,7 @@ watch(
   margin-top: 20px;
   font-family: 'Lato', sans-serif;
 }
+
 .tax-note {
   font-size: 13px;
   color: #555;
@@ -354,42 +382,101 @@ watch(
   padding: 20px;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-top: 2px solid #003580;
+  gap: 20px;
 }
 
-.summary-info {
+.summary-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Room Details Section */
+.room-details-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ddd;
 }
 
-.summary-details {
+.room-item {
   display: flex;
-  gap: 20px;
-  font-size: 0.9rem;
-  color: #666;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
 }
 
-.room-count,
-.night-count {
-  font-weight: 600;
+.room-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.price-summary {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 5px 15px;
+.room-item-name {
+  font-weight: 700;
   font-size: 0.95rem;
+  color: #333;
 }
 
-.subtotal-label,
-.tax-label {
+.room-item-info {
+  font-size: 0.85rem;
   color: #666;
 }
 
-.subtotal-value,
-.tax-value {
+.room-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.room-item-right .original-price {
+  color: #999;
+  text-decoration: line-through;
+  font-size: 0.85rem;
+}
+
+.room-item-right .discounted-price {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #003580;
+}
+
+/* Price Summary Section */
+.price-summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.price-row.subtotal-row {
+  padding-top: 8px;
+  border-top: 1px solid #ddd;
+}
+
+.price-row.total-row {
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 2px solid #003580;
+}
+
+.price-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.price-value {
   font-weight: 600;
-  text-align: right;
+  color: #333;
 }
 
 .total-label {
@@ -401,8 +488,7 @@ watch(
 .total-value {
   font-weight: 800;
   color: #003580;
-  font-size: 1.2rem;
-  text-align: right;
+  font-size: 1.3rem;
 }
 
 .btn-reserve {
@@ -416,6 +502,7 @@ watch(
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 53, 128, 0.3);
+  align-self: center;
 }
 
 .btn-reserve:hover:not(:disabled) {

@@ -19,10 +19,15 @@
     <template v-else-if="hotel">
       <header class="blue-header" :style="backgroundHeader">
         <div class="nav-bar">
-          <div class="logo">CamBook.com</div>
-          <button class="profile-btn">
-            <i class="ri-user-line"></i>
-          </button>
+          <div class="logo" @click="goToHome" style="cursor: pointer;">CamBook.com</div>
+          <div class="nav-actions">
+            <router-link to="/home" class="nav-link">Home</router-link>
+            <router-link to="/Bookingpage" class="nav-link">Book Now</router-link>
+            <router-link to="/MyBookings" class="nav-link">My Bookings</router-link>
+            <button class="profile-btn">
+              <i class="ri-user-line"></i>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -52,11 +57,7 @@
 
         <BookingDescription :descriptionData="descriptionData" />
 
-        <GuestReviews
-          :overallScore="hotel.avgRating"
-          :totalReviews="hotel.totalRating?.toString() || '0'"
-          :categories="ratingCategories"
-        />
+        <GuestReviews :hotelId="hotel.id" />
 
         <AvailabilitySection
           :bookingDates="bookingDates"
@@ -77,7 +78,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import background from '@/assets/Background2.png';
 import { useHotelStore } from '@/stores/hotelStores';
 import { useRoomStore } from '@/stores/roomStores';
@@ -126,6 +127,7 @@ export default defineComponent({
   },
   setup(props) {
     const route = useRoute();
+    const router = useRouter();
     const hotelStore = useHotelStore();
     const roomStore = useRoomStore();
 
@@ -141,7 +143,10 @@ export default defineComponent({
       backgroundImage: `url(${background})`
     };
 
-    // Computed properties
+    // Navigation
+    const goToHome = () => {
+      router.push('/home');
+    };
     const rooms = computed(() => roomStore.rooms);
     const roomsLoading = computed(() => roomStore.isLoading);
 
@@ -154,15 +159,6 @@ export default defineComponent({
       email: hotel.value?.email || '',
       amenities: hotel.value?.amenities || []
     }));
-
-    const ratingCategories = computed(() => [
-      { label: 'Staff', score: hotel.value?.avgRating || 0, icon: 'ri-group-line' },
-      { label: 'Facilities', score: hotel.value?.avgRating || 0, icon: 'ri-hotel-line' },
-      { label: 'Comfort', score: hotel.value?.avgRating || 0, icon: 'ri-hotel-bed-line' },
-      { label: 'Value for money', score: hotel.value?.avgRating || 0, icon: 'ri-money-dollar-circle-line' },
-      { label: 'Location', score: hotel.value?.avgRating || 0, icon: 'ri-map-pin-line' },
-      { label: 'WiFi', score: hotel.value?.avgRating || 0, icon: 'ri-wifi-line' }
-    ]);
 
     // Load hotel and rooms data
     const loadHotelData = async () => {
@@ -207,10 +203,10 @@ export default defineComponent({
       error,
       backgroundHeader,
       descriptionData,
-      ratingCategories,
       bookingDates,
       guestConfig,
       loadHotelData,
+      goToHome,
     };
   }
 });
@@ -257,6 +253,21 @@ export default defineComponent({
 }
 
 .profile-btn i { font-size: 22px; color: #0D4798; }
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+}
+.nav-link:hover {
+  text-decoration: underline;
+}
 
 /* 2. Overlap Layout */
 .main-content {

@@ -1,8 +1,15 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import axios, { type AxiosError } from 'axios';
 import { toRaw } from 'vue';
 
 const api = axios.create({ baseURL: 'http://localhost:3000' });
+
+interface ApiErrorResponse {
+  message?: string | string[];
+  errors?: string[];
+}
+
+type ApiError = AxiosError<ApiErrorResponse>;
 
 export interface BedType {
   id: number;
@@ -15,6 +22,18 @@ export interface RoomBed {
   bedType?: BedType;
 }
 
+export interface Amenity {
+  id: number;
+  name: string;
+  category?: string;
+}
+
+export interface Hotel {
+  id: string;
+  name: string;
+  address?: string;
+}
+
 export interface Room {
   id: string;
   name: string;
@@ -25,11 +44,11 @@ export interface Room {
   maxOccupancy: number;
   discountPercentage: number;
   images: string[];
-  amenities: any[];
+  amenities: Amenity[];
   custom_amenities: string;
   roomBeds: RoomBed[];
   hotelId: string;
-  hotel?: any;
+  hotel?: Hotel;
   createdAt: Date;
 }
 
@@ -67,7 +86,7 @@ export const useRoomStore = defineStore('room', {
   state: () => ({
     rooms: [] as Room[],
     currentRoom: null as Room | null,
-    amenitiesList: [] as any[],
+    amenitiesList: [] as Amenity[],
     bedTypesList: [] as BedType[],
     isLoading: false,
     searchQuery: '',
@@ -94,7 +113,7 @@ export const useRoomStore = defineStore('room', {
         ...room,
         displayPrice: `$${Number(room.price).toFixed(2)}`,
         displayAmenities: [
-          ...(room.amenities?.map((a: any) => a.name) || []),
+          ...(room.amenities?.map((a) => a.name) || []),
           ...(room.custom_amenities ? [room.custom_amenities] : []),
         ].join(', '),
         discountedPrice:
@@ -110,26 +129,20 @@ export const useRoomStore = defineStore('room', {
       this.searchQuery = query;
     },
 
-    prepareFormData(data: any) {
+    prepareFormData(data: RoomFormData) {
       const formData = new FormData();
 
-      const fields = [
-        'name',
-        'shortDescription',
-        'longDescription',
-        'hotelId',
-      ];
+      // String fields
+      formData.append('name', data.name || '');
+      formData.append('shortDescription', data.shortDescription || '');
+      formData.append('longDescription', data.longDescription || '');
+      formData.append('hotelId', data.hotelId || '');
 
-      fields.forEach((f) => {
-        if (data[f] !== undefined) formData.append(f, data[f] || '');
-      });
-
-      const numericFields = ['available', 'price', 'maxOccupancy', 'discountPercentage'];
-      numericFields.forEach((f) => {
-        if (data[f] !== undefined) {
-          formData.append(f, String(data[f]));
-        }
-      });
+      // Numeric fields
+      formData.append('available', String(data.available ?? 0));
+      formData.append('price', String(data.price ?? 0));
+      formData.append('maxOccupancy', String(data.maxOccupancy ?? 0));
+      formData.append('discountPercentage', String(data.discountPercentage ?? 0));
 
       if (Array.isArray(data.amenityIds)) {
         data.amenityIds.forEach((id: string | number) => {
@@ -155,7 +168,7 @@ export const useRoomStore = defineStore('room', {
       }
 
       if (Array.isArray(data.images)) {
-        data.images.forEach((item: any) => {
+        data.images.forEach((item: File | string) => {
           if (item instanceof File) {
             formData.append('images', item);
           } else if (typeof item === 'string' && item.trim() !== '') {
@@ -167,33 +180,33 @@ export const useRoomStore = defineStore('room', {
       return formData;
     },
 
-    async createRoom(data: any) {
+    async createRoom(data: RoomFormData) {
       this.isLoading = true;
       try {
-        const formData = this.prepareFormData(toRaw(data));
+        const formData = this.prepareFormData(toRaw(data) as RoomFormData);
         const response = await api.post('/rooms', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
         return { success: true, data: response.data };
-      } catch (error: any) {
-        return this.handleError(error);
+      } catch (error) {
+        return this.handleError(error as ApiError);
       } finally {
         this.isLoading = false;
       }
     },
 
-    async updateRoom(id: string, data: any) {
+    async updateRoom(id: string, data: RoomFormData) {
       this.isLoading = true;
       try {
-        const formData = this.prepareFormData(toRaw(data));
+        const formData = this.prepareFormData(toRaw(data) as RoomFormData);
         const response = await api.patch(`/rooms/${id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
         return { success: true, data: response.data };
-      } catch (error: any) {
-        return this.handleError(error);
+      } catch (error) {
+        return this.handleError(error as ApiError);
       } finally {
         this.isLoading = false;
       }
@@ -206,11 +219,11 @@ export const useRoomStore = defineStore('room', {
         if (room) {
           return {
             ...room,
-            amenityIds: room.amenities?.map((a: any) => a.id) || [],
+            amenityIds: room.amenities?.map((a: Amenity) => a.id) || [],
             custom_amenities: room.custom_amenities || '',
             images: room.images || [],
             existingImages: room.images || [],
-            roomBeds: room.roomBeds?.map((rb: any) => ({
+            roomBeds: room.roomBeds?.map((rb: RoomBed) => ({
               bedTypeId: rb.bedTypeId || rb.bedType?.id,
               quantity: rb.quantity,
             })) || [],
@@ -288,17 +301,18 @@ export const useRoomStore = defineStore('room', {
         this.rooms = this.rooms.filter((room) => room.id !== id);
 
         return { success: true };
-      } catch (error: any) {
+      } catch (error) {
+        const axiosError = error as ApiError;
         return {
           success: false,
-          error: error.response?.data?.message || 'Failed to delete room',
+          error: axiosError.response?.data?.message || 'Failed to delete room',
         };
       } finally {
         this.isLoading = false;
       }
     },
 
-    handleError(error: any) {
+    handleError(error: ApiError) {
       const rawMessages = error.response?.data?.message || error.response?.data?.errors;
       const fieldErrors: Record<string, string> = {};
 
@@ -310,7 +324,10 @@ export const useRoomStore = defineStore('room', {
 
         Object.keys(fieldLabels).forEach((key) => {
           if (m.includes(key.toLowerCase())) {
-            formattedMsg = msg.replace(new RegExp(key, 'gi'), fieldLabels[key]);
+            const label = fieldLabels[key];
+            if (label) {
+              formattedMsg = msg.replace(new RegExp(key, 'gi'), label);
+            }
           }
         });
 

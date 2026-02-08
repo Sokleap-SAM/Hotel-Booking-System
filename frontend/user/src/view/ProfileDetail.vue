@@ -3,16 +3,17 @@
     <div class="profile-modal-container">
       <button class="close-btn-inside" @click="$emit('close')"></button>
 
-      <UserSidebar :username="username" />
+      <UserSidebar />
       <UserDetail />
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, onMounted } from 'vue'
 import UserDetail from '@/components/UserProfile/UserDetail.vue'
 import UserSidebar from '@/components/UserProfile/UserSidebar.vue'
+import { useAuthStore } from '@/stores/auth' // Import useAuthStore
 
 export default defineComponent({
   name: 'ProfileDetail',
@@ -21,10 +22,19 @@ export default defineComponent({
     UserDetail,
     UserSidebar,
   },
-  data() {
+  setup() {
+    const authStore = useAuthStore()
+
+    onMounted(async () => {
+      // Ensure we have a token before trying to fetch profile
+      if (authStore.token) {
+        await authStore.fetchUserProfileDetails();
+      }
+    });
+
     return {
-      username: '', // Replace with actual username or fetch from store/API
-    }
+      // No need to return username as UserSidebar now gets it from authStore
+    };
   },
 })
 </script>

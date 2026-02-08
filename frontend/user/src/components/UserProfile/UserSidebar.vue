@@ -3,11 +3,12 @@
     <div class="profile-header">
       <div class="avatar-wrapper">
         <img :src="user.profileImage" alt="User Avatar" class="avatar" />
-        <div class="edit-icon">
+        <div class="edit-icon" @click="triggerFileInput">
           <span>✎</span>
+          <input type="file" ref="fileInput" @change="handleFileChange" accept="image/*" style="display: none;" />
         </div>
       </div>
-      <p class="username-label">{{ username }}</p>
+      <p class="username-label">{{ user.firstName || 'User' }} {{ user.lastName }}</p>
     </div>
 
     <nav class="sidebar-nav">
@@ -22,37 +23,108 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
-// 1. Import the local image so Vite processes the correct URL
-import localAvatar from '@/assets/Angkorwat.png' // Make sure the extension is correct (.jpg, .png, etc.)
+import { defineComponent, ref, watchEffect } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+import axios from 'axios' // Added this line
+import localAvatar from '@/assets/Angkorwat.png' 
 
 export default defineComponent({
   name: 'UserSidebar',
-  props: {
-    username: {
-      type: String,
-      required: true,
-    },
-  },
+  // Removed username prop as it's not directly used for display
   setup() {
-    // 2. Initial state uses the imported local image
-    const user = ref<{ profileImage: string }>({
+    const authStore = useAuthStore()
+    const router = useRouter()
+
+    const user = ref({
       profileImage: localAvatar,
+      firstName: '',
+      lastName: '',
     })
+    const fileInput = ref<HTMLInputElement | null>(null);
+    const selectedFile = ref<File | null>(null);
+
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
+    watchEffect(() => {
+      if (authStore.user) {
+        user.value.firstName = authStore.user.firstName || ''; // No fallback to email here
+        user.value.lastName = authStore.user.lastName || '';
+        // If authStore.user has profileImage, use it, otherwise keep localAvatar
+        user.value.profileImage = authStore.user.profileImage ? 
+                                 (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/' + authStore.user.profileImage
+                                 : localAvatar;
+      } else {
+        // If not authenticated, reset to default or empty
+        user.value.firstName = '';
+        user.value.lastName = '';
+        user.value.profileImage = localAvatar;
+      }
+    });
 
     const handleLogout = (): void => {
-      console.log('Logging out...')
+      authStore.logout()
+      router.push({ name: 'login' })
     }
 
-    /* FUTURE NESTJS NOTE:
-      When you fetch from NestJS, you will simply do:
-      user.value.profileImage = "http://localhost:3000/uploads/image.jpg"
-      The <img> tag will automatically update.
-    */
+    const triggerFileInput = () => {
+      fileInput.value?.click();
+    };
+
+    const handleFileChange = async (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      if (target.files && target.files.length > 0) {
+        selectedFile.value = target.files[0];
+        await uploadProfileImage();
+      } else {
+        selectedFile.value = null;
+      }
+    };
+
+    const uploadProfileImage = async () => {
+      if (!selectedFile.value) return;
+
+      const formData = new FormData();
+      formData.append('profileImage', selectedFile.value);
+
+      try {
+        await axios.patch(`${API_URL}/auth/profile`, formData, {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        alert('Profile image updated successfully!');
+        const response = await axios.get(`${API_URL}/auth/profile`, {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        })
+        if (response.data) {
+          authStore.user = { ...authStore.user, ...response.data };
+        }
+
+      } catch (error) {
+        console.error('Error uploading profile image:', error);
+        if (axios.isAxiosError(error) && error.response) {
+          alert(`Error: ${error.response.data.message || error.response.statusText}`);
+        } else {
+          alert('Failed to upload profile image.');
+        }
+      } finally {
+        selectedFile.value = null; // Clear selected file
+        if (fileInput.value) {
+            fileInput.value.value = ''; // Reset file input
+        }
+      }
+    };
 
     return {
       user,
+      fileInput,
       handleLogout,
+      triggerFileInput,
+      handleFileChange,
     }
   },
 })
@@ -97,6 +169,7 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  z-index: 10; /* Ensure it's above the avatar */
 }
 
 .username-label {

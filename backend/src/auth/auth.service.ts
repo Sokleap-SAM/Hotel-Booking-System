@@ -12,6 +12,7 @@ import { UserRegisterDto } from './user/dto/user-register.dto';
 import * as crypto from 'crypto';
 import { Express } from 'express';
 import 'multer';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -144,5 +145,52 @@ export class AuthService {
     await this.userService.save(user);
 
     return { message: 'Password has been reset successfully.' };
+  }
+
+  async changePassword(
+    userId: number,
+    newPass: string,
+  ): Promise<{ message: string }> {
+    const user = await this.userService.findById(userId);
+
+    if (!user || user.provider !== 'local') {
+      throw new UnauthorizedException('User not found or cannot change password this way.');
+    }
+
+    const salt = await bcrypt.genSalt();
+    user.password = await bcrypt.hash(newPass, salt);
+
+    await this.userService.save(user);
+
+    return { message: 'Password has been changed successfully.' };
+  }
+
+  async updateProfile(
+    userId: number,
+    updateProfileDto: UpdateProfileDto,
+    file?: Express.Multer.File, // Make file optional
+  ): Promise<User> {
+    const user = await this.userService.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException('User not found.');
+    }
+
+    // Update fields if provided
+    if (updateProfileDto.firstName) {
+      user.firstName = updateProfileDto.firstName;
+    }
+    if (updateProfileDto.lastName) {
+      user.lastName = updateProfileDto.lastName;
+    }
+    if (file) {
+      user.profileImage = file.path;
+    } else if (updateProfileDto.profileImage === null) {
+      // Allow setting profileImage to null if explicitly requested (e.g., removing existing image)
+      user.profileImage = null;
+    }
+
+    await this.userService.save(user);
+    return user;
   }
 }

@@ -8,12 +8,15 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  Patch,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './user/dto/user-register.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto'; // Import the new DTO
 import { profileUploadConfig } from 'src/config/file-upload.config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from './user/entity/user.entity';
@@ -74,5 +77,28 @@ export class AuthController {
   getProfile(@Request() req: { user: User }) {
     // req.user is populated by the JwtStrategy
     return req.user;
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('change-password') // Use Patch for partial updates
+  async changePassword(
+    @Request() req: { user: User },
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(
+      req.user.id,
+      changePasswordDto.newPassword,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('profile')
+  @UseInterceptors(FileInterceptor('profileImage', profileUploadConfig))
+  async updateProfile(
+    @Request() req: { user: User },
+    @UploadedFile() file: Express.Multer.File,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(req.user.id, updateProfileDto, file);
   }
 }

@@ -139,6 +139,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function fetchUserProfileDetails() {
+    if (!token.value) {
+      console.warn('Cannot fetch user profile details: no authentication token available.');
+      return;
+    }
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_URL}/auth/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token.value}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch user profile details');
+      }
+
+      const profileData = await response.json();
+      user.value = { ...user.value, ...profileData }; // Merge with existing user data
+    } catch (error) {
+      console.error('Error fetching user profile details:', error);
+      // Optionally, log out user if token is invalid or expired during profile fetch
+      // logout();
+      throw error;
+    }
+  }
+
   function logout() {
     token.value = null
     user.value = null
@@ -155,5 +183,6 @@ export const useAuthStore = defineStore('auth', () => {
     setToken,
     resetPassword,
     forgotPassword,
+    fetchUserProfileDetails, // Expose new action
   }
 })

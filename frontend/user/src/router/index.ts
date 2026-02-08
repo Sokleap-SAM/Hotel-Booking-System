@@ -85,6 +85,7 @@ const routes = [
     path: '/ProfileDetail',
     name: 'ProfileDetail',
     component: ProfileDetail,
+    meta: { requiresAuth: true }, // Added this line
   },
 ]
 

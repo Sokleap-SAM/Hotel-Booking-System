@@ -7,15 +7,25 @@
       <a href="#">My Bookings</a>
       <a href="#">Contact Us</a>
     </nav>
-    <button class="login-btn" @click="goToLogin">Login</button>
+    <button class="Profile" @click="isProfileOpen = true">
+      <i class="ri-user-line"></i>
+    </button>
+    <ProfileDetail v-if="isProfileOpen" @close="isProfileOpen = false" />
   </header>
 </template>
 
 <script lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import ProfileDetail from '@/view/ProfileDetail.vue'
 export default {
   name: 'HeaderScreen',
+  components: {
+    ProfileDetail,
+  },
   setup() {
+    const isProfileOpen = ref(false)
+
     const router = useRouter()
     const goToLogin = () => {
       router.push('/login')
@@ -28,6 +38,7 @@ export default {
     return {
       goToLogin,
       goToBooking,
+      isProfileOpen,
     }
   },
 }
@@ -48,7 +59,23 @@ export default {
   font-size: 1.5rem;
   font-weight: bold;
 }
-
+.Profile {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: white;
+}
+.Profile:hover {
+  background-color: #5a70d4;
+  cursor: pointer;
+}
+.Profile i {
+  font-size: 24px;
+  color: #0d4798;
+  line-height: 50px;
+  text-align: center;
+  display: block;
+}
 .nav-links {
   display: flex;
   gap: 40px;

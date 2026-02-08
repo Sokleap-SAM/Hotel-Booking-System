@@ -42,8 +42,8 @@
             </ul>
           </td>
           <td class="col-select">
-            <select 
-              class="room-dropdown" 
+            <select
+              class="room-dropdown"
               :value="getRoomQuantity(room.id)"
               @change="handleRoomSelection(room, $event)"
             >
@@ -99,7 +99,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useBookingStore } from '@/stores/bookingStore'
+//import { useBookingStore } from '@/stores/bookingStore'
 import RoomDetailModal from './RoomDetailModal.vue'
 
 interface Room {
@@ -175,9 +175,9 @@ const calculateRoomTotal = (room: Room): number => {
 const handleRoomSelection = async (room: Room, event: Event) => {
   const target = event.target as HTMLSelectElement
   const quantity = parseInt(target.value, 10)
-  
+
   roomSelections.value[room.id] = quantity
-  
+
   // Update store
   bookingStore.updateRoomSelection(
     room.id,
@@ -186,7 +186,7 @@ const handleRoomSelection = async (room: Room, event: Event) => {
     Number(room.price),
     room.discountPercentage || 0
   )
-  
+
   // Recalculate price
   if (props.checkInDate && props.checkOutDate) {
     await bookingStore.calculatePrice()
@@ -212,7 +212,7 @@ onMounted(() => {
       images: props.hotelImages || []
     })
   }
-  
+
   if (props.checkInDate && props.checkOutDate) {
     bookingStore.setDates(props.checkInDate, props.checkOutDate)
   }

@@ -13,7 +13,7 @@
 
     <ProfileDetail v-if="isProfileOpen" @close="isProfileOpen = false" />
   </div>
-</template>
+</template> 
 
 <script lang="ts">
 import { ref } from 'vue' // Import ref

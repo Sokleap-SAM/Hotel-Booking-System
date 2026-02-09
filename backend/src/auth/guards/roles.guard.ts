@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
@@ -16,7 +18,13 @@ export class RolesGuard implements CanActivate {
     if (!required) return true;
 
     const req = ctx.switchToHttp().getRequest();
-    const roles: string[] = req.user?.roles ?? [];
+    const user = req.user;
+
+    if (!user) return false;
+
+    const roles: string[] =
+      user.roles?.map((ur: any) => ur.role?.name).filter(Boolean) ?? [];
+
     return required.some((r) => roles.includes(r));
   }
 }

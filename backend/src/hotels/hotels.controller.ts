@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   ParseFilePipe,
+  UseGuards,
 } from '@nestjs/common';
 import { HotelsService } from './hotels.service';
 import { CreateHotelDto } from './dto/create_hotel.dto';
@@ -17,7 +18,11 @@ import { UpdateHotelDto } from './dto/update_hotel.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { hotelUploadConfig } from '../config/file-upload.config';
 import { HotelValidatorPipe } from './pipes/hotel-validtor.pipe';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorator/roles.dectorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('hotels')
 export class HotelsController {
   constructor(
@@ -25,6 +30,7 @@ export class HotelsController {
     private readonly hotelValidatorPipe: HotelValidatorPipe,
   ) {}
 
+  @Roles('admin')
   @Post()
   @UseInterceptors(FilesInterceptor('images', 10, hotelUploadConfig))
   create(
@@ -39,31 +45,37 @@ export class HotelsController {
     return this.hotelsService.create(dto, files);
   }
 
+  @Roles('admin', 'user')
   @Get()
   findAll() {
     return this.hotelsService.findAll();
   }
 
+  @Roles('admin', 'user')
   @Get('filter/lowest-price')
   findAvailableHotelsByLowestPrice() {
     return this.hotelsService.getAvailableHotelByLowestPrice();
   }
 
+  @Roles('admin', 'user')
   @Get('filter/highest-price')
   findAvailableHotelsByHighestPrice() {
     return this.hotelsService.getAvailableHotelByHighestPrice();
   }
 
+  @Roles('admin', 'user')
   @Get('filter/highest-rating')
   findAvailableHotelsByHighestRating() {
     return this.hotelsService.getAvailableHotelByHighestRating();
   }
 
+  @Roles('admin', 'user')
   @Get('filter/highest-discount')
   findAvailableHotelsByHighestDiscount() {
     return this.hotelsService.getAvailableHotelByHighestDiscount();
   }
 
+  @Roles('admin', 'user')
   @Get('filter/by-amenities')
   findAvailableHotelsBySelectedAmenities(
     @Query('amenityIds') amenityIds: string,
@@ -77,6 +89,7 @@ export class HotelsController {
     return this.hotelsService.getAvailableHotelBySelectedAmenities(ids);
   }
 
+  @Roles('admin', 'user')
   @Get('filter/by-bed-type')
   findAvailableHotelsByBedType(@Query('bedTypeIds') bedTypeIds: string) {
     const ids = bedTypeIds
@@ -88,11 +101,13 @@ export class HotelsController {
     return this.hotelsService.getAvailableHotelByBedType(ids);
   }
 
+  @Roles('admin', 'user')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.hotelsService.findOne(id);
   }
 
+  @Roles('admin')
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('images', 10, hotelUploadConfig))
   update(
@@ -108,6 +123,7 @@ export class HotelsController {
     return this.hotelsService.update(id, dto, files || []);
   }
 
+  @Roles('admin')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.hotelsService.remove(id);

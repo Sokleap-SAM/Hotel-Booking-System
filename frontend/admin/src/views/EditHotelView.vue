@@ -44,13 +44,6 @@
               </div>
             </div>
           </div>
-
-          <div class="form-group full-width">
-            <label>Custom Amenities</label>
-            <input v-model="form.custom_amenities" type="text" placeholder="(e.g., Mini Bar, Jacuzzi, Private Balcony)"
-              :class="{ 'input-error': errors.custom_amenities }" />
-            <p class="help-text">Note: You can select amenities above AND add custom amenities too</p>
-          </div>
         </div>
         <span v-if="errors.amenityIds" class="error-text">{{ errors.amenityIds }}</span>
       </div>
@@ -121,7 +114,6 @@ const form = ref({
   phoneNumber: '',
   email: '',
   amenityIds: [] as string[],
-  custom_amenities: '',
   images: [] as (File | string)[],
 });
 

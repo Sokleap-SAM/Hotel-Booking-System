@@ -25,7 +25,7 @@ export class HotelsService {
   ) {}
 
   async create(dto: CreateHotelDto, files: any[]): Promise<Hotel> {
-    const { amenityIds, custom_amenities, ...hotelData } = dto;
+    const { amenityIds, ...hotelData } = dto;
     const filePaths = files.map((f) => `/uploads/hotels/${f.filename}`);
 
     const amenities = await this.amenitiesRepository.find({
@@ -38,7 +38,6 @@ export class HotelsService {
     const hotel = this.hotelsRepository.create({
       ...hotelData,
       amenities,
-      custom_amenities: custom_amenities || '',
       images: filePaths,
     });
 
@@ -73,7 +72,7 @@ export class HotelsService {
     newFiles: any[],
   ): Promise<Hotel> {
     const hotel = await this.findOne(id);
-    const { amenityIds, existingImages, custom_amenities, ...rest } = dto;
+    const { amenityIds, existingImages, ...rest } = dto;
 
     const newPaths = newFiles.map((f) => `/uploads/hotels/${f.filename}`);
     const currentExisting = (existingImages as string[]) || [];
@@ -100,19 +99,13 @@ export class HotelsService {
 
     hotel.images = totalImagesAfterUpdate;
 
-    if (custom_amenities && (!amenityIds || amenityIds.length === 0)) {
-      hotel.amenities = [];
-    } else if (Array.isArray(amenityIds) && amenityIds.length > 0) {
+    if (Array.isArray(amenityIds) && amenityIds.length > 0) {
       hotel.amenities = await this.amenitiesRepository.find({
         where: {
           id: In(amenityIds),
           category: AmenityCategory.HOTEL,
         },
       });
-    }
-
-    if (custom_amenities !== undefined) {
-      hotel.custom_amenities = custom_amenities?.trim() || '';
     }
 
     Object.assign(hotel, rest);

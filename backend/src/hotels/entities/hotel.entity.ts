@@ -56,9 +56,6 @@ export class Hotel {
   @JoinTable({ name: 'hotel_amenities_amenity' })
   amenities: Amenity[];
 
-  @Column({ nullable: true })
-  custom_amenities: string;
-
   @Column()
   phoneNumber: string;
 

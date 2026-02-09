@@ -46,7 +46,7 @@
             {{ room?.longDescription || room?.description || 'No description available for this room.' }}
           </p>
 
-          <div class="amenities-section" v-if="(room?.amenities?.length ?? 0) > 0 || room?.custom_amenities">
+          <div class="amenities-section" v-if="(room?.amenities?.length ?? 0) > 0">
             <div class="amenity-group">
               <h4><i class="ri-service-line"></i> Room Amenities</h4>
               <div class="amenity-tags">
@@ -54,9 +54,6 @@
                   <i class="ri-checkbox-circle-fill"></i> {{ amenity.name }}
                 </span>
               </div>
-              <p class="custom-amenities" v-if="room?.custom_amenities">
-                <strong>Additional:</strong> {{ room.custom_amenities }}
-              </p>
             </div>
           </div>
 
@@ -123,7 +120,6 @@ interface Room {
   stock?: number;
   images?: string[];
   amenities?: Amenity[];
-  custom_amenities?: string;
 }
 
 export default {

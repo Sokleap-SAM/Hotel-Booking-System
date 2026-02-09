@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const api = axios.create({ baseURL: 'http://localhost:3000' })
+import api from '../utils/api'
 
 export type SortOption = 'default' | 'lowest-price' | 'highest-price' | 'highest-rating' | 'highest-discount'
 
@@ -10,7 +10,6 @@ export interface BedType {
   name: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fieldLabels: Record<string, string> = {
   name: 'Hotel Name',
   shortDescription: 'Short Description',
@@ -26,9 +25,7 @@ const fieldLabels: Record<string, string> = {
 
 export const useHotelStore = defineStore('hotel', {
   state: () => ({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     hotels: [] as any[],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     amenitiesList: [] as any[],
     bedTypesList: [] as BedType[],
     isLoading: false,

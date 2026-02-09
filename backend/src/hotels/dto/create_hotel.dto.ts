@@ -11,6 +11,7 @@ import {
   IsOptional,
   IsNotEmpty,
   IsArray,
+  ArrayMinSize,
 } from 'class-validator';
 
 export class CreateHotelDto {
@@ -47,19 +48,15 @@ export class CreateHotelDto {
   @IsOptional()
   images: any;
 
-  @IsOptional()
   @Transform(({ value }) => {
     if (!value) return [];
     const values = Array.isArray(value) ? value : [value];
     return values.map(id => Number(id)).filter(id => !isNaN(id));
   })
+  @IsNotEmpty()
   @IsArray({ message: 'amenityIds must be an array' })
-  amenityIds?: number[];
-
-  @Transform(({ value }) => value?.trim())
-  @IsString()
-  @IsOptional()
-  custom_amenities?: string;
+  @ArrayMinSize(1, { message: 'You must select at least one amenity' })
+  amenityIds: number[];
 
   @Transform(({ value }) => value?.trim())
   @IsNotEmpty()

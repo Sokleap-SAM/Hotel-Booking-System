@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia';
-import axios, { type AxiosError } from 'axios';
+import api from '@/utils/api';
+import { type AxiosError } from 'axios';
 import { toRaw } from 'vue';
-
-const api = axios.create({ baseURL: 'http://localhost:3000' });
 
 interface ApiErrorResponse {
   message?: string | string[];
@@ -45,7 +44,6 @@ export interface Room {
   discountPercentage: number;
   images: string[];
   amenities: Amenity[];
-  custom_amenities: string;
   roomBeds: RoomBed[];
   hotelId: string;
   hotel?: Hotel;
@@ -62,7 +60,6 @@ export interface RoomFormData {
   discountPercentage: number;
   images: (File | string)[];
   amenityIds: number[];
-  custom_amenities: string;
   roomBeds: RoomBed[];
   hotelId: string;
 }
@@ -78,7 +75,6 @@ const fieldLabels: Record<string, string> = {
   discountPercentage: 'Discount Percentage',
   amenityIds: 'Amenities',
   images: 'Images',
-  custom_amenities: 'Custom Amenities',
   hotelId: 'Hotel',
 };
 
@@ -113,8 +109,7 @@ export const useRoomStore = defineStore('room', {
         ...room,
         displayPrice: `$${Number(room.price).toFixed(2)}`,
         displayAmenities: [
-          ...(room.amenities?.map((a) => a.name) || []),
-          ...(room.custom_amenities ? [room.custom_amenities] : []),
+          ...(room.amenities?.map((a) => a.name) || [])
         ].join(', '),
         discountedPrice:
           room.discountPercentage > 0
@@ -149,15 +144,6 @@ export const useRoomStore = defineStore('room', {
           formData.append('amenityIds', id.toString());
         });
       }
-
-      const cleanCustom = data.custom_amenities
-        ? data.custom_amenities
-            .split(',')
-            .map((s: string) => s.trim())
-            .filter((s: string) => s !== '')
-            .join(', ')
-        : '';
-      formData.append('custom_amenities', cleanCustom);
 
       // Handle roomBeds array
       if (Array.isArray(data.roomBeds) && data.roomBeds.length > 0) {
@@ -220,7 +206,6 @@ export const useRoomStore = defineStore('room', {
           return {
             ...room,
             amenityIds: room.amenities?.map((a: Amenity) => a.id) || [],
-            custom_amenities: room.custom_amenities || '',
             images: room.images || [],
             existingImages: room.images || [],
             roomBeds: room.roomBeds?.map((rb: RoomBed) => ({
@@ -340,7 +325,6 @@ export const useRoomStore = defineStore('room', {
         else if (m.includes('occupancy')) fieldErrors.maxOccupancy = formattedMsg;
         else if (m.includes('discount')) fieldErrors.discountPercentage = formattedMsg;
         else if (m.includes('amenit')) fieldErrors.amenityIds = formattedMsg;
-        else if (m.includes('custom')) fieldErrors.custom_amenities = formattedMsg;
         else if (m.includes('image')) fieldErrors.images = formattedMsg;
         else if (m.includes('hotel')) fieldErrors.hotelId = formattedMsg;
       });

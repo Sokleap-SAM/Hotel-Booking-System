@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -15,8 +18,6 @@ export class HotelValidatorPipe implements PipeTransform {
 
   async transform(value: any) {
     if (!value || typeof value !== 'object') return value;
-
-    this.validateAtLeastOneAmenity(value);
 
     if (
       value.amenityIds &&
@@ -40,18 +41,6 @@ export class HotelValidatorPipe implements PipeTransform {
     }
 
     return value;
-  }
-
-  private validateAtLeastOneAmenity(value: any): void {
-    const hasStandard =
-      Array.isArray(value.amenityIds) && value.amenityIds.length > 0;
-    const hasCustom = value.custom_amenities?.trim().length > 0;
-
-    if (!hasStandard && !hasCustom) {
-      throw new BadRequestException(
-        'You must either select a Standard Amenity or enter a Custom one.',
-      );
-    }
   }
 
   private validatePhoneNumber(phone: string): void {

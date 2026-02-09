@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -13,6 +14,7 @@ import {
   MaxLength,
   IsNotEmpty,
   IsArray,
+  ArrayMinSize,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
@@ -85,19 +87,15 @@ export class CreateRoomDto {
   @IsOptional()
   images: any;
 
-  @IsOptional()
   @Transform(({ value }) => {
     if (!value) return [];
     const values = Array.isArray(value) ? value : [value];
     return values.map((id) => Number(id)).filter((id) => !isNaN(id));
   })
+  @IsNotEmpty()
   @IsArray({ message: 'amenityIds must be an array' })
-  amenityIds?: number[];
-
-  @Transform(({ value }) => value?.trim())
-  @IsString()
-  @IsOptional()
-  custom_amenities?: string;
+  @ArrayMinSize(1, { message: 'You must select at least one amenity' })
+  amenityIds: number[];
 
   @IsString()
   hotelId: string;

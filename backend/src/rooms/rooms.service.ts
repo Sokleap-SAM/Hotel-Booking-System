@@ -31,7 +31,7 @@ export class RoomsService {
   ) {}
 
   async create(createRoomDto: CreateRoomDto, files: any[]): Promise<Room> {
-    const { hotelId, amenityIds, custom_amenities, roomBeds, ...roomData } =
+    const { hotelId, amenityIds, roomBeds, ...roomData } =
       createRoomDto;
     const filePaths = files.map((f) => `/uploads/rooms/${f.filename}`);
 
@@ -49,7 +49,6 @@ export class RoomsService {
       ...roomData,
       amenities,
       hotel,
-      custom_amenities: custom_amenities || '',
       images: filePaths,
     });
 
@@ -108,7 +107,7 @@ export class RoomsService {
 
     if (!room) throw new NotFoundException(`Room ${id} not found`);
 
-    const { amenityIds, existingImages, custom_amenities, roomBeds, ...rest } =
+    const { amenityIds, existingImages, roomBeds, ...rest } =
       updateRoomDto;
 
     const newPaths = newFiles.map((f) => `/uploads/rooms/${f.filename}`);
@@ -136,19 +135,13 @@ export class RoomsService {
 
     room.images = totalImagesAfterUpdate;
 
-    if (custom_amenities && (!amenityIds || amenityIds.length === 0)) {
-      room.amenities = [];
-    } else if (Array.isArray(amenityIds) && amenityIds.length > 0) {
+    if (Array.isArray(amenityIds) && amenityIds.length > 0) {
       room.amenities = await this.amenitiesRepository.find({
         where: {
           id: In(amenityIds),
           category: AmenityCategory.ROOM,
         },
       });
-    }
-
-    if (custom_amenities !== undefined) {
-      room.custom_amenities = custom_amenities?.trim() || '';
     }
 
     // Update room beds if provided

@@ -101,7 +101,6 @@ interface Hotel {
   images: string[];
   avgRating: number;
   totalRating: number;
-  custom_amenities?: string;
   amenities?: { id: number; name: string }[];
   phoneNumber: string;
   email: string;
@@ -153,7 +152,7 @@ export default defineComponent({
     const descriptionData = computed(() => ({
       title: hotel.value?.shortDescription || '',
       paragraphs: hotel.value?.longDescription ? [hotel.value.longDescription] : [],
-      highlight: hotel.value?.custom_amenities || '',
+      highlight: '',
       location: hotel.value?.location || '',
       phoneNumber: hotel.value?.phoneNumber || '',
       email: hotel.value?.email || '',

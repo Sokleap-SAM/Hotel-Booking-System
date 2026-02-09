@@ -54,9 +54,6 @@ export class Room {
   @JoinTable()
   amenities: Amenity[];
 
-  @Column({ type: 'text', nullable: true })
-  custom_amenities: string;
-
   @ManyToOne(() => Hotel, (hotel) => hotel.rooms, {
     onDelete: 'CASCADE',
   })

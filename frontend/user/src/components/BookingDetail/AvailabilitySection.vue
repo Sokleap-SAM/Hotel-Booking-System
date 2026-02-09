@@ -100,7 +100,6 @@ interface Room {
   stock?: number;
   images?: string[];
   amenities?: Amenity[];
-  custom_amenities?: string;
   type?: string;
 }
 
@@ -157,7 +156,6 @@ const formattedRooms = computed(() => {
     available: room.available || room.stock || 0,
     images: room.images || [],
     amenities: room.amenities || [],
-    custom_amenities: room.custom_amenities || '',
     type: room.type || 'Standard',
   }));
 });

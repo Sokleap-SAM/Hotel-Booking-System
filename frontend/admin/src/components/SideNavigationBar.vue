@@ -13,9 +13,11 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 
 const state = reactive({
   activeTab: 'Hotel/Room Management',
@@ -25,7 +27,7 @@ const state = reactive({
     { name: 'User Management', route: '' },
     { name: 'Hotel/Room Management', route: '/manage_hotel&room' },
     { name: 'Amenity Management', route: '/amenities' },
-    { name: 'Logout', route: '' }
+    { name: 'Logout', route: '/login' }
   ]
 });
 
@@ -44,9 +46,14 @@ watch(
 );
 
 const navigateTo = (block: { name: string; route: string }) => {
-  state.activeTab = block.name;
-  if (block.route) {
-    router.push(block.route);
+  if (block.name === 'Logout') {
+    authStore.logout();
+    router.push('/login');
+  } else {
+    state.activeTab = block.name;
+    if (block.route) {
+      router.push(block.route);
+    }
   }
 };
 </script>

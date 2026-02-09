@@ -15,6 +15,8 @@ import LastPayment from '@/view/LastPayment.vue'
 import ProfileDetail from '@/view/ProfileDetail.vue'
 import BookingConfirmation from '@/view/BookingConfirmation.vue'
 import MyBookings from '@/view/MyBookings.vue'
+import PaymentSuccess from '@/view/PaymentSuccess.vue'
+import PaymentCancel from '@/view/PaymentCancel.vue'
 
 const routes = [
   {
@@ -98,6 +100,18 @@ const routes = [
     path: '/MyBookings',
     name: 'MyBookings',
     component: MyBookings,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/payment/success',
+    name: 'PaymentSuccess',
+    component: PaymentSuccess,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/payment/cancel',
+    name: 'PaymentCancel',
+    component: PaymentCancel,
     meta: { requiresAuth: true },
   },
 ]

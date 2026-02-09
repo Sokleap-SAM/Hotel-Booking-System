@@ -16,7 +16,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { profileUploadConfig } from 'src/config/file-upload.config';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { User } from './user/entity/user.entity';
+import { User } from './user/entities/user.entity';
 import type { Response } from 'express';
 
 @Controller('auth')

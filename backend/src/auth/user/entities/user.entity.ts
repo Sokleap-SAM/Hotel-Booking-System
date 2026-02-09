@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Transform } from 'class-transformer';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { UserRole } from './user-role.entity';
 
 @Entity()
 export class User {
@@ -28,4 +30,11 @@ export class User {
 
   @Column({ nullable: true })
   profileImage: string;
+
+  @OneToMany(() => UserRole, (ur) => ur.user)
+  @Transform(
+    ({ value }: { value: UserRole[] }) =>
+      value?.map((ur) => ur.role?.name) ?? [],
+  )
+  roles: UserRole[];
 }

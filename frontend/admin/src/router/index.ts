@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import HotelLayout from '../layouts/HotelLayout.vue'
 import HotelManagementView from '../views/HotelManagementView.vue'
 import AddHotelView from '../views/AddHotelView.vue'
@@ -8,13 +9,20 @@ import AddRoomView from '../views/AddRoomView.vue'
 import EditRoomView from '../views/EditRoomView.vue'
 import AmenityManagementView from '../views/AmenityManagementView.vue'
 import BookingManagementView from '../views/BookingManagementView.vue'
+import AdminLoginView from '../views/AdminLoginView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      redirect: '/manage_hotel&room',
+      name: 'home',
+      redirect: '/login',
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: AdminLoginView,
     },
     {
       path: '/manage_hotel&room',
@@ -75,6 +83,25 @@ const router = createRouter({
       ]
     }
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+
+  if (to.path === '/login') {
+    if (authStore.isAuthenticated) {
+      next('/manage_hotel&room')
+    } else {
+      next()
+    }
+    return
+  }
+
+  if (!authStore.isAuthenticated) {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router

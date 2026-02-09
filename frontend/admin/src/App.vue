@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import NavigationBar from './components/SideNavigationBar.vue';
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import NavigationBar from './components/SideNavigationBar.vue'
+
+const route = useRoute()
+const showNavigation = computed(() => route.path !== '/login')
 </script>
 
 <template>
   <div class="main-layout">
-    <NavigationBar />
+    <NavigationBar v-if="showNavigation" />
 
-    <main class="content-area">
+    <main class="content-area" :class="{ 'no-margin': !showNavigation }">
       <RouterView />
     </main>
   </div>
@@ -28,5 +33,9 @@ body {
   min-height: 100vh;
   background-color: #ffffff;
   overflow-y: auto;
+}
+
+.content-area.no-margin {
+  margin-left: 0;
 }
 </style>

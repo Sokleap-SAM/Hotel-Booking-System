@@ -7,7 +7,7 @@ import {
 import { UserService } from './user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User } from './user/entity/user.entity';
+import { User } from './user/entities/user.entity';
 import { UserRegisterDto } from './user/dto/user-register.dto';
 import * as crypto from 'crypto';
 import { Express } from 'express';
@@ -54,7 +54,7 @@ export class AuthService {
     newUserDto.password = crypto.randomBytes(16).toString('hex');
 
     newUserDto.firstName = firstName || ' '; // Use the passed firstName, default to space
-    newUserDto.lastName = lastName || ' ';   // Use the passed lastName, default to space
+    newUserDto.lastName = lastName || ' '; // Use the passed lastName, default to space
 
     console.log('validateOAuthLogin: newUserDto before creation:', newUserDto);
 
@@ -69,7 +69,12 @@ export class AuthService {
   }
 
   login(user: User) {
-    const payload = { email: user.email, sub: user.id };
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
     return {
       access_token: this.jwtService.sign(payload),
     };
@@ -86,7 +91,10 @@ export class AuthService {
     console.log('📁 File:', file ? 'EXISTS' : 'NULL');
     console.log('📁 File path:', file?.path);
     console.log('📝 DTO before:', userDto);
-    if (userDto.confirmPassword && userDto.password !== userDto.confirmPassword) {
+    if (
+      userDto.confirmPassword &&
+      userDto.password !== userDto.confirmPassword
+    ) {
       throw new BadRequestException('Passwords do not match');
     }
     const existingUser = await this.userService.findByEmail(userDto.email);

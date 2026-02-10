@@ -11,6 +11,9 @@ import AmenityManagementView from '../views/AmenityManagementView.vue'
 import BookingManagementView from '../views/BookingManagementView.vue'
 import BillManagementView from '../views/BillManagementView.vue'
 import BedTypeManagementView from '../views/BedTypeManagementView.vue'
+import UserManagementView from '../views/UserManagementView.vue'
+import AddUserView from '../views/AddUserView.vue'
+import EditUserView from '../views/EditUserView.vue'
 import AdminLoginView from '../views/AdminLoginView.vue'
 
 const router = createRouter({
@@ -103,6 +106,27 @@ const router = createRouter({
           path: '',
           name: 'bed-type-management',
           component: BedTypeManagementView,
+        },
+      ]
+    },
+    {
+      path: '/users',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'user-management',
+          component: UserManagementView,
+        },
+        {
+          path: 'add',
+          name: 'add-user',
+          component: AddUserView,
+        },
+        {
+          path: 'edit/:id',
+          name: 'edit-user',
+          component: EditUserView,
         },
       ]
     }

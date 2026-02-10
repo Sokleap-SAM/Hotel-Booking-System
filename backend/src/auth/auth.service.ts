@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UserService } from './user/user.service';
 import { JwtService } from '@nestjs/jwt';
@@ -27,6 +28,11 @@ export class AuthService {
       user.provider === 'local' &&
       (await bcrypt.compare(pass, user.password))
     ) {
+      if (!user.isActive) {
+        throw new ForbiddenException(
+          'Your account has been deactivated. Please contact the administrator.',
+        );
+      }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user;
       return result;
@@ -42,6 +48,11 @@ export class AuthService {
   ): Promise<User> {
     let user = await this.userService.findByEmail(email);
     if (user) {
+      if (!user.isActive) {
+        throw new ForbiddenException(
+          'Your account has been deactivated. Please contact the administrator.',
+        );
+      }
       return user;
     }
 

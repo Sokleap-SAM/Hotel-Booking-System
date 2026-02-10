@@ -24,7 +24,7 @@ const state = reactive({
   navBlocks: [
     { name: 'Billing & Payment', route: '/billing' },
     { name: 'Booking Management', route: '/bookings' },
-    { name: 'User Management', route: '' },
+    { name: 'User Management', route: '/users' },
     { name: 'Hotel/Room Management', route: '/manage_hotel&room' },
     { name: 'Amenity Management', route: '/amenities' },
     { name: 'Bed Type Management', route: '/bed-types' },
@@ -45,6 +45,8 @@ watch(
       state.activeTab = 'Billing & Payment';
     } else if (path.startsWith('/bed-types')) {
       state.activeTab = 'Bed Type Management';
+    } else if (path.startsWith('/users')) {
+      state.activeTab = 'User Management';
     }
   },
   { immediate: true }

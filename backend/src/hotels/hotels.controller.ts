@@ -21,6 +21,7 @@ import { HotelValidatorPipe } from './pipes/hotel-validtor.pipe';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorator/roles.dectorator';
+import { Public } from '../auth/decorator/public.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('hotels')
@@ -45,7 +46,7 @@ export class HotelsController {
     return this.hotelsService.create(dto, files);
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get()
   findAll() {
     return this.hotelsService.findAll();

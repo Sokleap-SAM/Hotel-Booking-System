@@ -155,8 +155,9 @@ const categoryItems = computed(() => {
 })
 
 const getProfileImageUrl = (image: string) => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
   if (image.startsWith('http')) return image
-  return `http://localhost:3000/uploads/profiles/${image}`
+  return `${apiUrl}/uploads/profiles/${image}`
 }
 
 const formatDate = (dateStr: string) => {

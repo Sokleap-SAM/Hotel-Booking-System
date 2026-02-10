@@ -134,16 +134,17 @@ export default {
     const selectedThumbIndex = ref(0)
     
     const roomImages = computed(() => {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
       if (props.room?.images && props.room.images.length > 0) {
         return props.room.images.map((img: string) => {
           // Handle full URLs
           if (img.startsWith('http')) return img
           // Handle paths starting with /uploads/
-          if (img.startsWith('/uploads/')) return `http://localhost:3000${img}`
+          if (img.startsWith('/uploads/')) return `${apiUrl}${img}`
           // Handle paths starting with uploads/
-          if (img.startsWith('uploads/')) return `http://localhost:3000/${img}`
+          if (img.startsWith('uploads/')) return `${apiUrl}/${img}`
           // Default case - assume it's a relative path
-          return `http://localhost:3000/uploads/rooms/${img}`
+          return `${apiUrl}/uploads/rooms/${img}`
         })
       }
       return [defaultRoomImage]

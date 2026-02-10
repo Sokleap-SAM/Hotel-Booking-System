@@ -33,7 +33,7 @@
     <button class="btn-Login" @click="handleLogin">Login</button>
     <div style="text-align: center; margin-top: 20px">Or continue with</div>
     <div class="container-google">
-      <a href="http://localhost:3000/auth/google">
+      <a :href="`${apiUrl}/auth/google`">
         <img src="@/assets/google.png" alt="Google login" style="width: 100%; height: auto" />
       </a>
     </div>
@@ -56,6 +56,7 @@ export default {
     const email = ref('')
     const passwordFieldType = ref('password')
     const error = ref<string | null>(null)
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
     const authStore = useAuthStore()
     const router = useRouter()
@@ -95,6 +96,7 @@ export default {
       togglePassword,
       handleLogin,
       error,
+      apiUrl,
     }
   },
 }

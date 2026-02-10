@@ -25,13 +25,13 @@ const props = defineProps<{
 }>();
 
 const fallbackImages = [hotel1, hotel2, hotel3];
-const baseUrl = 'http://localhost:3000';
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const displayImages = computed(() => {
   if (props.images && props.images.length > 0) {
     // Convert relative paths to full URLs
     return props.images.map(img => 
-      img.startsWith('http') ? img : `${baseUrl}${img}`
+      img.startsWith('http') ? img : `${apiUrl}${img}`
     );
   }
   return fallbackImages;

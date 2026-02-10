@@ -60,7 +60,8 @@ export default defineComponent({
     const hotelImage = computed(() => {
     const images = bookingStore.hotelInfo?.images
       if (images && images.length > 0) {
-        return images[0].startsWith('http') ? images[0] : `http://localhost:3000${images[0]}`
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+        return images[0].startsWith('http') ? images[0] : `${apiUrl}${images[0]}`
       }
       return angkorwat
     })

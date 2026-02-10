@@ -35,6 +35,8 @@ export interface PriceBreakdown {
 export interface BookingRecord {
   id: string
   userId: string
+  checkInDate: string
+  checkOutDate: string
   totalPrice: number
   status: string
   rejectionReason?: string
@@ -77,6 +79,7 @@ export const useBookingStore = defineStore('booking', {
 
     // User's booking history
     bookings: [] as BookingRecord[],
+    userBookings: [] as BookingRecord[],
     currentBooking: null as BookingRecord | null,
     isLoading: false,
     error: null as string | null,
@@ -275,6 +278,23 @@ export const useBookingStore = defineStore('booking', {
         console.error('Fetch booking error:', error)
         this.error = 'Failed to fetch booking'
         return null
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchUserBookings() {
+      this.isLoading = true
+      this.error = null
+
+      try {
+        const { data } = await api.get('/bookings')
+        this.userBookings = data as BookingRecord[]
+        return this.userBookings
+      } catch (error) {
+        this.error = 'Failed to fetch your bookings'
+        console.error('Fetch user bookings error:', error)
+        return []
       } finally {
         this.isLoading = false
       }

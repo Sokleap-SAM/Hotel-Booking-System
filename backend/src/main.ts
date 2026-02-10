@@ -6,7 +6,9 @@ import * as express from 'express';
 import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true, // Required for Stripe webhook signature verification
+  });
 
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 

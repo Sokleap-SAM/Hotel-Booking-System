@@ -6,6 +6,8 @@ import {
   IsUUID,
   ValidateNested,
   ArrayMinSize,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class RoomSelectionDto {
@@ -28,4 +30,12 @@ export class CreateBookingDto {
   @ValidateNested({ each: true })
   @Type(() => RoomSelectionDto)
   roomSelections: RoomSelectionDto[];
+
+  @IsOptional()
+  @IsDateString()
+  guestDateOfBirth?: string;
+
+  @IsOptional()
+  @IsString()
+  guestPhone?: string;
 }

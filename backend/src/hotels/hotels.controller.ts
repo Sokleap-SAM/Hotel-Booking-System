@@ -102,8 +102,8 @@ export class HotelsController {
   }
 
   @Roles('admin', 'user')
-  @Get('search')
-  searchHotels(
+  @Get('search/availability')
+  searchHotelsWithAvailability(
     @Query('location') location?: string,
     @Query('checkIn') checkIn?: string,
     @Query('checkOut') checkOut?: string,

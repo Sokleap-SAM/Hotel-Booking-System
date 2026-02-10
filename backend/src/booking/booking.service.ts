@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Booking, BookingStatus } from './entities/booking.entity';
 import { BookingItem } from './entities/booking-item.entity';
 import { Room } from '../rooms/entities/room.entity';
+import { RoomsService } from '../rooms/rooms.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class BookingService {
     private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(Room)
     private readonly roomRepository: Repository<Room>,
+    private readonly roomsService: RoomsService,
   ) {}
 
   async create(userId: string, createBookingDto: CreateBookingDto) {
@@ -42,6 +44,19 @@ export class BookingService {
       if (checkOut <= checkIn) {
         throw new BadRequestException(
           'Check-out date must be after check-in date',
+        );
+      }
+
+      // Check room availability for the date range
+      const availableCount = await this.roomsService.getAvailableRoomCount(
+        room.id,
+        checkIn,
+        checkOut,
+      );
+
+      if (availableCount < 1) {
+        throw new BadRequestException(
+          `Room "${room.name}" is not available for the selected dates`,
         );
       }
 

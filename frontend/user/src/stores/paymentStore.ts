@@ -1,19 +1,7 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-import { useAuthStore } from './auth'
+import api from '../utils/api'
 
-const api = axios.create({ baseURL: 'http://localhost:3000' })
-
-// Attach auth token to every request
-api.interceptors.request.use((config) => {
-  const authStore = useAuthStore()
-  if (authStore.token) {
-    config.headers.Authorization = `Bearer ${authStore.token}`
-  }
-  return config
-})
-
-export type PaymentMethod = 'khqr' | 'card'
+export type PaymentMethod = 'khqr' | 'stripe'
 export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
 
 export interface KhqrPaymentResponse {
@@ -22,6 +10,15 @@ export interface KhqrPaymentResponse {
   qrCodeData: string
   amount: number
   expiresAt: string
+  status: string
+}
+
+export interface StripeCheckoutResponse {
+  paymentId: string
+  checkoutUrl: string
+  sessionId: string
+  amount: number
+  currency: string
   status: string
 }
 
@@ -71,12 +68,16 @@ export interface Payment {
 export const usePaymentStore = defineStore('payment', {
   state: () => ({
     // Current payment flow
-    currentPayment: null as KhqrPaymentResponse | CardPaymentResponse | null,
+    currentPayment: null as KhqrPaymentResponse | StripeCheckoutResponse | null,
     paymentStatus: null as PaymentStatusResponse | null,
-    selectedMethod: 'card' as PaymentMethod,
+    selectedMethod: 'stripe' as PaymentMethod,
     
     // KHQR specific
     khqrData: null as KhqrPaymentResponse | null,
+    
+    // Stripe specific
+    stripeCheckoutData: null as StripeCheckoutResponse | null,
+    
     isPollingStatus: false,
     
     // User's payment history
@@ -120,38 +121,21 @@ export const usePaymentStore = defineStore('payment', {
       }
     },
 
-    // Process card payment
-    async processCardPayment(
-      bookingId: string,
-      cardDetails: CardDetails
-    ): Promise<CardPaymentResponse | null> {
+    // Create Stripe Checkout session - redirects to Stripe hosted page
+    async createStripeCheckout(bookingId: string): Promise<StripeCheckoutResponse | null> {
       this.isProcessing = true
       this.error = null
 
       try {
-        const response = await api.post<CardPaymentResponse>('/payments/card', {
+        const response = await api.post<StripeCheckoutResponse>('/payments/stripe/checkout', {
           bookingId,
-          cardNumber: cardDetails.cardNumber.replace(/\s/g, ''),
-          cardExpiry: cardDetails.cardExpiry,
-          cardCvv: cardDetails.cardCvv,
-          cardHolderName: cardDetails.cardHolderName,
         })
+        this.stripeCheckoutData = response.data
         this.currentPayment = response.data
-        
-        // Set status based on response
-        this.paymentStatus = {
-          paymentId: response.data.paymentId,
-          bookingId,
-          amount: response.data.amount,
-          paymentMethod: 'card',
-          status: response.data.status as PaymentStatus,
-          transactionId: response.data.transactionId,
-        }
-        
         return response.data
       } catch (err: unknown) {
         const error = err as { response?: { data?: { message?: string } } }
-        this.error = error.response?.data?.message || 'Failed to process card payment'
+        this.error = error.response?.data?.message || 'Failed to create Stripe checkout'
         return null
       } finally {
         this.isProcessing = false
@@ -165,7 +149,7 @@ export const usePaymentStore = defineStore('payment', {
 
       try {
         const response = await api.post<PaymentStatusResponse>(
-          `/payments/${paymentId}/confirm-khqr`
+          `/payments/khqr/${paymentId}/confirm`
         )
         this.paymentStatus = response.data
         return response.data
@@ -289,6 +273,7 @@ export const usePaymentStore = defineStore('payment', {
       this.currentPayment = null
       this.paymentStatus = null
       this.khqrData = null
+      this.stripeCheckoutData = null
       this.error = null
       this.isPollingStatus = false
     },

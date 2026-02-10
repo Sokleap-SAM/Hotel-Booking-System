@@ -60,8 +60,6 @@
         <GuestReviews :hotelId="hotel.id" />
 
         <AvailabilitySection
-          :bookingDates="bookingDates"
-          :guestConfig="guestConfig"
           :rooms="rooms"
           :isLoading="roomsLoading"
           :hotelId="hotel.id"
@@ -134,8 +132,6 @@ export default defineComponent({
     const hotel = ref<Hotel | null>(null);
     const isLoading = ref(true);
     const error = ref<string | null>(null);
-    const bookingDates = ref('Select dates');
-    const guestConfig = ref('2 adults : 0 children . 1 room');
 
     // Dynamic Header Background
     const backgroundHeader = {
@@ -202,8 +198,6 @@ export default defineComponent({
       error,
       backgroundHeader,
       descriptionData,
-      bookingDates,
-      guestConfig,
       loadHotelData,
       goToHome,
     };

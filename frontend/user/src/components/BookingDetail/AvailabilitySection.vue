@@ -21,19 +21,38 @@
         </VueDatePicker>
       </div>
 
-      <div class="guest-group">
+      <div class="guest-group" @click="showGuestDropdown = !showGuestDropdown">
         <i class="ri-user-line"></i>
-        <select v-model="adults" class="guest-select">
-          <option v-for="n in 10" :key="n" :value="n">{{ n }} adult{{ n > 1 ? 's' : '' }}</option>
-        </select>
-        <span class="separator">:</span>
-        <select v-model="children" class="guest-select">
-          <option v-for="n in 11" :key="n - 1" :value="n - 1">{{ n - 1 }} children</option>
-        </select>
-        <span class="separator">.</span>
-        <select v-model="roomCount" class="guest-select">
-          <option v-for="n in 10" :key="n" :value="n">{{ n }} room{{ n > 1 ? 's' : '' }}</option>
-        </select>
+        <div class="guest-display">
+          <span>{{ adults }} adult{{ adults > 1 ? 's' : '' }} : {{ children }} children . {{ roomCount }} room{{ roomCount > 1 ? 's' : '' }}</span>
+        </div>
+        <div v-if="showGuestDropdown" class="guest-dropdown" @click.stop>
+          <div class="guest-row">
+            <span>Adults</span>
+            <div class="counter">
+              <button @click="adults = Math.max(1, adults - 1)">-</button>
+              <span>{{ adults }}</span>
+              <button @click="adults = Math.min(10, adults + 1)">+</button>
+            </div>
+          </div>
+          <div class="guest-row">
+            <span>Children</span>
+            <div class="counter">
+              <button @click="children = Math.max(0, children - 1)">-</button>
+              <span>{{ children }}</span>
+              <button @click="children = Math.min(10, children + 1)">+</button>
+            </div>
+          </div>
+          <div class="guest-row">
+            <span>Rooms</span>
+            <div class="counter">
+              <button @click="roomCount = Math.max(1, roomCount - 1)">-</button>
+              <span>{{ roomCount }}</span>
+              <button @click="roomCount = Math.min(10, roomCount + 1)">+</button>
+            </div>
+          </div>
+          <button class="done-btn" @click="showGuestDropdown = false">Done</button>
+        </div>
       </div>
 
       <button class="change-search-btn" @click="handleSearch">Change search</button>
@@ -73,13 +92,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import RoomTable from './RoomTable.vue';
+import { useRoomStore } from '@/stores/roomStores';
 
 const router = useRouter();
+const roomStore = useRoomStore();
 
 interface Amenity {
   id: number;
@@ -97,14 +118,37 @@ interface Room {
   price: number;
   discountPercentage?: number;
   available?: number;
+  availableRooms?: number;
+  totalRooms?: number;
+  bookedRooms?: number;
   stock?: number;
   images?: string[];
   amenities?: Amenity[];
   type?: string;
 }
 
+interface FormattedRoom {
+  id: string;
+  name: string;
+  description: string;
+  longDescription: string;
+  maxGuests: number;
+  maxOccupancy: number;
+  price: number;
+  finalPrice: number;
+  discount: number;
+  discountPercentage: number;
+  breakfast: boolean;
+  stock: number;
+  available: number;
+  totalRooms: number;
+  bookedRooms: number;
+  images: string[];
+  amenities: Amenity[];
+  type: string;
+}
+
 const props = defineProps<{
-  guestConfig: string;
   rooms: Room[];
   isLoading?: boolean;
   hotelId?: string;
@@ -124,6 +168,7 @@ const dateRange = ref([today, tomorrow]);
 const adults = ref(2);
 const children = ref(0);
 const roomCount = ref(1);
+const showGuestDropdown = ref(false);
 
 // Convert dates to string format for the RoomTable
 const checkInDateString = computed(() => {
@@ -138,7 +183,7 @@ const checkOutDateString = computed(() => {
 
 // Format rooms to match the RoomTable expected structure
 const formattedRooms = computed(() => {
-  return props.rooms.map(room => ({
+  return props.rooms.map((room: Room) => ({
     id: room.id,
     name: room.name,
     description: room.shortDescription || room.description || '',
@@ -152,8 +197,10 @@ const formattedRooms = computed(() => {
     discount: room.discountPercentage || 0,
     discountPercentage: room.discountPercentage || 0,
     breakfast: room.amenities?.some((a: Amenity) => a.name?.toLowerCase().includes('breakfast')) || false,
-    stock: room.available || room.stock || 0,
-    available: room.available || room.stock || 0,
+    stock: room.availableRooms ?? room.available ?? room.stock ?? 0,
+    available: room.availableRooms ?? room.available ?? room.stock ?? 0,
+    totalRooms: room.totalRooms ?? room.available ?? room.stock ?? 0,
+    bookedRooms: room.bookedRooms ?? 0,
     images: room.images || [],
     amenities: room.amenities || [],
     type: room.type || 'Standard',
@@ -165,12 +212,53 @@ const totalGuests = computed(() => adults.value + children.value);
 
 // Filter rooms based on guest count - only show rooms that can accommodate all guests
 const filteredRooms = computed(() => {
-  return formattedRooms.value.filter(room => room.maxOccupancy >= totalGuests.value);
+  return formattedRooms.value.filter((room: FormattedRoom) => room.maxOccupancy >= totalGuests.value);
 });
 
+// Fetch rooms with availability when dates or guests change
+const fetchRoomsWithAvailability = async () => {
+  if (!props.hotelId || !dateRange.value[0] || !dateRange.value[1]) return;
+  
+  try {
+    await roomStore.fetchRoomsWithAvailability(
+      props.hotelId,
+      dateRange.value[0].toISOString(),
+      dateRange.value[1].toISOString(),
+      totalGuests.value
+    );
+  } catch (error) {
+    console.error('Error fetching rooms with availability:', error);
+  }
+};
+
+// Watch for date changes and refetch availability
+watch(dateRange, () => {
+  fetchRoomsWithAvailability();
+}, { deep: true });
+
+// Watch for guest count changes and refetch availability
+watch([adults, children], () => {
+  fetchRoomsWithAvailability();
+});
+
+// Handle "Change search" - navigate to booking page with current filters
 const handleSearch = () => {
-  // Navigate back to home to search for other hotels
-  router.push({ name: 'home' });
+  const query: Record<string, string> = {};
+  
+  if (props.hotelLocation) {
+    query.location = props.hotelLocation;
+  }
+  if (dateRange.value[0]) {
+    query.checkIn = dateRange.value[0].toISOString();
+  }
+  if (dateRange.value[1]) {
+    query.checkOut = dateRange.value[1].toISOString();
+  }
+  query.adults = String(adults.value);
+  query.children = String(children.value);
+  query.rooms = String(roomCount.value);
+
+  router.push({ name: 'Bookingpage', query });
 };
 </script>
 
@@ -206,20 +294,8 @@ const handleSearch = () => {
   font-size: 1.2rem;
 }
 
-.input-group {
-  flex: 1;
-  background: white;
-  padding: 12px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  color: #333;
-  height: 46px;
-}
-
 .guest-group {
+  position: relative;
   flex: 1;
   background: white;
   padding: 8px 12px;
@@ -230,6 +306,11 @@ const handleSearch = () => {
   font-weight: 700;
   color: #333;
   height: 46px;
+  cursor: pointer;
+}
+
+.guest-group:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .guest-group i {
@@ -237,26 +318,72 @@ const handleSearch = () => {
   font-size: 1.1rem;
 }
 
-.guest-select {
-  border: none;
-  background: transparent;
-  font-weight: 700;
+.guest-display {
+  flex: 1;
   font-size: 0.9rem;
+}
+
+.guest-dropdown {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  padding: 15px;
+}
+
+.guest-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
   color: #333;
+}
+
+.guest-row:last-of-type {
+  border-bottom: none;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.counter button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: white;
   cursor: pointer;
-  padding: 4px;
+  font-size: 16px;
 }
 
-.guest-select:focus {
-  outline: none;
+.counter button:hover {
+  background: #f0f4fa;
+  border-color: #003580;
 }
 
-.separator {
-  color: #666;
+.done-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: #003580;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-.room-count {
-  font-size: 0.9rem;
+.done-btn:hover {
+  background: #002050;
 }
 
 .change-search-btn {

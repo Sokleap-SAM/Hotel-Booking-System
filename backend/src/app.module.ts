@@ -12,7 +12,7 @@ import { BedTypesModule } from './bed-types/bed-types.module';
 import { AmenitiesModule } from './amenities/amenities.module';
 import { BookingModule } from './booking/booking.module';
 import { RatingsModule } from './ratings/ratings.module';
-import { PaymentsModule } from './payments/payments.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -43,7 +43,7 @@ import { PaymentsModule } from './payments/payments.module';
     AmenitiesModule,
     BookingModule,
     RatingsModule,
-    PaymentsModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

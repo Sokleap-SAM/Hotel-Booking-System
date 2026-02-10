@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Like, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Hotel, HotelStatus } from './entities/hotel.entity';
 import { CreateHotelDto } from './dto/create_hotel.dto';
 import { UpdateHotelDto } from './dto/update_hotel.dto';
@@ -282,12 +283,14 @@ export class HotelsService {
         );
 
         // Filter rooms by occupancy if totalGuests is provided
-        const guestsPerRoom = roomsNeeded && roomsNeeded > 0 
-          ? Math.ceil((totalGuests || 1) / roomsNeeded)
-          : totalGuests || 1;
+        const guestsPerRoom =
+          roomsNeeded && roomsNeeded > 0
+            ? Math.ceil((totalGuests || 1) / roomsNeeded)
+            : totalGuests || 1;
 
         const suitableRooms = roomsAvailability.filter(
-          (room) => room.availableRooms > 0 && room.maxOccupancy >= guestsPerRoom,
+          (room) =>
+            room.availableRooms > 0 && room.maxOccupancy >= guestsPerRoom,
         );
 
         // Calculate total available rooms
@@ -301,8 +304,8 @@ export class HotelsService {
           rooms: roomsAvailability,
           suitableRooms,
           totalAvailableRooms,
-          hasAvailability: roomsNeeded 
-            ? totalAvailableRooms >= roomsNeeded 
+          hasAvailability: roomsNeeded
+            ? totalAvailableRooms >= roomsNeeded
             : totalAvailableRooms > 0,
         };
       }),

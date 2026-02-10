@@ -40,6 +40,12 @@ export default defineComponent({
     const errorMessage = ref('')
 
     const submitBooking = async () => {
+      // Validate required guest details
+      if (!bookingStore.guestDetails.dateOfBirth || !bookingStore.guestDetails.phone) {
+        errorMessage.value = 'Please fill in your date of birth and phone number above.'
+        return
+      }
+
       isSubmitting.value = true
       errorMessage.value = ''
 

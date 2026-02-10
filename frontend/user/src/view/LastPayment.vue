@@ -43,7 +43,6 @@
         <div class="right-section">
           <PaymentForm 
             @method-changed="onPaymentMethodChanged"
-            @card-details-changed="onCardDetailsChanged"
           />
         </div>
 
@@ -102,12 +101,12 @@
             </template>
             <template v-else>
               <button 
-                class="btn-confirm" 
-                :disabled="isSubmitting || !isCardValid" 
-                @click="processCardPayment"
+                class="btn-confirm btn-stripe" 
+                :disabled="isSubmitting" 
+                @click="initiateStripeCheckout"
               >
-                <span v-if="isSubmitting">Processing Payment...</span>
-                <span v-else>Pay Now</span>
+                <span v-if="isSubmitting">Redirecting to Stripe...</span>
+                <span v-else><i class="ri-bank-card-line"></i> Pay with Stripe</span>
               </button>
             </template>
           </template>
@@ -135,7 +134,7 @@ import ProfileDetail from '@/view/ProfileDetail.vue'
 import PaymentForm from '@/components/Transaction/Payment.vue'
 import Policy from '@/components/Transaction/Policy.vue'
 import { useBookingStore } from '@/stores/bookingStore'
-import { usePaymentStore, type PaymentMethod, type CardDetails } from '@/stores/paymentStore'
+import { usePaymentStore, type PaymentMethod } from '@/stores/paymentStore'
 
 export default defineComponent({
   name: 'LastPayment',
@@ -160,13 +159,7 @@ export default defineComponent({
     const isSubmitting = ref(false)
     const isLoadingBooking = ref(false)
     const bookingError = ref('')
-    const selectedPaymentMethod = ref<PaymentMethod>('card')
-    const cardDetails = ref<CardDetails>({
-      cardNumber: '',
-      cardExpiry: '',
-      cardCvv: '',
-      cardHolderName: '',
-    })
+    const selectedPaymentMethod = ref<PaymentMethod>('stripe')
 
     const goToHome = () => {
       router.push('/home')
@@ -180,15 +173,7 @@ export default defineComponent({
       return currentBooking.value?.status === 'confirmed'
     })
 
-    const isCardValid = computed(() => {
-      const card = cardDetails.value
-      return (
-        card.cardNumber.replace(/\s/g, '').length === 16 &&
-        /^\d{2}\/\d{2}$/.test(card.cardExpiry) &&
-        card.cardCvv.length >= 3 &&
-        card.cardHolderName.trim().length > 0
-      )
-    })
+
 
     // Load booking on mount if bookingId is in query
     onMounted(async () => {
@@ -216,9 +201,7 @@ export default defineComponent({
       paymentStore.clearPaymentState()
     }
 
-    const onCardDetailsChanged = (details: CardDetails) => {
-      cardDetails.value = details
-    }
+
 
     const formatExpiry = (dateStr: string) => {
       return new Date(dateStr).toLocaleTimeString('en-US', {
@@ -279,8 +262,8 @@ export default defineComponent({
       }
     }
 
-    // Process card payment
-    const processCardPayment = async () => {
+    // Initiate Stripe Checkout - redirects to Stripe hosted payment page
+    const initiateStripeCheckout = async () => {
       if (!canPay.value || !currentBooking.value) {
         bookingError.value = 'Booking must be approved before payment.'
         return
@@ -290,28 +273,20 @@ export default defineComponent({
       bookingError.value = ''
       
       try {
-        // Use existing confirmed booking
-        const result = await paymentStore.processCardPayment(currentBooking.value.id, cardDetails.value)
+        const result = await paymentStore.createStripeCheckout(currentBooking.value.id)
         
-        if (result && result.status === 'completed') {
-          // Update booking status for confirmation page
-          if (bookingStore.currentBooking) {
-            bookingStore.currentBooking.status = 'completed'
-          }
-          bookingStore.clearBookingFlow()
-          paymentStore.clearPaymentState()
-          router.push({ name: 'BookingConfirmation' })
-        } else if (result && result.status === 'failed') {
-          throw new Error('Card payment was declined. Please try again or use a different card.')
+        if (result && result.checkoutUrl) {
+          // Redirect to Stripe Checkout page
+          window.location.href = result.checkoutUrl
         } else {
-          throw new Error(paymentStore.error || 'Payment failed')
+          throw new Error(paymentStore.error || 'Failed to create checkout session')
         }
       } catch (err: unknown) {
         const error = err as { response?: { data?: { message?: string } }, message?: string }
-        bookingError.value = error.response?.data?.message || error.message || 'Payment failed. Please try again.'
-      } finally {
+        bookingError.value = error.response?.data?.message || error.message || 'Failed to initiate payment. Please try again.'
         isSubmitting.value = false
       }
+      // Note: Don't set isSubmitting to false on success since we're redirecting
     }
 
     return {
@@ -321,18 +296,15 @@ export default defineComponent({
       isLoadingBooking,
       bookingError,
       selectedPaymentMethod,
-      cardDetails,
       khqrData,
-      isCardValid,
       canPay,
       currentBooking,
       paymentStore,
       onPaymentMethodChanged,
-      onCardDetailsChanged,
       formatExpiry,
       initiateKhqrPayment,
       confirmKhqrPayment,
-      processCardPayment,
+      initiateStripeCheckout,
       goToHome,
     }
   },
@@ -536,6 +508,20 @@ export default defineComponent({
   background: #ccc;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.btn-stripe {
+  background: linear-gradient(135deg, #635bff 0%, #7c3aed 100%);
+  box-shadow: 0 4px 15px rgba(99, 91, 255, 0.3);
+}
+
+.btn-stripe:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed 0%, #635bff 100%);
+  box-shadow: 0 6px 20px rgba(99, 91, 255, 0.4);
+}
+
+.btn-stripe i {
+  margin-right: 8px;
 }
 
 .error-msg {

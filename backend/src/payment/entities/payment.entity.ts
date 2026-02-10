@@ -8,11 +8,11 @@ import {
   OneToOne,
 } from 'typeorm';
 import { Booking } from 'src/booking/entities/booking.entity';
-import { User } from 'src/auth/user/entity/user.entity';
+import { User } from 'src/auth/user/entities/user.entity';
 
 export enum PaymentMethod {
   KHQR = 'khqr',
-  CARD = 'card',
+  STRIPE = 'stripe',
 }
 
 export enum PaymentStatus {
@@ -72,6 +72,15 @@ export class Payment {
 
   @Column({ type: 'text', nullable: true })
   failureReason: string;
+
+  @Column({ nullable: true })
+  stripePaymentIntentId: string;
+
+  @Column({ nullable: true })
+  stripeClientSecret: string;
+
+  @Column({ nullable: true })
+  stripeCheckoutSessionId: string;
 
   @CreateDateColumn()
   createdAt: Date;

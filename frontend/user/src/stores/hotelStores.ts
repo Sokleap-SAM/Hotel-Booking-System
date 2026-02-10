@@ -211,5 +211,34 @@ export const useHotelStore = defineStore('hotel', {
         this.amenitiesList = []
       }
     },
+
+    async searchHotelsWithAvailability(params: {
+      location?: string
+      checkIn?: string
+      checkOut?: string
+      guests?: number
+      rooms?: number
+    }) {
+      this.isLoading = true
+      try {
+        const queryParams = new URLSearchParams()
+        if (params.location) queryParams.append('location', params.location)
+        if (params.checkIn) queryParams.append('checkIn', params.checkIn)
+        if (params.checkOut) queryParams.append('checkOut', params.checkOut)
+        if (params.guests) queryParams.append('guests', String(params.guests))
+        if (params.rooms) queryParams.append('rooms', String(params.rooms))
+
+        const { data } = await api.get(`/hotels/search?${queryParams.toString()}`)
+        this.hotels = data
+        return data
+      } catch (error) {
+        console.error('Error searching hotels:', error)
+        // Fallback to regular fetch if search fails
+        await this.fetchHotels()
+        return this.hotels
+      } finally {
+        this.isLoading = false
+      }
+    },
   },
 })

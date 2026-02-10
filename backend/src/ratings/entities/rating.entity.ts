@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { Hotel } from 'src/hotels/entities/hotel.entity';
-import { User } from 'src/auth/user/entity/user.entity';
+import { User } from 'src/auth/user/entities/user.entity';
 
 @Entity()
 export class Rating {

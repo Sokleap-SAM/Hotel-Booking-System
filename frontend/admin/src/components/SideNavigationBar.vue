@@ -22,11 +22,12 @@ const authStore = useAuthStore();
 const state = reactive({
   activeTab: 'Hotel/Room Management',
   navBlocks: [
-    { name: 'Billing & Payment', route: '' },
+    { name: 'Billing & Payment', route: '/billing' },
     { name: 'Booking Management', route: '/bookings' },
     { name: 'User Management', route: '' },
     { name: 'Hotel/Room Management', route: '/manage_hotel&room' },
     { name: 'Amenity Management', route: '/amenities' },
+    { name: 'Bed Type Management', route: '/bed-types' },
     { name: 'Logout', route: '/login' }
   ]
 });
@@ -40,6 +41,10 @@ watch(
       state.activeTab = 'Hotel/Room Management';
     } else if (path.startsWith('/bookings')) {
       state.activeTab = 'Booking Management';
+    } else if (path.startsWith('/billing')) {
+      state.activeTab = 'Billing & Payment';
+    } else if (path.startsWith('/bed-types')) {
+      state.activeTab = 'Bed Type Management';
     }
   },
   { immediate: true }

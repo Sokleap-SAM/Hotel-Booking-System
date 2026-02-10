@@ -102,6 +102,29 @@ export class HotelsController {
   }
 
   @Roles('admin', 'user')
+  @Get('search')
+  searchHotels(
+    @Query('location') location?: string,
+    @Query('checkIn') checkIn?: string,
+    @Query('checkOut') checkOut?: string,
+    @Query('guests') guests?: string,
+    @Query('rooms') rooms?: string,
+  ) {
+    const checkInDate = checkIn ? new Date(checkIn) : undefined;
+    const checkOutDate = checkOut ? new Date(checkOut) : undefined;
+    const totalGuests = guests ? parseInt(guests, 10) : undefined;
+    const roomsNeeded = rooms ? parseInt(rooms, 10) : undefined;
+
+    return this.hotelsService.searchHotelsWithAvailability(
+      location,
+      checkInDate,
+      checkOutDate,
+      totalGuests,
+      roomsNeeded,
+    );
+  }
+
+  @Roles('admin', 'user')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.hotelsService.findOne(id);

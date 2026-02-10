@@ -72,6 +72,10 @@ export class BookingService {
       userId,
       totalPrice,
       status: BookingStatus.PENDING,
+      guestDateOfBirth: createBookingDto.guestDateOfBirth
+        ? new Date(createBookingDto.guestDateOfBirth)
+        : undefined,
+      guestPhone: createBookingDto.guestPhone,
       bookingItems: bookingItems as BookingItem[],
     });
 

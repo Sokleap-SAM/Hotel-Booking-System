@@ -44,9 +44,8 @@ export const validateRoomForm = (data: any) => {
   }
 
   const hasStandard = Array.isArray(data.amenityIds) && data.amenityIds.length > 0;
-  const hasCustom = !!data.custom_amenities?.trim();
-  if (!hasStandard && !hasCustom) {
-    errors.amenityIds = 'Select at least one amenity or enter a custom one.';
+  if (!hasStandard) {
+    errors.amenityIds = 'Select at least one amenity.';
   }
 
   if (!data.images || data.images.length === 0) {

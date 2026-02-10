@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { BookingItem } from './booking-item.entity';
-import { User } from 'src/auth/user/entity/user.entity';
+import { User } from 'src/auth/user/entities/user.entity';
 
 export enum BookingStatus {
   PENDING = 'pending',
@@ -41,6 +41,12 @@ export class Booking {
 
   @Column({ nullable: true })
   rejectionReason: string;
+
+  @Column({ type: 'date', nullable: true })
+  guestDateOfBirth: Date;
+
+  @Column({ nullable: true })
+  guestPhone: string;
 
   @CreateDateColumn()
   createdAt: Date;

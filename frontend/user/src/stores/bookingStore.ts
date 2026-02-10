@@ -1,17 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-import { useAuthStore } from './auth'
-
-const api = axios.create({ baseURL: 'http://localhost:3000' })
-
-// Attach auth token to every request
-api.interceptors.request.use((config) => {
-  const authStore = useAuthStore()
-  if (authStore.token) {
-    config.headers.Authorization = `Bearer ${authStore.token}`
-  }
-  return config
-})
+import api from '../utils/api'
 
 export interface RoomSelection {
   roomId: string
@@ -81,6 +69,12 @@ export const useBookingStore = defineStore('booking', {
     priceBreakdown: null as PriceBreakdown | null,
     isCalculating: false,
 
+    // Guest details for booking
+    guestDetails: {
+      dateOfBirth: '' as string,
+      phone: '' as string,
+    },
+
     // User's booking history
     bookings: [] as BookingRecord[],
     currentBooking: null as BookingRecord | null,
@@ -140,7 +134,11 @@ export const useBookingStore = defineStore('booking', {
         }
       }
 
-      return { roomSelections }
+      return {
+        roomSelections,
+        guestDateOfBirth: state.guestDetails.dateOfBirth || undefined,
+        guestPhone: state.guestDetails.phone || undefined,
+      }
     },
   },
 
@@ -368,6 +366,12 @@ export const useBookingStore = defineStore('booking', {
       this.roomSelections = {}
       this.priceBreakdown = null
       this.isCalculating = false
+      this.guestDetails = { dateOfBirth: '', phone: '' }
+    },
+
+    setGuestDetails(dateOfBirth: string, phone: string) {
+      this.guestDetails.dateOfBirth = dateOfBirth
+      this.guestDetails.phone = phone
     },
   },
 })

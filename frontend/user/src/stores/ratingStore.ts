@@ -1,18 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { defineStore } from 'pinia'
-import axios from 'axios'
-import { useAuthStore } from './auth'
-
-const api = axios.create({ baseURL: 'http://localhost:3000' })
-
-// Attach auth token to every request
-api.interceptors.request.use((config) => {
-  const authStore = useAuthStore()
-  if (authStore.token) {
-    config.headers.Authorization = `Bearer ${authStore.token}`
-  }
-  return config
-})
+import api from '../utils/api'
 
 export interface CategoryRatings {
   staff: number

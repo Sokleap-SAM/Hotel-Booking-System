@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Patch,
+  Query,
   UseInterceptors,
   UploadedFiles,
   ParseFilePipe,
@@ -14,7 +15,6 @@ import {
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/create_room.dto';
 import { UpdateRoomDto } from './dto/update_room.dto';
-import { RoomValidatorPipe } from './pipes/room-validator.pipe';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { roomUploadConfig } from 'src/config/file-upload.config';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -30,7 +30,7 @@ export class RoomsController {
   @Post()
   @UseInterceptors(FilesInterceptor('images', 10, roomUploadConfig))
   create(
-    @Body(new RoomValidatorPipe()) dto: CreateRoomDto,
+    @Body() dto: CreateRoomDto,
     @UploadedFiles(
       new ParseFilePipe({
         fileIsRequired: false,
@@ -54,6 +54,42 @@ export class RoomsController {
   }
 
   @Roles('admin', 'user')
+  @Get('hotel/:hotelId/availability')
+  findByHotelWithAvailability(
+    @Param('hotelId') hotelId: string,
+    @Query('checkIn') checkIn: string,
+    @Query('checkOut') checkOut: string,
+    @Query('guests') guests?: string,
+  ) {
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const minOccupancy = guests ? parseInt(guests, 10) : undefined;
+    return this.roomsService.findByHotelWithAvailability(
+      hotelId,
+      checkInDate,
+      checkOutDate,
+      minOccupancy,
+    );
+  }
+
+  @Roles('admin', 'user')
+  @Get(':id/availability')
+  async getAvailability(
+    @Param('id') id: string,
+    @Query('checkIn') checkIn: string,
+    @Query('checkOut') checkOut: string,
+  ) {
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const availableCount = await this.roomsService.getAvailableRoomCount(
+      id,
+      checkInDate,
+      checkOutDate,
+    );
+    return { roomId: id, availableCount };
+  }
+
+  @Roles('admin', 'user')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.roomsService.findOne(id);
@@ -64,7 +100,7 @@ export class RoomsController {
   @UseInterceptors(FilesInterceptor('images', 10, roomUploadConfig))
   update(
     @Param('id') id: string,
-    @Body(new RoomValidatorPipe()) dto: UpdateRoomDto,
+    @Body() dto: UpdateRoomDto,
     @UploadedFiles(
       new ParseFilePipe({
         fileIsRequired: false,

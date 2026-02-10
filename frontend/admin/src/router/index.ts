@@ -9,6 +9,8 @@ import AddRoomView from '../views/AddRoomView.vue'
 import EditRoomView from '../views/EditRoomView.vue'
 import AmenityManagementView from '../views/AmenityManagementView.vue'
 import BookingManagementView from '../views/BookingManagementView.vue'
+import BillManagementView from '../views/BillManagementView.vue'
+import BedTypeManagementView from '../views/BedTypeManagementView.vue'
 import AdminLoginView from '../views/AdminLoginView.vue'
 
 const router = createRouter({
@@ -79,6 +81,28 @@ const router = createRouter({
           path: '',
           name: 'booking-management',
           component: BookingManagementView,
+        },
+      ]
+    },
+    {
+      path: '/billing',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'bill-management',
+          component: BillManagementView,
+        },
+      ]
+    },
+    {
+      path: '/bed-types',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'bed-type-management',
+          component: BedTypeManagementView,
         },
       ]
     }

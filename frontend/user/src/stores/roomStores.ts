@@ -81,6 +81,35 @@ export const useRoomStore = defineStore('room', {
       }
     },
 
+    async fetchRoomsWithAvailability(
+      hotelId: string,
+      checkIn: string,
+      checkOut: string,
+      guests?: number
+    ) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const queryParams = new URLSearchParams()
+        queryParams.append('checkIn', checkIn)
+        queryParams.append('checkOut', checkOut)
+        if (guests) queryParams.append('guests', String(guests))
+
+        const { data } = await api.get(
+          `/rooms/hotel/${hotelId}/availability?${queryParams.toString()}`
+        )
+        this.rooms = data
+        return data
+      } catch (error) {
+        console.error('Fetch rooms with availability error:', error)
+        this.error = 'Failed to fetch rooms'
+        // Fallback to regular fetch
+        return this.fetchRoomsByHotel(hotelId)
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     clearRooms() {
       this.rooms = []
       this.currentRoom = null

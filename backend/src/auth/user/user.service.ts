@@ -25,6 +25,11 @@ export class UserService {
   ) {}
 
   async create(userRegisterDto: UserRegisterDto): Promise<User> {
+    const existingUser = await this.findByEmail(userRegisterDto.email);
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
+    }
+
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(userRegisterDto.password, salt);
     const { password, ...userData } = userRegisterDto;

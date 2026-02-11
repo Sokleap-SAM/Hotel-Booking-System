@@ -34,7 +34,7 @@ export class Hotel {
   @Column({ type: 'int', nullable: true, default: 0 })
   totalRating: number;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @Column()
@@ -59,7 +59,7 @@ export class Hotel {
   @Column()
   phoneNumber: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @OneToMany(() => Room, (room) => room.hotel)

@@ -51,7 +51,7 @@ export class CreateHotelDto {
   @Transform(({ value }) => {
     if (!value) return [];
     const values = Array.isArray(value) ? value : [value];
-    return values.map(id => Number(id)).filter(id => !isNaN(id));
+    return values.map((id) => Number(id)).filter((id) => !isNaN(id));
   })
   @IsNotEmpty()
   @IsArray({ message: 'amenityIds must be an array' })

@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -32,6 +34,26 @@ export class HotelsService {
   async create(dto: CreateHotelDto, files: any[]): Promise<Hotel> {
     const { amenityIds, ...hotelData } = dto;
     const filePaths = files.map((f) => `/uploads/hotels/${f.filename}`);
+
+    const existingName = await this.hotelsRepository.findOne({
+      where: { name: dto.name },
+    });
+
+    if (existingName) {
+      throw new ConflictException(
+        `Hotel with name "${dto.name}" already exists`,
+      );
+    }
+
+    const existingEmail = await this.hotelsRepository.findOne({
+      where: { email: dto.email },
+    });
+
+    if (existingEmail) {
+      throw new ConflictException(
+        `Hotel with email "${dto.email}" already exists`,
+      );
+    }
 
     const amenities = await this.amenitiesRepository.find({
       where: {
@@ -77,7 +99,33 @@ export class HotelsService {
     newFiles: any[],
   ): Promise<Hotel> {
     const hotel = await this.findOne(id);
+    if (!hotel) throw new NotFoundException(`Hotel with ${id} not found`);
+
     const { amenityIds, existingImages, ...rest } = dto;
+
+    // Check for duplicate name (only if name is being changed)
+    if (dto.name && dto.name !== hotel.name) {
+      const existingName = await this.hotelsRepository.findOne({
+        where: { name: dto.name },
+      });
+      if (existingName) {
+        throw new ConflictException(
+          `Hotel with name "${dto.name}" already exists`,
+        );
+      }
+    }
+
+    // Check for duplicate email (only if email is being changed)
+    if (dto.email && dto.email !== hotel.email) {
+      const existingEmail = await this.hotelsRepository.findOne({
+        where: { email: dto.email },
+      });
+      if (existingEmail) {
+        throw new ConflictException(
+          `Hotel with email "${dto.email}" already exists`,
+        );
+      }
+    }
 
     const newPaths = newFiles.map((f) => `/uploads/hotels/${f.filename}`);
     const currentExisting = (existingImages as string[]) || [];

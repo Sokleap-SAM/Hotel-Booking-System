@@ -140,7 +140,7 @@ export const useBookingStore = defineStore('booking', {
       return {
         roomSelections,
         guestDateOfBirth: state.guestDetails.dateOfBirth || undefined,
-        guestPhone: state.guestDetails.phone || undefined,
+        guestPhone: state.guestDetails.phone?.replace(/[^0-9]/g, '') || undefined,
       }
     },
   },

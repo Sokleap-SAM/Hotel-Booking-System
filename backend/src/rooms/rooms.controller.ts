@@ -20,6 +20,7 @@ import { roomUploadConfig } from 'src/config/file-upload.config';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorator/roles.dectorator';
+import { Public } from '../auth/decorator/public.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('rooms')
@@ -41,19 +42,19 @@ export class RoomsController {
     return this.roomsService.create(dto, files);
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('available')
   findAvailable() {
     return this.roomsService.findAvailable();
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('hotel/:hotelId')
   findByHotel(@Param('hotelId') hotelId: string) {
     return this.roomsService.findByHotel(hotelId);
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('hotel/:hotelId/availability')
   findByHotelWithAvailability(
     @Param('hotelId') hotelId: string,
@@ -72,7 +73,7 @@ export class RoomsController {
     );
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get(':id/availability')
   async getAvailability(
     @Param('id') id: string,
@@ -89,7 +90,7 @@ export class RoomsController {
     return { roomId: id, availableCount };
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.roomsService.findOne(id);

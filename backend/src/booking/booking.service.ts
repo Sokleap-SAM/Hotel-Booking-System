@@ -24,6 +24,25 @@ export class BookingService {
   async create(userId: string, createBookingDto: CreateBookingDto) {
     const { roomSelections } = createBookingDto;
 
+    // Validate guest date of birth (must be 16+)
+    if (createBookingDto.guestDateOfBirth) {
+      const birthDate = new Date(createBookingDto.guestDateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
+        age--;
+      }
+      if (age < 16) {
+        throw new BadRequestException(
+          'Guest must be at least 16 years old to make a booking',
+        );
+      }
+    }
+
     let totalPrice = 0;
     const bookingItems: Partial<BookingItem>[] = [];
 

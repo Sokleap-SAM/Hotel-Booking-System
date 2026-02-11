@@ -157,6 +157,8 @@ const handleAction = async (action: string) => {
 .page-container {
   padding: 50px;
   font-family: 'Lato', sans-serif;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .header {

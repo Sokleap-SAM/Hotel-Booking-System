@@ -85,11 +85,11 @@
             type="text"
             placeholder="e.g., King Size, Queen Size, Twin"
             class="form-input"
+            :class="{ 'input-error': formError }"
             @keyup.enter="createBedType"
           />
+          <span v-if="formError" class="error-text">{{ formError }}</span>
         </div>
-
-        <p v-if="formError" class="error-text">{{ formError }}</p>
 
         <div class="modal-actions">
           <button class="btn-cancel" @click="closeCreateModal">Cancel</button>
@@ -112,11 +112,11 @@
             type="text"
             placeholder="Enter bed type name"
             class="form-input"
+            :class="{ 'input-error': formError }"
             @keyup.enter="updateBedType"
           />
+          <span v-if="formError" class="error-text">{{ formError }}</span>
         </div>
-
-        <p v-if="formError" class="error-text">{{ formError }}</p>
 
         <div class="modal-actions">
           <button class="btn-cancel" @click="closeEditModal">Cancel</button>
@@ -256,7 +256,8 @@ const createBedType = async () => {
     closeCreateModal()
     alert('Bed type created successfully!')
   } else {
-    formError.value = result.message || 'Failed to create bed type'
+    const errorResult = result as { errors?: Record<string, string>; message?: string }
+    formError.value = errorResult.errors?.name || errorResult.message || 'Failed to create bed type'
   }
 
   isSubmitting.value = false
@@ -294,7 +295,8 @@ const updateBedType = async () => {
     closeEditModal()
     alert('Bed type updated successfully!')
   } else {
-    formError.value = result.message || 'Failed to update bed type'
+    const errorResult = result as { errors?: Record<string, string>; message?: string }
+    formError.value = errorResult.errors?.name || errorResult.message || 'Failed to update bed type'
   }
 
   isSubmitting.value = false
@@ -305,6 +307,8 @@ const updateBedType = async () => {
 .page-container {
   padding: 50px;
   font-family: 'Lato', sans-serif;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .header {
@@ -451,6 +455,10 @@ const updateBedType = async () => {
 
 .form-input:focus {
   border-color: #0D4798;
+}
+
+.input-error {
+  border-color: #cc0000 !important;
 }
 
 .error-text {

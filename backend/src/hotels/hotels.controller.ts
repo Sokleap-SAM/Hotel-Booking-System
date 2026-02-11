@@ -22,6 +22,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorator/roles.dectorator';
 import { Public } from '../auth/decorator/public.decorator';
+import { Destination } from './entities/hotel.entity';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('hotels')
@@ -52,31 +53,31 @@ export class HotelsController {
     return this.hotelsService.findAll();
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('filter/lowest-price')
   findAvailableHotelsByLowestPrice() {
     return this.hotelsService.getAvailableHotelByLowestPrice();
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('filter/highest-price')
   findAvailableHotelsByHighestPrice() {
     return this.hotelsService.getAvailableHotelByHighestPrice();
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('filter/highest-rating')
   findAvailableHotelsByHighestRating() {
     return this.hotelsService.getAvailableHotelByHighestRating();
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('filter/highest-discount')
   findAvailableHotelsByHighestDiscount() {
     return this.hotelsService.getAvailableHotelByHighestDiscount();
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('filter/by-amenities')
   findAvailableHotelsBySelectedAmenities(
     @Query('amenityIds') amenityIds: string,
@@ -90,7 +91,7 @@ export class HotelsController {
     return this.hotelsService.getAvailableHotelBySelectedAmenities(ids);
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('filter/by-bed-type')
   findAvailableHotelsByBedType(@Query('bedTypeIds') bedTypeIds: string) {
     const ids = bedTypeIds
@@ -102,7 +103,7 @@ export class HotelsController {
     return this.hotelsService.getAvailableHotelByBedType(ids);
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('search/availability')
   searchHotelsWithAvailability(
     @Query('location') location?: string,
@@ -110,6 +111,7 @@ export class HotelsController {
     @Query('checkOut') checkOut?: string,
     @Query('guests') guests?: string,
     @Query('rooms') rooms?: string,
+    @Query('destination') destination?: Destination,
   ) {
     const checkInDate = checkIn ? new Date(checkIn) : undefined;
     const checkOutDate = checkOut ? new Date(checkOut) : undefined;
@@ -122,10 +124,11 @@ export class HotelsController {
       checkOutDate,
       totalGuests,
       roomsNeeded,
+      destination,
     );
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.hotelsService.findOne(id);

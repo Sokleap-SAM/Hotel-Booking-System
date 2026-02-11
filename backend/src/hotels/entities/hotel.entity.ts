@@ -16,6 +16,34 @@ export enum HotelStatus {
   SUSPEND = 'suspend',
 }
 
+export enum Destination {
+  BANTEAY_MEANCHEY = 'Banteay Meanchey',
+  BATTAMBANG = 'Battambang',
+  KAMPONG_CHAM = 'Kampong Cham',
+  KAMPONG_CHHNANG = 'Kampong Chhnang',
+  KAMPONG_SPEU = 'Kampong Speu',
+  KAMPONG_THOM = 'Kampong Thom',
+  KAMPOT = 'Kampot',
+  KANDAL = 'Kandal',
+  KEP = 'Kep',
+  KOH_KONG = 'Koh Kong',
+  TAKEO = 'Takéo',
+  MONDULKIRI = 'Mondulkiri',
+  ODDAR_MEANCHEY = 'Oddar Meanchey',
+  PAILIN = 'Pailin',
+  PHNOM_PENH = 'Phnom Penh',
+  PREAH_SIHANOUK = 'Preah Sihanouk',
+  PREAH_VIHEAR = 'Preah Vihear',
+  PREY_VENG = 'Prey Veng',
+  PURSAT = 'Pursat',
+  RATANAKIRI = 'Ratanakiri',
+  SIEM_REAP = 'Siem Reap',
+  STUNG_TRENG = 'Stung Treng',
+  SVAY_RIENG = 'Svay Rieng',
+  TAKEO_PROVINCE = 'Takeo',
+  TBOUNG_KHMUM = 'Tboung Khmum',
+}
+
 @Entity()
 export class Hotel {
   @PrimaryGeneratedColumn('uuid')
@@ -27,6 +55,13 @@ export class Hotel {
     default: HotelStatus.ACTIVE,
   })
   status: HotelStatus;
+
+  @Column({
+    type: 'enum',
+    enum: Destination,
+    nullable: true,
+  })
+  destination: Destination;
 
   @Column({ type: 'decimal', precision: 2, scale: 1, default: 0 })
   avgRating: number;

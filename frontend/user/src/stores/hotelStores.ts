@@ -218,6 +218,7 @@ export const useHotelStore = defineStore('hotel', {
       checkOut?: string
       guests?: number
       rooms?: number
+      destination?: string
     }) {
       this.isLoading = true
       try {
@@ -227,6 +228,7 @@ export const useHotelStore = defineStore('hotel', {
         if (params.checkOut) queryParams.append('checkOut', params.checkOut)
         if (params.guests) queryParams.append('guests', String(params.guests))
         if (params.rooms) queryParams.append('rooms', String(params.rooms))
+        if (params.destination) queryParams.append('destination', params.destination)
 
         const { data } = await api.get(`/hotels/search/availability?${queryParams.toString()}`)
         this.hotels = data

@@ -12,7 +12,9 @@ import {
   IsNotEmpty,
   IsArray,
   ArrayMinSize,
+  IsEnum,
 } from 'class-validator';
+import { Destination } from '../entities/hotel.entity';
 
 export class CreateHotelDto {
   @Transform(({ value }) => value?.trim())
@@ -21,6 +23,10 @@ export class CreateHotelDto {
   @MinLength(3)
   @MaxLength(30)
   name: string;
+
+  @IsOptional()
+  @IsEnum(Destination, { message: 'Invalid destination' })
+  destination?: Destination;
 
   @Transform(({ value }) => value?.trim())
   @IsNotEmpty()

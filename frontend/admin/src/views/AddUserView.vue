@@ -165,7 +165,12 @@ const handleCreate = async () => {
   if (result.success) {
     router.push('/users')
   } else {
-    apiError.value = result.message || 'Failed to create user'
+    const errorResult = result as { errors?: Record<string, string>; message?: string }
+    if (errorResult.errors && Object.keys(errorResult.errors).length > 0) {
+      errors.value = { ...errors.value, ...errorResult.errors }
+    } else {
+      apiError.value = errorResult.message || 'Failed to create user'
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
@@ -188,6 +193,7 @@ watch(
   margin: 0 auto;
   padding: 40px;
   font-family: 'Lato', sans-serif;
+  box-sizing: border-box;
 }
 
 .form-header {

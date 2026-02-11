@@ -67,9 +67,7 @@ export const useAmenityStore = defineStore('amenity', {
         this.amenities.push(data)
         return { success: true, data }
       } catch (error: unknown) {
-        const axiosError = error as { response?: { data?: { message?: string } } }
-        const message = axiosError.response?.data?.message || 'Failed to create amenity'
-        return { success: false, message }
+        return this.handleError(error, 'Failed to create amenity')
       }
     },
 
@@ -82,6 +80,23 @@ export const useAmenityStore = defineStore('amenity', {
         const axiosError = error as { response?: { data?: { message?: string } } }
         const message = axiosError.response?.data?.message || 'Failed to delete amenity'
         return { success: false, message }
+      }
+    },
+
+    handleError(error: unknown, defaultMessage: string) {
+      const axiosError = error as { response?: { data?: { message?: string } } }
+      const message = axiosError.response?.data?.message || defaultMessage
+      const fieldErrors: Record<string, string> = {}
+
+      const m = message.toLowerCase()
+      if (m.includes('name')) {
+        fieldErrors.name = message
+      }
+
+      return {
+        success: false,
+        errors: fieldErrors,
+        message,
       }
     },
   },

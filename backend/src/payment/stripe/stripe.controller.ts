@@ -20,18 +20,17 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorator/roles.dectorator';
 import { Public } from 'src/auth/decorator/public.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('payments/stripe')
 export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'user')
   @Post('checkout')
   createCheckoutSession(@Body() dto: CreateStripePaymentDto, @Request() req) {
     return this.stripeService.createCheckoutSession(dto, req.user.id);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'user')
   @Get('verify')
   verifyPayment(@Query('session_id') sessionId: string) {
@@ -47,7 +46,6 @@ export class StripeController {
     return this.stripeService.handleWebhook(req.rawBody!, signature);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Post(':id/refund')
   processRefund(@Param('id') id: string) {

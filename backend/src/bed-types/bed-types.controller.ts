@@ -15,6 +15,7 @@ import { UpdateBedTypeDto } from './dto/update-bed-type.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorator/roles.dectorator';
+import { Public } from '../auth/decorator/public.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('bed-types')
@@ -27,13 +28,13 @@ export class BedTypesController {
     return this.bedTypesService.create(createBedTypeDto);
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get()
   findAll() {
     return this.bedTypesService.findAll();
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.bedTypesService.findOne(id);

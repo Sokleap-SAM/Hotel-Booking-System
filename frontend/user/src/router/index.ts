@@ -21,12 +21,12 @@ import PaymentCancel from '@/view/PaymentCancel.vue'
 const routes = [
   {
     path: '/',
+    redirect: '/home',
+  },
+  {
+    path: '/auth',
     component: AuthLogin,
     children: [
-      {
-        path: '',
-        redirect: '/login',
-      },
       {
         path: 'login',
         name: 'login',
@@ -55,10 +55,17 @@ const routes = [
     ],
   },
   {
+    path: '/login',
+    redirect: '/auth/login',
+  },
+  {
+    path: '/signup',
+    redirect: '/auth/signup',
+  },
+  {
     path: '/home',
     name: 'home',
     component: HomeScreen,
-    meta: { requiresAuth: true },
   },
   {
     path: '/Bookingpage',

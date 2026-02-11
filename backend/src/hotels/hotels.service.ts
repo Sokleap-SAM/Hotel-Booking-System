@@ -19,6 +19,7 @@ import { BookingItem } from '../booking/entities/booking-item.entity';
 import { BookingStatus } from '../booking/entities/booking.entity';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
+import { Destination } from './entities/hotel.entity';
 
 @Injectable()
 export class HotelsService {
@@ -286,6 +287,7 @@ export class HotelsService {
     checkOut?: Date,
     totalGuests?: number,
     roomsNeeded?: number,
+    destination?: Destination,
   ): Promise<any[]> {
     // Build base query
     let queryBuilder = this.hotelsRepository
@@ -293,6 +295,13 @@ export class HotelsService {
       .leftJoinAndSelect('hotel.rooms', 'room')
       .leftJoinAndSelect('hotel.amenities', 'amenity')
       .where('hotel.status = :status', { status: HotelStatus.ACTIVE });
+
+    // Filter by destination if provided
+    if (destination) {
+      queryBuilder = queryBuilder.andWhere('hotel.destination = :destination', {
+        destination,
+      });
+    }
 
     // Filter by location if provided
     if (location) {

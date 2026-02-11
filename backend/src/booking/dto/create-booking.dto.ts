@@ -8,6 +8,7 @@ import {
   ArrayMinSize,
   IsOptional,
   IsString,
+  Matches,
 } from 'class-validator';
 
 export class RoomSelectionDto {
@@ -32,10 +33,13 @@ export class CreateBookingDto {
   roomSelections: RoomSelectionDto[];
 
   @IsOptional()
-  @IsDateString()
+  @IsDateString({}, { message: 'Date of birth must be a valid date' })
   guestDateOfBirth?: string;
 
   @IsOptional()
   @IsString()
+  @Matches(/^[0-9]{9,10}$/, {
+    message: 'Phone number must be between 9 and 10 digits',
+  })
   guestPhone?: string;
 }

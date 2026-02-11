@@ -1,4 +1,5 @@
 <template>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
   <header class="navbar">
     <div class="logo">CamBook</div>
     <nav class="nav-links">
@@ -7,19 +8,32 @@
       <a href="#" @click.prevent="goToMyBookings">My Bookings</a>
       <a href="#" @click.prevent="goToContact">Contact Us</a>
     </nav>
-    <button class="login-btn" @click="goToLogin">Login</button>
+    <button v-if="isAuthenticated" class="profile-btn" @click="goToProfile">
+      <i class="ri-user-line"></i>
+    </button>
+    <button v-else class="login-btn" @click="goToLogin">Login</button>
   </header>
 </template>
 
 <script lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
 export default {
   name: 'HeaderScreen',
   setup() {
     const router = useRouter()
+    const authStore = useAuthStore()
+    
+    const isAuthenticated = computed(() => authStore.isAuthenticated)
     
     const goToLogin = () => {
       router.push('/login')
+    }
+
+    const goToProfile = () => {
+      router.push('/ProfileDetail')
     }
 
     const goToHome = () => {
@@ -43,7 +57,9 @@ export default {
     }
 
     return {
+      isAuthenticated,
       goToLogin,
+      goToProfile,
       goToHome,
       goToBooking,
       goToMyBookings,
@@ -98,5 +114,30 @@ export default {
 
 .login-btn:hover {
   background-color: #e6e6e6;
+}
+
+.profile-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-btn:hover {
+  background-color: #5a70d4;
+}
+
+.profile-btn i {
+  font-size: 20px;
+  color: #0d4798;
+}
+
+.profile-btn:hover i {
+  color: white;
 }
 </style>

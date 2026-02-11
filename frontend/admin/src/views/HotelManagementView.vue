@@ -8,9 +8,6 @@
           <input v-model="searchQuery" type="text" placeholder="Search by hotel name or email" class="search-input"
             @input="updateSearch" />
         </div>
-        <button v-if="searchQuery" @click="clearSearch" class="clear-search-btn" title="Clear search">
-          ×
-        </button>
 
         <button class="add-hotel-btn" @click="addHotel">
           + Add Hotel
@@ -89,11 +86,6 @@ onMounted(() => {
 
 const updateSearch = () => {
   hotelStore.setSearchQuery(searchQuery.value);
-};
-
-const clearSearch = () => {
-  searchQuery.value = '';
-  hotelStore.setSearchQuery('');
 };
 
 const showSearchInfo = computed(() => {
@@ -200,6 +192,7 @@ const handleAction = async (action: string) => {
   border-radius: 10px;
   font-weight: bold;
   cursor: pointer;
+  border: none;
 }
 
 .add-hotel-btn:hover {

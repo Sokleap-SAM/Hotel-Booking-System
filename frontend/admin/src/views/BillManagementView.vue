@@ -245,13 +245,7 @@ const capitalizeFirst = (str: string) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: bold;
+  margin-bottom: 30px;
 }
 
 .header-actions {
@@ -262,7 +256,7 @@ const capitalizeFirst = (str: string) => {
 
 .search-input {
   padding: 10px 20px;
-  width: 350px;
+  width: 300px;
   border-radius: 25px;
   border: 1px solid #D9D9D9;
   outline: none;

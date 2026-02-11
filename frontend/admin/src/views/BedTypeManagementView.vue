@@ -311,13 +311,7 @@ const updateBedType = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: bold;
+  margin-bottom: 30px;
 }
 
 .header-actions {
@@ -354,6 +348,11 @@ const updateBedType = async () => {
   padding: 10px 20px;
   border-radius: 10px;
   font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+.add-btn:hover {
   cursor: pointer;
   border: none;
 }

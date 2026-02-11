@@ -50,6 +50,11 @@
             <span>Rejection reason: {{ booking.rejectionReason }}</span>
           </div>
 
+          <div v-if="booking.status === 'completed'" class="status-info completed-info">
+            <i class="ri-star-smile-line"></i>
+            <span>Stay completed! We'd love to hear about your experience.</span>
+          </div>
+
           <div class="card-body">
             <!-- Hotel Info with Image -->
             <div class="hotel-section" v-if="booking.bookingItems?.[0]?.room?.hotel">
@@ -119,6 +124,13 @@
                 @click="handleCancel(booking.id)"
               >
                 Cancel Booking
+              </button>
+              <button
+                v-if="booking.status === 'completed'"
+                class="btn-rate"
+                @click="openRatingModal(booking)"
+              >
+                <i class="ri-star-line"></i> Rate
               </button>
             </div>
           </div>
@@ -264,6 +276,18 @@
       </div>
     </div>
 
+    <!-- Rating Modal -->
+    <RatingModal
+      v-if="ratingBooking"
+      :hotel-id="ratingBooking.bookingItems[0]?.room?.hotel?.id || ''"
+      :hotel-name="ratingBooking.bookingItems[0]?.room?.hotel?.name || 'Hotel'"
+      :hotel-location="ratingBooking.bookingItems[0]?.room?.hotel?.location || ''"
+      :hotel-image="getHotelImage(ratingBooking)"
+      :existing-rating="userRatingForHotel"
+      @close="closeRatingModal"
+      @rated="handleRated"
+    />
+
     <FooterScreen />
   </div>
 </template>
@@ -271,20 +295,25 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue'
 import { useBookingStore } from '@/stores/bookingStore'
+import { useRatingStore, type Rating } from '@/stores/ratingStore'
 import { useRouter } from 'vue-router'
 import background from '@/assets/Background2.png'
 import FooterScreen from '@/components/homepage/FooterScreen.vue'
+import RatingModal from '@/components/rating/RatingModal.vue'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export default defineComponent({
   name: 'MyBookings',
-  components: { FooterScreen },
+  components: { FooterScreen, RatingModal },
   setup() {
     const bookingStore = useBookingStore()
+    const ratingStore = useRatingStore()
     const router = useRouter()
     const backgroundHeader = { backgroundImage: `url(${background})` }
     const selectedBooking = ref<any>(null)
+    const ratingBooking = ref<any>(null)
+    const userRatingForHotel = ref<Rating | null>(null)
 
     const formatDate = (dateStr: string) => {
       if (!dateStr) return 'N/A'
@@ -348,6 +377,25 @@ export default defineComponent({
       router.push({ name: 'LastPayment', query: { bookingId } })
     }
 
+    const openRatingModal = async (booking: any) => {
+      ratingBooking.value = booking
+      const hotelId = booking.bookingItems?.[0]?.room?.hotel?.id
+      if (hotelId) {
+        await ratingStore.fetchUserRatingForHotel(hotelId)
+        userRatingForHotel.value = ratingStore.userRating
+      }
+    }
+
+    const closeRatingModal = () => {
+      ratingBooking.value = null
+      userRatingForHotel.value = null
+    }
+
+    const handleRated = () => {
+      // Rating submitted successfully
+      closeRatingModal()
+    }
+
     onMounted(() => {
       bookingStore.fetchMyBookings()
     })
@@ -363,7 +411,12 @@ export default defineComponent({
       openDetailModal,
       closeDetailModal,
       handleCancel, 
-      handlePayNow 
+      handlePayNow,
+      ratingBooking,
+      userRatingForHotel,
+      openRatingModal,
+      closeRatingModal,
+      handleRated,
     }
   },
 })
@@ -563,6 +616,12 @@ export default defineComponent({
   background: #f8d7da;
   color: #721c24;
   border-bottom: 1px solid #f5c6cb;
+}
+
+.completed-info {
+  background: #e8f4fd;
+  color: #0056b3;
+  border-bottom: 1px solid #b8daff;
 }
 
 .card-body {
@@ -777,6 +836,31 @@ export default defineComponent({
 .btn-cancel:hover {
   background: #cc0000;
   color: white;
+}
+
+.btn-rate {
+  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+  color: #1a1a1a;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-rate:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
+.btn-rate i {
+  font-size: 1rem;
 }
 
 /* View Details Button */

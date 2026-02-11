@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import HotelLayout from '../layouts/HotelLayout.vue'
+import DashboardView from '../views/DashboardView.vue'
 import HotelManagementView from '../views/HotelManagementView.vue'
 import AddHotelView from '../views/AddHotelView.vue'
 import EditHotelView from '../views/EditHotelView.vue'
@@ -28,6 +29,17 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: AdminLoginView,
+    },
+    {
+      path: '/dashboard',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'dashboard',
+          component: DashboardView,
+        },
+      ]
     },
     {
       path: '/manage_hotel&room',
@@ -138,7 +150,7 @@ router.beforeEach((to, from, next) => {
 
   if (to.path === '/login') {
     if (authStore.isAuthenticated) {
-      next('/manage_hotel&room')
+      next('/dashboard')
     } else {
       next()
     }

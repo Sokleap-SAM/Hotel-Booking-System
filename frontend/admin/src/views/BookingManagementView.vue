@@ -118,13 +118,7 @@ const handleReject = async (reason: string) => {
 }
 
 .header {
-  margin-bottom: 20px;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: bold;
+  margin-bottom: 30px;
 }
 
 /* Filter Tabs - matching amenity style */

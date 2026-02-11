@@ -20,8 +20,9 @@ const route = useRoute();
 const authStore = useAuthStore();
 
 const state = reactive({
-  activeTab: 'Hotel/Room Management',
+  activeTab: 'Dashboard',
   navBlocks: [
+    { name: 'Dashboard', route: '/dashboard' },
     { name: 'Billing & Payment', route: '/billing' },
     { name: 'Booking Management', route: '/bookings' },
     { name: 'User Management', route: '/users' },
@@ -35,7 +36,9 @@ const state = reactive({
 watch(
   () => route.path,
   (path) => {
-    if (path.startsWith('/amenities')) {
+    if (path.startsWith('/dashboard')) {
+      state.activeTab = 'Dashboard';
+    } else if (path.startsWith('/amenities')) {
       state.activeTab = 'Amenity Management';
     } else if (path.startsWith('/manage_hotel')) {
       state.activeTab = 'Hotel/Room Management';

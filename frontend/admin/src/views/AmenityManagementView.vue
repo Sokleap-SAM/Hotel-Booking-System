@@ -50,7 +50,7 @@
     </div>
 
     <!-- Amenities Table -->
-    <table class="hotel-table">
+    <table class="amenity-table">
       <thead>
         <tr>
           <th>Amenity Name</th>
@@ -263,7 +263,7 @@ const closeCreateModal = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .header-actions {
@@ -308,7 +308,6 @@ const closeCreateModal = () => {
   background-color: #0a3674;
 }
 
-/* Filter Tabs */
 .filter-tabs {
   display: flex;
   gap: 10px;
@@ -344,8 +343,7 @@ const closeCreateModal = () => {
   margin-bottom: 15px;
 }
 
-/* Table - matching hotel table design */
-.hotel-table {
+.amenity-table {
   width: 100%;
   border-collapse: collapse;
   border: 2px solid #000000;
@@ -376,7 +374,6 @@ td {
   position: relative;
 }
 
-/* Category Badges */
 .category-badge {
   padding: 4px 14px;
   border-radius: 12px;
@@ -395,7 +392,6 @@ td {
   color: #2e7d32;
 }
 
-/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0;

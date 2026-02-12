@@ -23,9 +23,17 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid - clear auth and redirect to login
+      // Token expired or invalid - clear auth
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      
+      // Only redirect to login if on a protected route (not public pages)
+      const publicPaths = ['/home', '/Bookingpage', '/BookingDetail', '/login', '/signup', '/auth']
+      const currentPath = window.location.pathname
+      const isPublicPath = publicPaths.some(path => currentPath.startsWith(path) || currentPath === '/')
+      
+      if (!isPublicPath) {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   },

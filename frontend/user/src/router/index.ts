@@ -87,11 +87,13 @@ const routes = [
     path: '/TransactionPayment',
     name: 'TransactionPayment',
     component: TransactionPayment,
+    meta: { requiresAuth: true },
   },
   {
     path: '/LastPayment',
     name: 'LastPayment',
     component: LastPayment,
+    meta: { requiresAuth: true },
   },
   {
     path: '/ProfileDetail',

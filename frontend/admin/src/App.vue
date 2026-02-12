@@ -41,5 +41,6 @@ body {
 
 .content-area.no-margin {
   margin-left: 0;
+  max-width: 100vw;
 }
 </style>

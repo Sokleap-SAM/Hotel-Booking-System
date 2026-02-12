@@ -6,6 +6,9 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
 
   <div class="container">
+    <button class="close-btn" @click="goToHome" title="Continue as guest">
+      <i class="ri-close-line"></i>
+    </button>
     <h2>Sign up</h2>
     <div v-if="error" class="error-message">{{ error }}</div>
     <div class="upload-wrapper">
@@ -185,8 +188,13 @@ export default {
       router.push('/login')
     }
 
+    const goToHome = () => {
+      router.push('/home')
+    }
+
     return {
       goToLogin,
+      goToHome,
       password,
       confirmPassword,
       passwordFieldType,
@@ -236,6 +244,28 @@ export default {
 
 .container::-webkit-scrollbar {
   display: none; /* Hide scrollbar Chrome/Safari */
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 h2 {

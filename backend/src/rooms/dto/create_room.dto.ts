@@ -69,7 +69,8 @@ export class CreateRoomDto {
   @Transform(({ value }) => parseFloat(value))
   @IsNotEmpty()
   @IsNumber()
-  @IsPositive()
+  @Min(10, { message: 'Price must be at least $10' })
+  @Max(9999, { message: 'Price cannot exceed $9999' })
   price: number;
 
   @Transform(({ value }) => parseInt(value, 10))
@@ -81,7 +82,7 @@ export class CreateRoomDto {
   @Transform(({ value }) => parseInt(value, 10))
   @IsInt()
   @Min(0)
-  @Max(100)
+  @Max(70, { message: 'Discount cannot exceed 70%' })
   discountPercentage: number;
 
   @IsOptional()

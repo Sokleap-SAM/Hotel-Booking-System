@@ -42,7 +42,7 @@
                 </div>
                 <div class="form-group">
                     <label>Price per Night ($)</label>
-                    <input v-model.number="form.price" type="number" step="0.01" min="0" required
+                    <input v-model.number="form.price" type="number" step="0.01" min="10" max="9999" required
                         :class="{ 'input-error': errors.price }" />
                     <span v-if="errors.price" class="error-text">{{ errors.price }}</span>
                 </div>
@@ -54,7 +54,7 @@
                 </div>
                 <div class="form-group">
                     <label>Discount (%)</label>
-                    <input v-model.number="form.discountPercentage" type="number" min="0" max="100"
+                    <input v-model.number="form.discountPercentage" type="number" min="0" max="70"
                         :class="{ 'input-error': errors.discountPercentage }" />
                     <span v-if="errors.discountPercentage" class="error-text">{{ errors.discountPercentage }}</span>
                 </div>

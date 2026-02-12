@@ -18,7 +18,7 @@ import { UpdateHotelDto } from './dto/update_hotel.dto';
 import { UpdateHotelStatusDto } from './dto/update-hotel-status.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { hotelUploadConfig } from '../config/file-upload.config';
-import { HotelValidatorPipe } from './pipes/hotel-validtor.pipe';
+import { HotelValidatorPipe } from './pipes/hotel-validator.pipe';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorator/roles.dectorator';

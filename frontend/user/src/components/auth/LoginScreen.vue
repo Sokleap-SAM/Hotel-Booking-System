@@ -5,6 +5,9 @@
   />
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
   <div class="container">
+    <button class="close-btn" @click="goToHome" title="Continue as guest">
+      <i class="ri-close-line"></i>
+    </button>
     <h2>Login</h2>
     <div class="input-group">
       <label for="email">Email</label>
@@ -69,6 +72,10 @@ export default {
       router.push('/ForgotPassword')
     }
 
+    const goToHome = () => {
+      router.push('/home')
+    }
+
     const togglePassword = () => {
       passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password'
     }
@@ -82,14 +89,15 @@ export default {
       try {
         await authStore.login({ email: email.value, password: password.value })
         router.push('/home')
-      } catch (err) {
-        error.value = err.message || 'An unexpected error occurred.'
+      } catch (err: unknown) {
+        error.value = (err as Error).message || 'An unexpected error occurred.'
       }
     }
 
     return {
       goToSignup,
       goToForgotPw,
+      goToHome,
       email,
       password,
       passwordFieldType,
@@ -120,6 +128,28 @@ export default {
   background-color: rgba(255, 255, 255, 0.29);
   padding: 20px;
   box-sizing: border-box;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .error-message {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const validateRoomForm = (data: any) => {
   const errors: Record<string, string> = {};
 
@@ -25,8 +26,10 @@ export const validateRoomForm = (data: any) => {
     errors.available = 'Available rooms cannot exceed 50.';
   }
 
-  if (!data.price || data.price <= 0) {
-    errors.price = 'Price must be a positive number.';
+  if (!data.price || data.price < 10) {
+    errors.price = 'Price must be at least $10.';
+  } else if (data.price > 9999) {
+    errors.price = 'Price cannot exceed $9999.';
   }
 
   if (data.maxOccupancy === undefined || data.maxOccupancy === null || data.maxOccupancy < 1) {
@@ -38,8 +41,15 @@ export const validateRoomForm = (data: any) => {
   if (data.discountPercentage !== undefined && data.discountPercentage !== null) {
     if (data.discountPercentage < 0) {
       errors.discountPercentage = 'Discount cannot be negative.';
-    } else if (data.discountPercentage > 100) {
-      errors.discountPercentage = 'Discount cannot exceed 100%.';
+    } else if (data.discountPercentage > 70) {
+      errors.discountPercentage = 'Discount cannot exceed 70%.';
+    }
+  }
+
+  if (data.price && data.discountPercentage !== undefined && data.discountPercentage !== null) {
+    const discountedPrice = data.price * (1 - data.discountPercentage / 100);
+    if (discountedPrice < 10 && !errors.price && !errors.discountPercentage) {
+      errors.discountPercentage = 'Price after discount must be at least $10.';
     }
   }
 

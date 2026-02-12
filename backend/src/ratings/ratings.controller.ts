@@ -17,6 +17,7 @@ import { UpdateRatingDto } from './dto/update-rating.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorator/roles.dectorator';
+import { Public } from 'src/auth/decorator/public.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('ratings')
@@ -29,19 +30,19 @@ export class RatingsController {
     return this.ratingsService.create(createRatingDto, req.user.id);
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('hotel/:hotelId')
   findAllByHotel(@Param('hotelId') hotelId: string) {
     return this.ratingsService.findAllByHotel(hotelId);
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('hotel/:hotelId/user')
   getUserRatingForHotel(@Param('hotelId') hotelId: string, @Request() req) {
     return this.ratingsService.getUserRatingForHotel(hotelId, req.user.id);
   }
 
-  @Roles('admin', 'user')
+  @Public()
   @Get('booking/:bookingId')
   getRatingByBookingId(@Param('bookingId') bookingId: string, @Request() req) {
     return this.ratingsService.getRatingByBookingId(bookingId, req.user.id);

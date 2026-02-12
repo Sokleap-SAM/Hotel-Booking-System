@@ -89,6 +89,12 @@ export default {
 .logo {
   font-size: 1.5rem;
   font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.logo:hover {
+  color: #a3c4ff;
 }
 
 .Profile {
@@ -96,19 +102,33 @@ export default {
   height: 50px;
   border-radius: 50%;
   background-color: white;
+  border: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
 }
 
 .Profile:hover {
-  background-color: #5a70d4;
+  background-color: #a3c4ff;
+  border-color: white;
   cursor: pointer;
+  transform: scale(1.05);
+}
+
+.Profile:active {
+  transform: scale(0.95);
+  background-color: #7aa8e6;
 }
 
 .Profile i {
   font-size: 24px;
   color: #0d4798;
-  line-height: 50px;
+  line-height: 46px;
   text-align: center;
   display: block;
+  transition: color 0.2s ease;
+}
+
+.Profile:hover i {
+  color: #0a3a7a;
 }
 
 .nav-links {
@@ -121,24 +141,58 @@ export default {
   text-decoration: none;
   font-weight: 500;
   margin: 0 25px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: #a3c4ff;
+  transition: all 0.2s ease-in-out;
+  transform: translateX(-50%);
 }
 
 .nav-links a:hover {
-  text-decoration: underline;
+  color: #a3c4ff;
   cursor: pointer;
+}
+
+.nav-links a:hover::after {
+  width: 80%;
+}
+
+.nav-links a:active {
+  color: #7aa8e6;
+  transform: scale(0.95);
 }
 
 .login-btn {
   background-color: white;
   color: #007bff;
-  border: none;
+  border: 2px solid transparent;
   padding: 8px 16px;
   font-weight: bold;
   cursor: pointer;
   border-radius: 4px;
+  transition: all 0.2s ease-in-out;
 }
 
 .login-btn:hover {
-  background-color: #e6e6e6;
+  background-color: #a3c4ff;
+  color: #0d4798;
+  border-color: white;
+  transform: scale(1.05);
+}
+
+.login-btn:active {
+  background-color: #7aa8e6;
+  transform: scale(0.95);
 }
 </style>

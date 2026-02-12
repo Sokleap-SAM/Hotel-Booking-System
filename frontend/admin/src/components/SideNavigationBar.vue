@@ -87,26 +87,48 @@ const navigateTo = (block: { name: string; route: string }) => {
 .nav-block {
   padding: 30px;
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border-left: 4px solid transparent;
 }
 
 .nav-block:hover {
   background-color: #0D4798;
   color: white;
+  border-left: 4px solid #549BFE;
+  transform: translateX(4px);
+}
+
+.nav-block:active {
+  background-color: #0a3a7a;
+  transform: scale(0.98);
 }
 
 .nav-block.is-active {
   background-color: #549BFE;
   color: white;
   border-right: 15px solid #0D4798;
+  border-left: 4px solid #0D4798;
+}
+
+.nav-block.is-active:hover {
+  background-color: #4089e6;
 }
 
 .nav-block.is-logout {
   background-color: #ff0000a0;
   color: white;
+  border-left: 4px solid transparent;
 }
 
 .nav-block.is-logout:hover {
+  background-color: #cc0000;
   border-right: 15px solid #FF0000;
+  border-left: 4px solid #ff6666;
+  transform: translateX(4px);
+}
+
+.nav-block.is-logout:active {
+  background-color: #990000;
 }
 
 .nav-text {

@@ -35,11 +35,13 @@ import { useRoute, useRouter } from 'vue-router';
 import { useRoomStore } from '@/stores/roomStore';
 import { useHotelStore } from '@/stores/hotelStore';
 import RoomCard from '@/components/room/RoomCard.vue';
+import { useToast } from '@/composables/useToast';
 
 const route = useRoute();
 const router = useRouter();
 const roomStore = useRoomStore();
 const hotelStore = useHotelStore();
+const toast = useToast();
 
 const hotelId = route.params.id as string;
 const hotelName = ref('Rooms');
@@ -64,8 +66,10 @@ const navigateToEditRoom = (roomId: string) => {
 const handleDeleteRoom = async (roomId: string, roomName: string) => {
   if (confirm(`Are you sure you want to delete "${roomName}"?`)) {
     const result = await roomStore.deleteRoom(roomId);
-    if (!result.success) {
-      alert(result.error || 'Failed to delete room');
+    if (result.success) {
+      toast.success('Room Deleted', `"${roomName}" deleted successfully.`);
+    } else {
+      toast.error('Delete Failed', result.error || 'Failed to delete room');
     }
   }
 };

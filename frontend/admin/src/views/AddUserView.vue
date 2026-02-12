@@ -8,6 +8,24 @@
     </header>
 
     <form @submit.prevent="handleCreate" class="user-form">
+      <h2 class="section-title">Profile Image</h2>
+
+      <div class="form-group full-width">
+        <label>Profile Photo</label>
+        <div class="profile-upload-container">
+          <div class="profile-preview" v-if="profileImagePreview">
+            <img :src="profileImagePreview" alt="Profile preview" />
+            <button type="button" class="remove-profile-btn" @click="removeProfileImage">×</button>
+          </div>
+          <label v-else class="upload-box profile-upload-box">
+            <input type="file" accept="image/*" @change="handleProfileImage" hidden />
+            <span class="upload-icon">+</span>
+            <span class="upload-text">Upload Photo</span>
+          </label>
+        </div>
+        <p class="help-text">Optional. Supported formats: JPG, PNG (max 5MB)</p>
+      </div>
+
       <h2 class="section-title">Personal Information</h2>
 
       <div class="form-row">
@@ -75,7 +93,7 @@
         <label>Roles <span class="required">*</span></label>
         <div class="roles-container" :class="{ 'error-border': errors.roleIds }">
           <div class="roles-list">
-            <div v-for="role in userStore.roles" :key="role.id" class="checkbox-item">
+            <div v-for="role in availableRoles" :key="role.id" class="checkbox-item">
               <input
                 type="checkbox"
                 :id="'role-' + role.id"
@@ -116,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { validateCreateUserForm } from '@/utils/user-validator'
@@ -126,6 +144,13 @@ const userStore = useUserStore()
 const router = useRouter()
 const errors = ref<Record<string, string>>({})
 const apiError = ref('')
+const profileImage = ref<File | null>(null)
+const profileImagePreview = ref<string | null>(null)
+
+// Filter out admin role from available roles
+const availableRoles = computed(() => {
+  return userStore.roles.filter(role => role.name.toLowerCase() !== 'admin')
+})
 
 const form = ref({
   firstName: '',
@@ -140,6 +165,20 @@ const form = ref({
 onMounted(() => {
   userStore.fetchRoles()
 })
+
+const handleProfileImage = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (!target.files || !target.files[0]) return
+  
+  const file = target.files[0]
+  profileImage.value = file
+  profileImagePreview.value = URL.createObjectURL(file)
+}
+
+const removeProfileImage = () => {
+  profileImage.value = null
+  profileImagePreview.value = null
+}
 
 const handleCreate = async () => {
   errors.value = {}
@@ -160,7 +199,7 @@ const handleCreate = async () => {
     password: form.value.password,
     roleIds: form.value.roleIds,
     isActive: form.value.isActive,
-  })
+  }, profileImage.value)
 
   if (result.success) {
     router.push('/users')
@@ -413,6 +452,72 @@ input:focus {
 .error-border {
   border: 2px solid #dc2626 !important;
   background-color: #fff5f5;
+}
+
+.profile-upload-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #0D4798;
+}
+
+.profile-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-profile-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #dc2626;
+  color: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-upload-box {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px dashed #D9D9D9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.profile-upload-box:hover {
+  border-color: #0D4798;
+}
+
+.upload-icon {
+  font-size: 24px;
+  color: #666;
+}
+
+.upload-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
 }
 
 @media (max-width: 768px) {

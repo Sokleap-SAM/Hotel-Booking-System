@@ -58,8 +58,10 @@ import { useBookingStore } from '../stores/bookingStore'
 import UpcomingBookingsTable from '../components/booking/UpcomingBookingsTable.vue'
 import BookingHistoryTable from '../components/booking/BookingHistoryTable.vue'
 import RejectModal from '../components/booking/RejectModal.vue'
+import { useToast } from '@/composables/useToast'
 
 const bookingStore = useBookingStore()
+const toast = useToast()
 
 const activeTab = ref<'upcoming' | 'history'>('upcoming')
 const statusFilter = ref('all')
@@ -82,9 +84,9 @@ const filteredHistoryBookings = computed(() => {
 const handleApprove = async (bookingId: string) => {
   try {
     await bookingStore.approveBooking(bookingId)
-    alert('Booking approved! The user can now proceed with payment.')
+    toast.success('Booking Approved', 'The user can now proceed with payment.')
   } catch {
-    alert('Failed to approve booking')
+    toast.error('Approval Failed', 'Failed to approve booking')
   }
 }
 
@@ -104,9 +106,9 @@ const handleReject = async (reason: string) => {
   try {
     await bookingStore.rejectBooking(selectedBookingId.value, reason)
     closeRejectModal()
-    alert('Booking rejected successfully.')
+    toast.success('Booking Rejected', 'The booking has been rejected successfully.')
   } catch {
-    alert('Failed to reject booking')
+    toast.error('Rejection Failed', 'Failed to reject booking')
   }
 }
 </script>

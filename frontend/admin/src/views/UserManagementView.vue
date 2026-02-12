@@ -154,10 +154,12 @@ import ActionMenu from '../components/ActionMenu.vue'
 import { useUserStore } from '../stores/userStore'
 import { useAuthStore } from '../stores/authStore'
 import type { User } from '../stores/userStore'
+import { useToast } from '@/composables/useToast'
 
 const userStore = useUserStore()
 const authStore = useAuthStore()
 const router = useRouter()
+const toast = useToast()
 const searchQuery = ref('')
 const statusFilter = ref<'all' | 'active' | 'inactive'>('all')
 const activeUserId = ref<number | null>(null)
@@ -255,7 +257,7 @@ const toggleUserStatus = async (user: User) => {
   if (confirmed) {
     const result = await userStore.updateUserStatus(user.id, newStatus)
     if (!result.success) {
-      alert(result.message || `Failed to ${action} user.`)
+      toast.error('Status Update Failed', result.message || `Failed to ${action} user.`)
     }
   }
 }
@@ -263,7 +265,7 @@ const toggleUserStatus = async (user: User) => {
 const handleAction = async (action: string, user: User) => {
   if (action === 'delete') {
     if (user.id === authStore.user?.id) {
-      alert('You cannot delete your own account.')
+      toast.warning('Cannot Delete', 'You cannot delete your own account.')
       activeUserId.value = null
       return
     }
@@ -276,9 +278,9 @@ const handleAction = async (action: string, user: User) => {
     if (confirmDelete) {
       const result = await userStore.deleteUser(user.id)
       if (result.success) {
-        alert(`User "${user.firstName} ${user.lastName}" deleted successfully.`)
+        toast.success('User Deleted', `"${user.firstName} ${user.lastName}" deleted successfully.`)
       } else {
-        alert(result.message || 'Failed to delete user.')
+        toast.error('Delete Failed', result.message || 'Failed to delete user.')
       }
     }
   } else if (action === 'edit') {

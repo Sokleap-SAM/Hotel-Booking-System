@@ -85,6 +85,7 @@ export class UserService {
     password: string;
     roleIds: number[];
     isActive?: boolean;
+    profileImage?: string | null;
   }): Promise<User> {
     // Check if email already exists
     const existingUser = await this.findByEmail(data.email);
@@ -96,6 +97,16 @@ export class UserService {
     const roles = await this.roleRepository.findBy({ id: In(data.roleIds) });
     if (roles.length !== data.roleIds.length) {
       throw new NotFoundException('One or more roles not found');
+    }
+
+    // Check if trying to assign admin role
+    const hasAdminRole = roles.some(
+      (role) => role.name.toLowerCase() === 'admin',
+    );
+    if (hasAdminRole) {
+      throw new ForbiddenException(
+        'Users cannot be assigned admin role through this operation',
+      );
     }
 
     // Hash password
@@ -110,6 +121,7 @@ export class UserService {
       password: hashedPassword,
       provider: 'local',
       isActive: data.isActive ?? true,
+      profileImage: data.profileImage ?? null,
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -286,6 +298,16 @@ export class UserService {
     const roles = await this.roleRepository.findBy({ id: In(roleIds) });
     if (roles.length !== roleIds.length) {
       throw new NotFoundException('One or more roles not found');
+    }
+
+    // Check if trying to assign admin role
+    const hasAdminRole = roles.some(
+      (role) => role.name.toLowerCase() === 'admin',
+    );
+    if (hasAdminRole) {
+      throw new ForbiddenException(
+        'Users cannot be promoted to admin role through this operation',
+      );
     }
 
     // Remove existing user roles

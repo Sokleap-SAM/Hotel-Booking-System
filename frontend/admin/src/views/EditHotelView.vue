@@ -121,10 +121,12 @@ import { useRoute, useRouter } from 'vue-router';
 import { useHotelStore } from '@/stores/hotelStore';
 import backIcon from '@/assets/icons/back-icon.svg';
 import { validateHotelForm } from '@/utils/hotel-validator';
+import { useToast } from '@/composables/useToast';
 
 const route = useRoute();
 const router = useRouter();
 const hotelStore = useHotelStore();
+const toast = useToast();
 
 const hotelId = route.params.id as string;
 const isLoadingData = ref(true);
@@ -184,7 +186,7 @@ onMounted(async () => {
     imagePreviews.value = [...(data.images || [])];
     isLoadingData.value = false;
   } else {
-    alert('Failed to load hotel data.');
+    toast.error('Load Failed', 'Failed to load hotel data.');
     router.push('/manage_hotel&room');
   }
 });

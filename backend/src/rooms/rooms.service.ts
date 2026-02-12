@@ -115,10 +115,12 @@ export class RoomsService {
     updateRoomDto: UpdateRoomDto,
     newFiles: any[],
   ): Promise<Room> {
-    const room = await this.roomsRepository.findOne({
-      where: { id },
-      relations: ['amenities', 'roomBeds'],
-    });
+    // Use query builder to avoid eager loading of roomBeds
+    const room = await this.roomsRepository
+      .createQueryBuilder('room')
+      .leftJoinAndSelect('room.amenities', 'amenities')
+      .where('room.id = :id', { id })
+      .getOne();
 
     if (!room) throw new NotFoundException(`Room ${id} not found`);
 
@@ -189,7 +191,10 @@ export class RoomsService {
     }
 
     Object.assign(room, rest);
-    return await this.roomsRepository.save(room);
+    await this.roomsRepository.save(room);
+    
+    // Return fresh room with all relations
+    return await this.findOne(id);
   }
 
   async remove(id: string): Promise<{ message: string }> {

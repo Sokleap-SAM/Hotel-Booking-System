@@ -15,6 +15,31 @@
     </div>
 
     <form v-else @submit.prevent="handleUpdate" class="user-form">
+      <!-- Profile Image Section -->
+      <h2 class="section-title">Profile Image</h2>
+      <div class="form-group full-width">
+        <label>Profile Photo</label>
+        <div class="profile-upload-container">
+          <div class="profile-preview" v-if="profileImagePreview || (user.profileImage && !removeExistingImage)">
+            <img :src="profileImagePreview || renderProfileImage(user.profileImage)" alt="Profile preview" />
+            <div class="profile-actions" v-if="!isGoogleUser">
+              <label class="change-profile-btn">
+                <input type="file" accept="image/*" @change="handleProfileImage" hidden />
+                Change
+              </label>
+              <button type="button" class="remove-profile-btn" @click="handleRemoveProfileImage">×</button>
+            </div>
+          </div>
+          <label v-else class="upload-box profile-upload-box">
+            <input type="file" accept="image/*" @change="handleProfileImage" hidden :disabled="isGoogleUser" />
+            <span class="upload-icon">+</span>
+            <span class="upload-text">Upload Photo</span>
+          </label>
+        </div>
+        <p class="help-text" v-if="!isGoogleUser">Optional. Supported formats: JPG, PNG (max 5MB)</p>
+        <p class="help-text" v-else>Profile image is managed by Google</p>
+      </div>
+
       <!-- Google Provider Warning -->
       <div v-if="isGoogleUser" class="google-warning">
         <span class="provider-badge badge-google">
@@ -112,7 +137,7 @@
         <label>Roles <span class="required">*</span></label>
         <div class="roles-container" :class="{ 'error-border': errors.roleIds, 'disabled-container': isEditingSelf }">
           <div class="roles-list">
-            <div v-for="role in userStore.roles" :key="role.id" class="checkbox-item">
+            <div v-for="role in availableRoles" :key="role.id" class="checkbox-item">
               <input
                 type="checkbox"
                 :id="'role-' + role.id"
@@ -176,6 +201,30 @@ const isLoading = ref(true)
 const isUpdating = ref(false)
 const errors = ref<Record<string, string>>({})
 const apiError = ref('')
+const profileImage = ref<File | null>(null)
+const profileImagePreview = ref<string | null>(null)
+const removeExistingImage = ref(false)
+
+const renderProfileImage = (path: string | null): string | undefined => {
+  if (!path) return undefined
+  return path.startsWith('http') ? path : `http://localhost:3000${path}`
+}
+
+const handleProfileImage = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (!target.files || !target.files[0]) return
+  
+  const file = target.files[0]
+  profileImage.value = file
+  profileImagePreview.value = URL.createObjectURL(file)
+  removeExistingImage.value = false
+}
+
+const handleRemoveProfileImage = () => {
+  profileImage.value = null
+  profileImagePreview.value = null
+  removeExistingImage.value = true
+}
 
 const form = ref({
   firstName: '',
@@ -188,6 +237,11 @@ const form = ref({
 
 const isGoogleUser = computed(() => user.value?.provider === 'google')
 const isEditingSelf = computed(() => user.value?.id === authStore.user?.id)
+
+// Filter out admin role from available roles
+const availableRoles = computed(() => {
+  return userStore.roles.filter(role => role.name.toLowerCase() !== 'admin')
+})
 
 onMounted(async () => {
   await userStore.fetchRoles()
@@ -264,7 +318,7 @@ const handleUpdate = async () => {
       updateData.password = form.value.password
     }
 
-    const result = await userStore.updateUser(user.value.id, updateData)
+    const result = await userStore.updateUser(user.value.id, updateData, profileImage.value, removeExistingImage.value)
 
     if (!result.success) {
       const errorResult = result as { errors?: Record<string, string>; message?: string }
@@ -292,14 +346,16 @@ const handleUpdate = async () => {
     }
   }
 
-  // Update roles
-  const rolesResult = await userStore.updateUserRoles(user.value.id, form.value.roleIds)
+  // Update roles (skip if editing self - roles are disabled for self-editing)
+  if (!isEditingSelf.value) {
+    const rolesResult = await userStore.updateUserRoles(user.value.id, form.value.roleIds)
 
-  if (!rolesResult.success) {
-    apiError.value = rolesResult.message || 'Failed to update user roles'
-    isUpdating.value = false
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    return
+    if (!rolesResult.success) {
+      apiError.value = rolesResult.message || 'Failed to update user roles'
+      isUpdating.value = false
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
   }
 
   router.push('/users')
@@ -649,6 +705,97 @@ input:disabled,
 
 .disabled-label input[type="checkbox"] {
   cursor: not-allowed;
+}
+
+.profile-upload-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: visible;
+  border: 3px solid #0D4798;
+}
+
+.profile-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-actions {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+
+.change-profile-btn {
+  background: #0D4798;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.change-profile-btn:hover {
+  background: #0a3670;
+}
+
+.remove-profile-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-upload-box {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px dashed #D9D9D9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.profile-upload-box:hover {
+  border-color: #0D4798;
+}
+
+.upload-icon {
+  font-size: 24px;
+  color: #666;
+}
+
+.upload-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
 }
 
 @media (max-width: 768px) {

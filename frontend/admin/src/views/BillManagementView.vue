@@ -147,8 +147,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { usePaymentStore } from '../stores/paymentStore'
 import PaymentDetailModal from '../components/payment/PaymentDetailModal.vue'
+import { useToast } from '@/composables/useToast'
 
 const paymentStore = usePaymentStore()
+const toast = useToast()
 const searchQuery = ref('')
 const methodFilter = ref<'all' | 'khqr' | 'stripe'>('all')
 const showDetailModal = ref(false)
@@ -196,7 +198,7 @@ const viewDetails = async (paymentId: string) => {
   try {
     await paymentStore.fetchPaymentDetails(paymentId)
   } catch {
-    alert('Failed to load payment details')
+    toast.error('Load Failed', 'Failed to load payment details')
     showDetailModal.value = false
   } finally {
     isLoadingDetails.value = false

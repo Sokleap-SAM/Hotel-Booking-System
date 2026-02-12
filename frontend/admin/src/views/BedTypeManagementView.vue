@@ -133,8 +133,10 @@
 import { computed, onMounted, ref } from 'vue'
 import ActionMenu from '../components/ActionMenu.vue'
 import { useBedTypeStore, type BedType } from '../stores/bedTypeStore'
+import { useToast } from '@/composables/useToast'
 
 const bedTypeStore = useBedTypeStore()
+const toast = useToast()
 const searchQuery = ref('')
 const activeMenuId = ref<number | null>(null)
 
@@ -208,9 +210,9 @@ const handleAction = async (action: string, bedType: BedType) => {
     if (confirmDelete) {
       const result = await bedTypeStore.deleteBedType(bedType.id)
       if (result.success) {
-        alert(`Bed type "${bedType.name}" deleted successfully.`)
+        toast.success('Bed Type Deleted', `"${bedType.name}" deleted successfully.`)
       } else {
-        alert(result.message || 'Failed to delete bed type.')
+        toast.error('Delete Failed', result.message || 'Failed to delete bed type.')
       }
     }
   }
@@ -254,7 +256,7 @@ const createBedType = async () => {
 
   if (result.success) {
     closeCreateModal()
-    alert('Bed type created successfully!')
+    toast.success('Bed Type Created', 'New bed type created successfully!')
   } else {
     const errorResult = result as { errors?: Record<string, string>; message?: string }
     formError.value = errorResult.errors?.name || errorResult.message || 'Failed to create bed type'
@@ -293,7 +295,7 @@ const updateBedType = async () => {
 
   if (result.success) {
     closeEditModal()
-    alert('Bed type updated successfully!')
+    toast.success('Bed Type Updated', 'Bed type updated successfully!')
   } else {
     const errorResult = result as { errors?: Record<string, string>; message?: string }
     formError.value = errorResult.errors?.name || errorResult.message || 'Failed to update bed type'

@@ -9,7 +9,10 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AdminService } from './admin.service';
 import { QueryUserDto } from './dto/query-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,6 +22,7 @@ import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorator/roles.dectorator';
+import { profileUploadConfig } from '../../config/file-upload.config';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
@@ -32,8 +36,13 @@ export class AdminController {
   }
 
   @Post('users')
-  async createUser(@Body() createDto: CreateUserDto) {
-    return this.adminService.createUser(createDto);
+  @UseInterceptors(FileInterceptor('profileImage', profileUploadConfig))
+  async createUser(
+    @Body() createDto: CreateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    const profileImage = file ? `/uploads/profiles/${file.filename}` : null;
+    return this.adminService.createUser(createDto, profileImage);
   }
 
   @Get('users/stats')
@@ -52,10 +61,17 @@ export class AdminController {
   }
 
   @Patch('users/:id')
+  @UseInterceptors(FileInterceptor('profileImage', profileUploadConfig))
   async updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
+    if (file) {
+      updateDto.profileImage = `/uploads/profiles/${file.filename}`;
+    } else if (updateDto.removeProfileImage) {
+      updateDto.profileImage = null;
+    }
     return this.adminService.updateUser(id, updateDto);
   }
 

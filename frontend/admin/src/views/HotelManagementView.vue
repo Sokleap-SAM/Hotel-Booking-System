@@ -106,8 +106,10 @@ import { computed, onMounted, ref } from 'vue';
 import ActionMenu from '../components/ActionMenu.vue';
 import { useHotelStore } from '../stores/hotelStore';
 import router from '@/router';
+import { useToast } from '@/composables/useToast';
 
 const hotelStore = useHotelStore();
+const toast = useToast();
 const searchQuery = ref('');
 const activeHotelId = ref<string | null>(null);
 const statusFilter = ref<'all' | 'active' | 'inactive'>('all');
@@ -134,7 +136,7 @@ const toggleHotelStatus = async (hotel: { id: string; isActive: boolean }) => {
   const newStatus = !hotel.isActive;
   const result = await hotelStore.updateHotelStatus(hotel.id, newStatus);
   if (!result.success) {
-    alert(`Failed to update hotel status: ${result.message}`);
+    toast.error('Status Update Failed', `Failed to update hotel status: ${result.message}`);
   }
 };
 
@@ -187,9 +189,9 @@ const handleAction = async (action: string) => {
     if (confirmDelete) {
       const result = await hotelStore.deleteHotel(hotel.id);
       if (result.success) {
-        alert(`Hotel "${hotel.name}" deleted successfully!`);
+        toast.success('Hotel Deleted', `"${hotel.name}" deleted successfully!`);
       } else {
-        alert(`Failed to delete hotel. Please try again.`);
+        toast.error('Delete Failed', 'Failed to delete hotel. Please try again.');
       }
     }
   } else if (action === 'edit') {

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
@@ -29,8 +27,14 @@ export class AdminService {
     });
   }
 
-  async createUser(createDto: CreateUserDto): Promise<User> {
-    return this.userService.createWithRoles(createDto);
+  async createUser(
+    createDto: CreateUserDto,
+    profileImage?: string | null,
+  ): Promise<User> {
+    return this.userService.createWithRoles({
+      ...createDto,
+      profileImage,
+    });
   }
 
   async getUserById(id: number): Promise<User> {

@@ -124,14 +124,17 @@ export const useRoomStore = defineStore('room', {
       this.searchQuery = query;
     },
 
-    prepareFormData(data: RoomFormData) {
+    prepareFormData(data: RoomFormData, isUpdate = false) {
       const formData = new FormData();
 
       // String fields
       formData.append('name', data.name || '');
       formData.append('shortDescription', data.shortDescription || '');
       formData.append('longDescription', data.longDescription || '');
-      formData.append('hotelId', data.hotelId || '');
+      // Only include hotelId for create, not update
+      if (!isUpdate && data.hotelId) {
+        formData.append('hotelId', data.hotelId);
+      }
 
       // Numeric fields
       formData.append('available', String(data.available ?? 0));
@@ -158,7 +161,7 @@ export const useRoomStore = defineStore('room', {
           if (item instanceof File) {
             formData.append('images', item);
           } else if (typeof item === 'string' && item.trim() !== '') {
-            formData.append('existingImages[]', item);
+            formData.append('existingImages', item);
           }
         });
       }
@@ -185,7 +188,7 @@ export const useRoomStore = defineStore('room', {
     async updateRoom(id: string, data: RoomFormData) {
       this.isLoading = true;
       try {
-        const formData = this.prepareFormData(toRaw(data) as RoomFormData);
+        const formData = this.prepareFormData(toRaw(data) as RoomFormData, true);
         const response = await api.patch(`/rooms/${id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });

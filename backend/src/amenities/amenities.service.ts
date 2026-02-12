@@ -111,9 +111,7 @@ export class AmenitiesService implements OnModuleInit {
     return await this.amenityRepository.save(amenity);
   }
 
-  async remove(
-    id: number,
-  ): Promise<{ message: string; deletedHotels: number }> {
+  async remove(id: number): Promise<{ message: string }> {
     const amenity = await this.amenityRepository.findOne({
       where: { id },
       relations: ['hotels'],
@@ -123,17 +121,32 @@ export class AmenitiesService implements OnModuleInit {
       throw new NotFoundException(`Amenity with ID ${id} not found`);
     }
 
-    // Delete all hotels that contain this amenity
-    const deletedHotelCount = amenity.hotels?.length || 0;
-    if (amenity.hotels && amenity.hotels.length > 0) {
-      await this.hotelRepository.remove(amenity.hotels);
-    }
+    // Get hotel IDs that will be affected
+    const affectedHotelIds = amenity.hotels?.map((h) => h.id) || [];
 
+    // Simply remove the amenity - ManyToMany relations will be automatically cleaned up
     await this.amenityRepository.remove(amenity);
 
+    // Auto-disable hotels with 0 amenities after deletion
+    if (affectedHotelIds.length > 0) {
+      for (const hotelId of affectedHotelIds) {
+        const hotel = await this.hotelRepository.findOne({
+          where: { id: hotelId },
+          relations: ['amenities'],
+        });
+
+        if (hotel && hotel.amenities.length === 0) {
+          hotel.isActive = false;
+          await this.hotelRepository.save(hotel);
+          console.log(
+            `Hotel "${hotel.name}" has been disabled due to having no amenities`,
+          );
+        }
+      }
+    }
+
     return {
-      message: `Amenity "${amenity.name}" deleted successfully along with ${deletedHotelCount} hotel(s)`,
-      deletedHotels: deletedHotelCount,
+      message: `Amenity "${amenity.name}" deleted successfully`,
     };
   }
 }

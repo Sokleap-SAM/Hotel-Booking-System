@@ -139,8 +139,10 @@ import { computed, onMounted, ref } from 'vue'
 import ActionMenu from '../components/ActionMenu.vue'
 import { useAmenityStore } from '../stores/amenityStore'
 import type { Amenity } from '../stores/amenityStore'
+import { useToast } from '@/composables/useToast'
 
 const amenityStore = useAmenityStore()
+const toast = useToast()
 const searchQuery = ref('')
 const activeAmenityId = ref<number | null>(null)
 
@@ -209,12 +211,12 @@ const handleAction = async (action: string, amenity: Amenity) => {
       if (result.success) {
         const deletedHotels = (result.data as { deletedHotels: number })?.deletedHotels || 0
         if (deletedHotels > 0) {
-          alert(`Amenity "${amenity.name}" deleted along with ${deletedHotels} hotel(s).`)
+          toast.success('Amenity Deleted', `"${amenity.name}" deleted along with ${deletedHotels} hotel(s) that had 0 remaining amenities.`)
         } else {
-          alert(`Amenity "${amenity.name}" deleted successfully.`)
+          toast.success('Amenity Deleted', `"${amenity.name}" deleted successfully.`)
         }
       } else {
-        alert(result.message || 'Failed to delete amenity.')
+        toast.error('Delete Failed', result.message || 'Failed to delete amenity.')
       }
     }
   }

@@ -90,7 +90,7 @@ export const useHotelStore = defineStore('hotel', {
     prepareFormData(data: any) {
       const formData = new FormData();
 
-      const fields = ['name', 'shortDescription', 'longDescription', 'location', 'googleMapUrl', 'phoneNumber', 'email'];
+      const fields = ['name', 'destination', 'shortDescription', 'longDescription', 'location', 'googleMapUrl', 'phoneNumber', 'email'];
       fields.forEach(f => {
         if (data[f] !== undefined) formData.append(f, data[f] || '');
       });
@@ -106,7 +106,7 @@ export const useHotelStore = defineStore('hotel', {
           if (item instanceof File) {
             formData.append('images', item);
           } else if (typeof item === 'string' && item.trim() !== '') {
-            formData.append('existingImages[]', item);
+            formData.append('existingImages', item);
           }
         });
       }

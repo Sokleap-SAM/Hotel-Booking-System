@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import NavigationBar from './components/SideNavigationBar.vue'
+import ToastNotification from './components/ToastNotification.vue'
 
 const route = useRoute()
 const showNavigation = computed(() => route.path !== '/login')
@@ -14,6 +15,8 @@ const showNavigation = computed(() => route.path !== '/login')
     <main class="content-area" :class="{ 'no-margin': !showNavigation }">
       <RouterView />
     </main>
+    
+    <ToastNotification />
   </div>
 </template>
 

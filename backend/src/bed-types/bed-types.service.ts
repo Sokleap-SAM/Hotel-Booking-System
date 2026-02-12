@@ -3,18 +3,22 @@ import {
   NotFoundException,
   ConflictException,
   OnModuleInit,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BedType } from './entities/bed-type.entity';
 import { CreateBedTypeDto } from './dto/create-bed-type.dto';
 import { UpdateBedTypeDto } from './dto/update-bed-type.dto';
+import { RoomBed } from '../rooms/entities/room-bed.entity';
 
 @Injectable()
 export class BedTypesService implements OnModuleInit {
   constructor(
     @InjectRepository(BedType)
     private bedTypeRepository: Repository<BedType>,
+    @InjectRepository(RoomBed)
+    private roomBedRepository: Repository<RoomBed>,
   ) {}
 
   async onModuleInit() {
@@ -99,8 +103,21 @@ export class BedTypesService implements OnModuleInit {
     return await this.bedTypeRepository.save(bedType);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number): Promise<{ message: string }> {
     const bedType = await this.findOne(id);
+
+    // Check if this bed type is being used by any rooms
+    const usageCount = await this.roomBedRepository.count({
+      where: { bedTypeId: id },
+    });
+
+    if (usageCount > 0) {
+      throw new BadRequestException(
+        `Cannot delete bed type "${bedType.name}" because it is currently used by ${usageCount} room(s)`,
+      );
+    }
+
     await this.bedTypeRepository.remove(bedType);
+    return { message: `Bed type "${bedType.name}" deleted successfully` };
   }
 }

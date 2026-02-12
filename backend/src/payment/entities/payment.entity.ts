@@ -35,10 +35,10 @@ export class Payment {
   @JoinColumn({ name: 'bookingId' })
   booking: Booking;
 
-  @Column()
+  @Column({ nullable: true })
   userId: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'userId' })
   user: User;
 

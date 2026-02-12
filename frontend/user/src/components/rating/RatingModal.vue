@@ -96,7 +96,6 @@ interface RatingValues {
   comfort: number
   value: number
   location: number
-  wifi: number
 }
 
 export default defineComponent({
@@ -133,7 +132,6 @@ export default defineComponent({
       { key: 'comfort' as keyof RatingValues, label: 'Comfort', icon: 'ri-hotel-bed-line' },
       { key: 'value' as keyof RatingValues, label: 'Value for Money', icon: 'ri-money-dollar-circle-line' },
       { key: 'location' as keyof RatingValues, label: 'Location', icon: 'ri-map-pin-line' },
-      { key: 'wifi' as keyof RatingValues, label: 'Free WiFi', icon: 'ri-wifi-line' },
     ]
 
     const ratings = ref<RatingValues>({
@@ -142,7 +140,6 @@ export default defineComponent({
       comfort: 7,
       value: 7,
       location: 7,
-      wifi: 7,
     })
 
     const comment = ref('')
@@ -156,9 +153,8 @@ export default defineComponent({
         ratings.value.facilities +
         ratings.value.comfort +
         ratings.value.value +
-        ratings.value.location +
-        ratings.value.wifi
-      const avgCategoryScore = sum / 6
+        ratings.value.location
+      const avgCategoryScore = sum / 5
       // Convert 1-10 scale to 1-5 scale
       return avgCategoryScore / 2
     })
@@ -173,7 +169,6 @@ export default defineComponent({
           comfort: ratings.value.comfort,
           value: ratings.value.value,
           location: ratings.value.location,
-          wifi: ratings.value.wifi,
           comment: comment.value || undefined,
         })
 

@@ -19,7 +19,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto'; // Import the new DTO
 import { profileUploadConfig } from 'src/config/file-upload.config';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { User } from './user/entity/user.entity';
+import { User } from './user/entities/user.entity';
 import type { Response } from 'express';
 
 @Controller('auth')

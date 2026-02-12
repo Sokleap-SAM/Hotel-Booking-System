@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const api = axios.create({ baseURL: 'http://localhost:3000' })
+import api from '../utils/api'
 
 export interface Room {
   id: string
@@ -78,6 +76,35 @@ export const useRoomStore = defineStore('room', {
         console.error('Fetch available rooms error:', error)
         this.error = 'Failed to fetch available rooms'
         return []
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchRoomsWithAvailability(
+      hotelId: string,
+      checkIn: string,
+      checkOut: string,
+      guests?: number
+    ) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const queryParams = new URLSearchParams()
+        queryParams.append('checkIn', checkIn)
+        queryParams.append('checkOut', checkOut)
+        if (guests) queryParams.append('guests', String(guests))
+
+        const { data } = await api.get(
+          `/rooms/hotel/${hotelId}/availability?${queryParams.toString()}`
+        )
+        this.rooms = data
+        return data
+      } catch (error) {
+        console.error('Fetch rooms with availability error:', error)
+        this.error = 'Failed to fetch rooms'
+        // Fallback to regular fetch
+        return this.fetchRoomsByHotel(hotelId)
       } finally {
         this.isLoading = false
       }

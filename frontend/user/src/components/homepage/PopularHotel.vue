@@ -1,9 +1,11 @@
 <template>
   <div class="positionHotel">
     <div class="title">Popular Hotels</div>
+    <div v-if="hotelStore.isLoading" class="loading">Loading hotels...</div>
+    <div v-else-if="hotelStore.hotels.length === 0" class="no-hotels">No hotels available</div>
 
     <div v-for="hotel in hotelStore.hotels" :key="hotel.id" class="container">
-      <div class="containerImg" :style="{ backgroundImage: `url(${hotel.image_url})` }">
+      <div class="containerImg" :style="{ backgroundImage: `url(${getHotelImage(hotel)})` }">
         </div>
 
       <div class="containerDes">
@@ -16,12 +18,12 @@
             <i
               v-for="star in 5"
               :key="star"
-              :class="star <= (Number(hotel.rating) || 0) ? 'ri-star-fill' : 'ri-star-line'"
+              :class="star <= (Number(hotel.avgRating) || 0) ? 'ri-star-fill' : 'ri-star-line'"
             ></i>
-            <span>{{ (Number(hotel.rating) || 0).toFixed(1) }}</span>
+            <span>{{ (Number(hotel.avgRating) || 0).toFixed(1) }}</span>
           </div>
 
-          <div class="price">From {{ hotel.price }}$/night</div>
+          <div class="price">From {{ getLowestPrice(hotel) }}$/night</div>
         </div>
 
         <button class="explore-btn" @click="goToHotel(hotel.id)">Explore Now</button>
@@ -32,14 +34,34 @@
 <script setup lang="ts">
 import { useHotelStore } from '@/stores/hotelStores'
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 const hotelStore = useHotelStore()
+const router = useRouter()
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
 onMounted(() => {
   hotelStore.fetchHotels()
 })
 
-const goToHotel = (id: number) => {
-  console.log('Navigating to hotel ID:', id)
+const getHotelImage = (hotel: any) => {
+  if (hotel.images && hotel.images.length > 0) {
+    const img = hotel.images[0]
+    return img.startsWith('http') ? img : `${API_URL}${img}`
+  }
+  return '/placeholder-hotel.jpg'
+}
+
+const getLowestPrice = (hotel: any) => {
+  if (hotel.rooms && hotel.rooms.length > 0) {
+    const prices = hotel.rooms.map((r: any) => Number(r.price) || 0)
+    return Math.min(...prices)
+  }
+  return 0
+}
+
+const goToHotel = (id: string) => {
+  router.push(`/booking/${id}`)
 }
 </script>
 
@@ -139,5 +161,13 @@ const goToHotel = (id: number) => {
 
 .explore-btn:hover {
   background-color: #2e9372;
+}
+
+.loading, .no-hotels {
+  flex: 0 0 100%;
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 18px;
 }
 </style>

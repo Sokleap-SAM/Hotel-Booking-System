@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   Injectable,
@@ -12,6 +13,8 @@ import {
   Amenity,
   AmenityCategory,
 } from 'src/amenities/entities/amenity.entity';
+import { BookingItem } from '../booking/entities/booking-item.entity';
+import { BookingStatus } from '../booking/entities/booking.entity';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 
@@ -22,10 +25,12 @@ export class HotelsService {
     private hotelsRepository: Repository<Hotel>,
     @InjectRepository(Amenity)
     private amenitiesRepository: Repository<Amenity>,
+    @InjectRepository(BookingItem)
+    private bookingItemRepository: Repository<BookingItem>,
   ) {}
 
   async create(dto: CreateHotelDto, files: any[]): Promise<Hotel> {
-    const { amenityIds, custom_amenities, ...hotelData } = dto;
+    const { amenityIds, ...hotelData } = dto;
     const filePaths = files.map((f) => `/uploads/hotels/${f.filename}`);
 
     const amenities = await this.amenitiesRepository.find({
@@ -38,7 +43,6 @@ export class HotelsService {
     const hotel = this.hotelsRepository.create({
       ...hotelData,
       amenities,
-      custom_amenities: custom_amenities || '',
       images: filePaths,
     });
 
@@ -73,7 +77,7 @@ export class HotelsService {
     newFiles: any[],
   ): Promise<Hotel> {
     const hotel = await this.findOne(id);
-    const { amenityIds, existingImages, custom_amenities, ...rest } = dto;
+    const { amenityIds, existingImages, ...rest } = dto;
 
     const newPaths = newFiles.map((f) => `/uploads/hotels/${f.filename}`);
     const currentExisting = (existingImages as string[]) || [];
@@ -100,19 +104,13 @@ export class HotelsService {
 
     hotel.images = totalImagesAfterUpdate;
 
-    if (custom_amenities && (!amenityIds || amenityIds.length === 0)) {
-      hotel.amenities = [];
-    } else if (Array.isArray(amenityIds) && amenityIds.length > 0) {
+    if (Array.isArray(amenityIds) && amenityIds.length > 0) {
       hotel.amenities = await this.amenitiesRepository.find({
         where: {
           id: In(amenityIds),
           category: AmenityCategory.HOTEL,
         },
       });
-    }
-
-    if (custom_amenities !== undefined) {
-      hotel.custom_amenities = custom_amenities?.trim() || '';
     }
 
     Object.assign(hotel, rest);
@@ -229,5 +227,113 @@ export class HotelsService {
       .getMany();
 
     return hotels;
+  }
+
+  /**
+   * Search hotels with available rooms matching the criteria
+   */
+  async searchHotelsWithAvailability(
+    location?: string,
+    checkIn?: Date,
+    checkOut?: Date,
+    totalGuests?: number,
+    roomsNeeded?: number,
+  ): Promise<any[]> {
+    // Build base query
+    let queryBuilder = this.hotelsRepository
+      .createQueryBuilder('hotel')
+      .leftJoinAndSelect('hotel.rooms', 'room')
+      .leftJoinAndSelect('hotel.amenities', 'amenity')
+      .where('hotel.status = :status', { status: HotelStatus.ACTIVE });
+
+    // Filter by location if provided
+    if (location) {
+      queryBuilder = queryBuilder.andWhere(
+        'LOWER(hotel.location) LIKE LOWER(:location)',
+        { location: `%${location}%` },
+      );
+    }
+
+    const hotels = await queryBuilder.getMany();
+
+    // If no dates provided, return all matching hotels
+    if (!checkIn || !checkOut) {
+      return hotels;
+    }
+
+    // Calculate availability for each hotel
+    const hotelsWithAvailability = await Promise.all(
+      hotels.map(async (hotel) => {
+        const roomsAvailability = await Promise.all(
+          hotel.rooms.map(async (room) => {
+            const bookedCount = await this.getBookedRoomCount(
+              room.id,
+              checkIn,
+              checkOut,
+            );
+            const availableCount = Math.max(0, room.available - bookedCount);
+
+            return {
+              ...room,
+              totalRooms: room.available,
+              bookedRooms: bookedCount,
+              availableRooms: availableCount,
+            };
+          }),
+        );
+
+        // Filter rooms by occupancy if totalGuests is provided
+        const guestsPerRoom =
+          roomsNeeded && roomsNeeded > 0
+            ? Math.ceil((totalGuests || 1) / roomsNeeded)
+            : totalGuests || 1;
+
+        const suitableRooms = roomsAvailability.filter(
+          (room) =>
+            room.availableRooms > 0 && room.maxOccupancy >= guestsPerRoom,
+        );
+
+        // Calculate total available rooms
+        const totalAvailableRooms = suitableRooms.reduce(
+          (sum, room) => sum + room.availableRooms,
+          0,
+        );
+
+        return {
+          ...hotel,
+          rooms: roomsAvailability,
+          suitableRooms,
+          totalAvailableRooms,
+          hasAvailability: roomsNeeded
+            ? totalAvailableRooms >= roomsNeeded
+            : totalAvailableRooms > 0,
+        };
+      }),
+    );
+
+    // Filter hotels that have available rooms matching criteria
+    return hotelsWithAvailability.filter((hotel) => hotel.hasAvailability);
+  }
+
+  /**
+   * Get the number of rooms booked for a specific room during a date range
+   */
+  private async getBookedRoomCount(
+    roomId: string,
+    checkIn: Date,
+    checkOut: Date,
+  ): Promise<number> {
+    const overlappingBookings = await this.bookingItemRepository
+      .createQueryBuilder('bookingItem')
+      .innerJoin('bookingItem.booking', 'booking')
+      .where('bookingItem.roomId = :roomId', { roomId })
+      .andWhere('booking.status IN (:...statuses)', {
+        statuses: [BookingStatus.PENDING, BookingStatus.CONFIRMED],
+      })
+      .andWhere('bookingItem.checkIn < :checkOut', { checkOut })
+      .andWhere('bookingItem.checkOut > :checkIn', { checkIn })
+      .getCount();
+
+    return overlappingBookings;
   }
 }

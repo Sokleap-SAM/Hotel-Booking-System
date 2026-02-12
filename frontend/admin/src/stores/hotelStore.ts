@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '@/utils/api';
 import { toRaw } from 'vue';
-
-const api = axios.create({ baseURL: 'http://localhost:3000' });
 const fieldLabels: Record<string, string> = {
   name: 'Hotel Name',
   shortDescription: 'Short Description',
@@ -12,8 +10,7 @@ const fieldLabels: Record<string, string> = {
   phoneNumber: 'Phone Number',
   email: 'Email',
   amenityIds: 'Amenities',
-  images: 'Images',
-  custom_amenities: 'Custom Amenities'
+  images: 'Images'
 };
 
 export const useHotelStore = defineStore('hotel', {
@@ -45,8 +42,7 @@ export const useHotelStore = defineStore('hotel', {
         ...hotel,
         roomCount: hotel.rooms?.length || 0,
         displayAmenities: [
-          ...(hotel.amenities?.map((a: any) => a.name) || []),
-          ...(hotel.custom_amenities ? [hotel.custom_amenities] : [])
+          ...(hotel.amenities?.map((a: any) => a.name) || [])
         ].join(', ')
       }));
     }
@@ -70,11 +66,6 @@ export const useHotelStore = defineStore('hotel', {
           formData.append('amenityIds', id.toString());
         });
       }
-
-      const cleanCustom = data.custom_amenities
-        ? data.custom_amenities.split(',').map((s: string) => s.trim()).filter((s: string) => s !== '').join(', ')
-        : '';
-      formData.append('custom_amenities', cleanCustom);
 
       if (Array.isArray(data.images)) {
         data.images.forEach((item: any) => {
@@ -129,7 +120,6 @@ export const useHotelStore = defineStore('hotel', {
           return {
             ...hotel,
             amenityIds: hotel.amenities?.map((a: any) => a.id) || [],
-            custom_amenities: hotel.custom_amenities || '',
             images: hotel.images || [],
             existingImages: hotel.images || []
           };
@@ -213,7 +203,6 @@ export const useHotelStore = defineStore('hotel', {
         else if (m.includes('long')) fieldErrors.longDescription = formattedMsg;
         else if (m.includes('email')) fieldErrors.email = formattedMsg;
         else if (m.includes('amenit')) fieldErrors.amenityIds = formattedMsg;
-        else if (m.includes('custom')) fieldErrors.custom_amenities = formattedMsg;
         else if (m.includes('phone')) fieldErrors.phoneNumber = formattedMsg;
         else if (m.includes('location')) fieldErrors.location = formattedMsg;
         else if (m.includes('google')) fieldErrors.googleMapUrl = formattedMsg;

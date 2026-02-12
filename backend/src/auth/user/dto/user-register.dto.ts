@@ -4,6 +4,7 @@ import {
   IsString,
   MinLength,
   IsOptional,
+  IsInt,
 } from 'class-validator';
 
 export class UserRegisterDto {
@@ -36,4 +37,8 @@ export class UserRegisterDto {
   @IsString()
   @IsOptional()
   provider?: 'local' | 'google';
+
+  @IsOptional()
+  @IsInt()
+  roleId?: number;
 }

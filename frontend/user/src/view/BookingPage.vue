@@ -2,10 +2,14 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
   <div class="bookingpage" :style="backgroundHeader">
     <div class="RowHeader">
-      <div class="title">CamBook.com</div>
-      <button class="Profile" @click="isProfileOpen = true">
-        <i class="ri-user-line"></i>
-      </button>
+      <div class="title" @click="goToHome" style="cursor: pointer;">CamBook.com</div>
+      <div class="nav-actions">
+        <router-link to="/home" class="nav-link">Home</router-link>
+        <router-link to="/MyBookings" class="nav-link">My Bookings</router-link>
+        <button class="Profile" @click="isProfileOpen = true">
+          <i class="ri-user-line"></i>
+        </button>
+      </div>
     </div>
     <MenuPanel />
     <FilterPanel />
@@ -16,7 +20,8 @@
 </template> 
 
 <script lang="ts">
-import { ref } from 'vue' // Import ref
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import background from '@/assets/Background2.png'
 import MenuPanel from '@/components/Booking/MenuPanel.vue'
 import FilterPanel from '@/components/Booking/FilterPanel.vue'
@@ -29,18 +34,24 @@ export default {
     MenuPanel,
     FilterPanel,
     ViewHotelDetail,
-    ProfileDetail, // Register component
+    ProfileDetail,
   },
   setup() {
-    const isProfileOpen = ref(false) // State to control visibility
+    const router = useRouter()
+    const isProfileOpen = ref(false)
 
     const backgroundHeader = {
       backgroundImage: `url(${background})`,
     }
 
+    const goToHome = () => {
+      router.push('/home')
+    }
+
     return {
       backgroundHeader,
-      isProfileOpen, // Return the state
+      isProfileOpen,
+      goToHome,
     }
   },
 }
@@ -95,5 +106,19 @@ export default {
   line-height: 50px;
   text-align: center;
   display: block;
+}
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+}
+.nav-link:hover {
+  text-decoration: underline;
 }
 </style>

@@ -4,10 +4,14 @@
   <div class="booking-page-container">
     <header class="blue-header" :style="backgroundHeader">
       <nav class="nav-bar">
-        <div class="logo">CamBook.com</div>
-        <button class="profile-btn" @click="isProfileOpen = true">
-          <i class="ri-user-line"></i>
-        </button>
+        <div class="logo" @click="goToHome" style="cursor: pointer;">CamBook.com</div>
+        <div class="nav-actions">
+          <router-link to="/home" class="nav-link">Home</router-link>
+          <router-link to="/MyBookings" class="nav-link">My Bookings</router-link>
+          <button class="profile-btn" @click="isProfileOpen = true">
+            <i class="ri-user-line"></i>
+          </button>
+        </div>
       </nav>
     </header>
 
@@ -52,14 +56,16 @@
 </template>
 
 <script lang="ts">
-import { ref } from 'vue' // Import ref
+import { ref, onMounted } from 'vue'
 import { defineComponent } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import background from '@/assets/Background2.png'
 import FooterScreen from '@/components/homepage/FooterScreen.vue'
 import BookingSummary from '@/components/Transaction/BookingSummary.vue'
 import UserDetailsForm from '@/components/Transaction/UserDetailsForm.vue'
 import SpecialRequests from '@/components/Transaction/SpecialRequests.vue'
 import ProfileDetail from '@/view/ProfileDetail.vue'
+import { useBookingStore } from '@/stores/bookingStore'
 
 export default defineComponent({
   name: 'TransactionPayment',
@@ -71,16 +77,33 @@ export default defineComponent({
     ProfileDetail,
   },
   setup() {
+    const route = useRoute()
+    const router = useRouter()
+    const bookingStore = useBookingStore()
+
     // Dynamic background for the header
     const backgroundHeader = {
       backgroundImage: `url(${background})`,
     }
 
-    const isProfileOpen = ref(false) // State to control visibility
+    const isProfileOpen = ref(false)
+
+    const goToHome = () => {
+      router.push('/home')
+    }
+
+    onMounted(async () => {
+      // Check if coming from MyBookings with an existing booking
+      const bookingId = route.query.bookingId as string
+      if (bookingId) {
+        await bookingStore.loadBookingForPayment(bookingId)
+      }
+    })
 
     return {
       backgroundHeader,
-      isProfileOpen, // Return the state
+      isProfileOpen,
+      goToHome,
     }
   },
 })
@@ -128,6 +151,20 @@ export default defineComponent({
 .profile-btn i {
   font-size: 22px;
   color: #0d4798;
+}
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+}
+.nav-link:hover {
+  text-decoration: underline;
 }
 
 /* Stepper UI */

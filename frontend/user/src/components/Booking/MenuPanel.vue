@@ -1,36 +1,193 @@
 <template>
   <div class="container">
-    <div class="search-item">
+    <div class="search-item" @click="showDestinationDropdown = !showDestinationDropdown">
       <i class="ri-search-line"></i>
       <div class="text-content">
         <span class="label">Destination</span>
-        <span class="sub-text">Siem Reap</span>
+        <span class="sub-text">{{ destination || 'Select location' }}</span>
+      </div>
+      <div v-if="showDestinationDropdown" class="dropdown" @click.stop>
+        <div 
+          v-for="loc in locations" 
+          :key="loc" 
+          class="dropdown-item"
+          @click="selectDestination(loc)"
+        >
+          {{ loc }}
+        </div>
       </div>
     </div>
 
-    <div class="search-item">
+    <div class="search-item" @click="showDatePicker = !showDatePicker">
       <i class="ri-calendar-2-line"></i>
       <div class="text-content">
         <span class="label">Date</span>
-        <span class="sub-text">Select Date</span>
+        <span class="sub-text">{{ formattedDateRange }}</span>
+      </div>
+      <div v-if="showDatePicker" class="date-picker-dropdown" @click.stop>
+        <VueDatePicker
+          v-model="dateRange"
+          range
+          :min-date="new Date()"
+          :enable-time-picker="false"
+          inline
+          auto-apply
+          @update:model-value="showDatePicker = false"
+        />
       </div>
     </div>
 
-    <div class="search-item">
+    <div class="search-item" @click="showGuestDropdown = !showGuestDropdown">
       <i class="ri-user-line"></i>
       <div class="text-content">
-        <span class="sub-text bold">2 adults · 0 children · 1 room</span>
+        <span class="sub-text bold">{{ adults }} adults · {{ children }} children · {{ rooms }} room{{ rooms > 1 ? 's' : '' }}</span>
+      </div>
+      <div v-if="showGuestDropdown" class="guest-dropdown" @click.stop>
+        <div class="guest-row">
+          <span>Adults</span>
+          <div class="counter">
+            <button @click="adults = Math.max(1, adults - 1)">-</button>
+            <span>{{ adults }}</span>
+            <button @click="adults = Math.min(10, adults + 1)">+</button>
+          </div>
+        </div>
+        <div class="guest-row">
+          <span>Children</span>
+          <div class="counter">
+            <button @click="children = Math.max(0, children - 1)">-</button>
+            <span>{{ children }}</span>
+            <button @click="children = Math.min(10, children + 1)">+</button>
+          </div>
+        </div>
+        <div class="guest-row">
+          <span>Rooms</span>
+          <div class="counter">
+            <button @click="rooms = Math.max(1, rooms - 1)">-</button>
+            <span>{{ rooms }}</span>
+            <button @click="rooms = Math.min(10, rooms + 1)">+</button>
+          </div>
+        </div>
+        <button class="done-btn" @click="showGuestDropdown = false">Done</button>
       </div>
     </div>
 
-    <button class="search-button">Search</button>
+    <button class="search-button" @click="handleSearch">Search</button>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useHotelStore } from '@/stores/hotelStores'
+import { VueDatePicker } from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
+
 export default defineComponent({
   name: 'SearchBar',
+  components: {
+    VueDatePicker
+  },
+  setup() {
+    const route = useRoute()
+    const router = useRouter()
+    const hotelStore = useHotelStore()
+
+    // Locations
+    const locations = ['Siem Reap', 'Phnom Penh', 'Sihanoukville', 'Battambang', 'Kampot']
+    const destination = ref('')
+    const showDestinationDropdown = ref(false)
+
+    // Date picker
+    const today = new Date()
+    today.setHours(7, 0, 0, 0)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const dateRange = ref<Date[]>([today, tomorrow])
+    const showDatePicker = ref(false)
+
+    // Guest configuration
+    const adults = ref(2)
+    const children = ref(0)
+    const rooms = ref(1)
+    const showGuestDropdown = ref(false)
+
+    const formattedDateRange = computed(() => {
+      if (!dateRange.value[0] || !dateRange.value[1]) return 'Select Date'
+      const formatDate = (date: Date) => 
+        date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      return `${formatDate(dateRange.value[0])} - ${formatDate(dateRange.value[1])}`
+    })
+
+    const selectDestination = (loc: string) => {
+      destination.value = loc
+      showDestinationDropdown.value = false
+    }
+
+    // Initialize from route query params
+    const initializeFromQuery = () => {
+      const query = route.query
+      if (query.location) destination.value = String(query.location)
+      if (query.checkIn) dateRange.value[0] = new Date(String(query.checkIn))
+      if (query.checkOut) dateRange.value[1] = new Date(String(query.checkOut))
+      if (query.adults) adults.value = parseInt(String(query.adults), 10)
+      if (query.children) children.value = parseInt(String(query.children), 10)
+      if (query.rooms) rooms.value = parseInt(String(query.rooms), 10)
+    }
+
+    const handleSearch = async () => {
+      // Update URL with search params
+      const query: Record<string, string> = {}
+      if (destination.value) query.location = destination.value
+      if (dateRange.value[0]) query.checkIn = dateRange.value[0].toISOString()
+      if (dateRange.value[1]) query.checkOut = dateRange.value[1].toISOString()
+      query.adults = String(adults.value)
+      query.children = String(children.value)
+      query.rooms = String(rooms.value)
+
+      // Update route query
+      router.replace({ query })
+
+      // Perform search with availability check
+      await hotelStore.searchHotelsWithAvailability({
+        location: destination.value || undefined,
+        checkIn: dateRange.value[0]?.toISOString(),
+        checkOut: dateRange.value[1]?.toISOString(),
+        guests: adults.value + children.value,
+        rooms: rooms.value,
+      })
+    }
+
+    onMounted(() => {
+      initializeFromQuery()
+      // If there are query params, perform initial search
+      if (Object.keys(route.query).length > 0) {
+        handleSearch()
+      } else {
+        // Otherwise fetch all hotels
+        hotelStore.fetchHotels()
+      }
+    })
+
+    // Watch for route query changes
+    watch(() => route.query, () => {
+      initializeFromQuery()
+    })
+
+    return {
+      locations,
+      destination,
+      showDestinationDropdown,
+      dateRange,
+      showDatePicker,
+      adults,
+      children,
+      rooms,
+      showGuestDropdown,
+      formattedDateRange,
+      selectDestination,
+      handleSearch,
+    }
+  },
 })
 </script>
 
@@ -39,7 +196,6 @@ export default defineComponent({
   position: absolute;
   left: 50%;
   bottom: 0;
-  /* Adjusting this back to a reasonable overlap based on your previous request */
   transform: translate(-50%, -400%);
 
   width: 1234px;
@@ -49,7 +205,6 @@ export default defineComponent({
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   z-index: 10;
 
-  /* Flexbox settings to align the 4 items */
   display: flex;
   align-items: center;
   padding: 0 20px;
@@ -59,14 +214,16 @@ export default defineComponent({
 }
 
 .search-item {
-  flex: 1; /* Makes the 3 info boxes take equal space */
+  position: relative;
+  flex: 1;
   height: 90px;
-  background-color: #f0f0f0; /* Light gray background */
+  background-color: #f0f0f0;
   border-radius: 12px;
   display: flex;
   align-items: center;
   padding: 0 20px;
   gap: 15px;
+  cursor: pointer;
 }
 
 .search-item i {
@@ -76,7 +233,7 @@ export default defineComponent({
 
 .search-item:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
+  background-color: #e8f0fe;
 }
 
 .text-content {
@@ -101,9 +258,9 @@ export default defineComponent({
 }
 
 .search-button {
-  flex: 1; /* Matches the width of the other boxes */
+  flex: 1;
   height: 90px;
-  background-color: #1a73e8; /* Blue color from image */
+  background-color: #1a73e8;
   color: white;
   border: none;
   border-radius: 12px;
@@ -115,5 +272,105 @@ export default defineComponent({
 
 .search-button:hover {
   background-color: #1557b0;
+}
+
+/* Dropdown Styles */
+.dropdown {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f4fa;
+}
+
+/* Date Picker Dropdown */
+.date-picker-dropdown {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  padding: 10px;
+}
+
+/* Guest Dropdown */
+.guest-dropdown {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  padding: 15px;
+}
+
+.guest-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  color: #333;
+}
+
+.guest-row:last-of-type {
+  border-bottom: none;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.counter button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.counter button:hover {
+  background: #f0f4fa;
+}
+
+.done-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.done-btn:hover {
+  background: #1557b0;
 }
 </style>

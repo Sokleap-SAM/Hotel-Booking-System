@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const api = axios.create({ baseURL: 'http://localhost:3000' })
+import api from '../utils/api'
 
 export type SortOption = 'default' | 'lowest-price' | 'highest-price' | 'highest-rating' | 'highest-discount'
 
@@ -10,7 +10,6 @@ export interface BedType {
   name: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fieldLabels: Record<string, string> = {
   name: 'Hotel Name',
   shortDescription: 'Short Description',
@@ -26,9 +25,7 @@ const fieldLabels: Record<string, string> = {
 
 export const useHotelStore = defineStore('hotel', {
   state: () => ({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     hotels: [] as any[],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     amenitiesList: [] as any[],
     bedTypesList: [] as BedType[],
     isLoading: false,
@@ -212,6 +209,35 @@ export const useHotelStore = defineStore('hotel', {
       } catch (error) {
         console.error('Error fetching amenities:', error)
         this.amenitiesList = []
+      }
+    },
+
+    async searchHotelsWithAvailability(params: {
+      location?: string
+      checkIn?: string
+      checkOut?: string
+      guests?: number
+      rooms?: number
+    }) {
+      this.isLoading = true
+      try {
+        const queryParams = new URLSearchParams()
+        if (params.location) queryParams.append('location', params.location)
+        if (params.checkIn) queryParams.append('checkIn', params.checkIn)
+        if (params.checkOut) queryParams.append('checkOut', params.checkOut)
+        if (params.guests) queryParams.append('guests', String(params.guests))
+        if (params.rooms) queryParams.append('rooms', String(params.rooms))
+
+        const { data } = await api.get(`/hotels/search/availability?${queryParams.toString()}`)
+        this.hotels = data
+        return data
+      } catch (error) {
+        console.error('Error searching hotels:', error)
+        // Fallback to regular fetch if search fails
+        await this.fetchHotels()
+        return this.hotels
+      } finally {
+        this.isLoading = false
       }
     },
   },

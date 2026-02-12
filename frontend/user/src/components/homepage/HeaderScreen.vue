@@ -2,10 +2,10 @@
   <header class="navbar">
     <div class="logo">CamBook</div>
     <nav class="nav-links">
-      <a href="#">Home</a>
-      <a href="#" @click="goToBooking">Book Now</a>
-      <a href="#">My Bookings</a>
-      <a href="#">Contact Us</a>
+      <a href="#" @click.prevent="goToHome">Home</a>
+      <a href="#" @click.prevent="goToBooking">Book Now</a>
+      <a href="#" @click.prevent="goToMyBookings">My Bookings</a>
+      <a href="#" @click.prevent="goToContact">Contact Us</a>
     </nav>
     <button class="Profile" @click="isProfileOpen = true">
       <i class="ri-user-line"></i>
@@ -27,17 +27,37 @@ export default {
     const isProfileOpen = ref(false)
 
     const router = useRouter()
+
     const goToLogin = () => {
       router.push('/login')
+    }
+
+    const goToHome = () => {
+      router.push('/home')
     }
 
     const goToBooking = () => {
       router.push('/Bookingpage')
     }
 
+    const goToMyBookings = () => {
+      router.push('/MyBookings')
+    }
+
+    const goToContact = () => {
+      // Scroll to footer/contact section or navigate to contact page
+      const footer = document.querySelector('footer')
+      if (footer) {
+        footer.scrollIntoView({ behavior: 'smooth' })
+      }
+    }
+
     return {
       goToLogin,
+      goToHome,
       goToBooking,
+      goToMyBookings,
+      goToContact,
       isProfileOpen,
     }
   },

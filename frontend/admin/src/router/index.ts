@@ -1,18 +1,45 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import HotelLayout from '../layouts/HotelLayout.vue'
+import DashboardView from '../views/DashboardView.vue'
 import HotelManagementView from '../views/HotelManagementView.vue'
 import AddHotelView from '../views/AddHotelView.vue'
 import EditHotelView from '../views/EditHotelView.vue'
 import RoomManagementView from '../views/RoomManagementView.vue'
 import AddRoomView from '../views/AddRoomView.vue'
 import EditRoomView from '../views/EditRoomView.vue'
+import AmenityManagementView from '../views/AmenityManagementView.vue'
+import BookingManagementView from '../views/BookingManagementView.vue'
+import BillManagementView from '../views/BillManagementView.vue'
+import BedTypeManagementView from '../views/BedTypeManagementView.vue'
+import UserManagementView from '../views/UserManagementView.vue'
+import AddUserView from '../views/AddUserView.vue'
+import EditUserView from '../views/EditUserView.vue'
+import AdminLoginView from '../views/AdminLoginView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      redirect: '/manage_hotel&room',
+      name: 'home',
+      redirect: '/login',
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: AdminLoginView,
+    },
+    {
+      path: '/dashboard',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'dashboard',
+          component: DashboardView,
+        },
+      ]
     },
     {
       path: '/manage_hotel&room',
@@ -49,8 +76,92 @@ const router = createRouter({
           component: EditRoomView,
         },
       ]
+    },
+    {
+      path: '/amenities',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'amenity-management',
+          component: AmenityManagementView,
+        },
+      ]
+    },
+    {
+      path: '/bookings',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'booking-management',
+          component: BookingManagementView,
+        },
+      ]
+    },
+    {
+      path: '/billing',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'bill-management',
+          component: BillManagementView,
+        },
+      ]
+    },
+    {
+      path: '/bed-types',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'bed-type-management',
+          component: BedTypeManagementView,
+        },
+      ]
+    },
+    {
+      path: '/users',
+      component: HotelLayout,
+      children: [
+        {
+          path: '',
+          name: 'user-management',
+          component: UserManagementView,
+        },
+        {
+          path: 'add',
+          name: 'add-user',
+          component: AddUserView,
+        },
+        {
+          path: 'edit/:id',
+          name: 'edit-user',
+          component: EditUserView,
+        },
+      ]
     }
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+
+  if (to.path === '/login') {
+    if (authStore.isAuthenticated) {
+      next('/dashboard')
+    } else {
+      next()
+    }
+    return
+  }
+
+  if (!authStore.isAuthenticated) {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router

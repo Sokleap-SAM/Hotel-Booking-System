@@ -13,6 +13,10 @@ import RoomDetailModal from '@/components/BookingDetail/RoomDetailModal.vue'
 import TransactionPayment from '@/view/TransactionPayment.vue'
 import LastPayment from '@/view/LastPayment.vue'
 import ProfileDetail from '@/view/ProfileDetail.vue'
+import BookingConfirmation from '@/view/BookingConfirmation.vue'
+import MyBookings from '@/view/MyBookings.vue'
+import PaymentSuccess from '@/view/PaymentSuccess.vue'
+import PaymentCancel from '@/view/PaymentCancel.vue'
 
 const routes = [
   {
@@ -62,7 +66,7 @@ const routes = [
     component: Bookingpage,
   },
   {
-    path: '/BookingDetail',
+    path: '/BookingDetail/:hotelId',
     name: 'BookingDetail',
     component: BookingDetail,
   },
@@ -86,6 +90,30 @@ const routes = [
     name: 'ProfileDetail',
     component: ProfileDetail,
     meta: { requiresAuth: true }, // Added this line
+  },
+  {
+    path: '/BookingConfirmation',
+    name: 'BookingConfirmation',
+    component: BookingConfirmation,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/MyBookings',
+    name: 'MyBookings',
+    component: MyBookings,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/payment/success',
+    name: 'PaymentSuccess',
+    component: PaymentSuccess,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/payment/cancel',
+    name: 'PaymentCancel',
+    component: PaymentCancel,
+    meta: { requiresAuth: true },
   },
 ]
 

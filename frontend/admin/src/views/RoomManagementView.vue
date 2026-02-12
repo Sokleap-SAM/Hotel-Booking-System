@@ -18,31 +18,13 @@
     </div>
 
     <div v-else class="room-list">
-      <div v-for="room in roomStore.rooms" :key="room.id" class="card">
-        <div class="card-body">
-          <div class="image-section">
-            <img :src="getRoomImage(room)" :alt="room.name" />
-          </div>
-
-          <div class="content-section">
-            <h2>{{ room.name }}</h2>
-            <div class="details">
-              <p>Type: {{ room.type }}</p>
-              <p>Price: ${{ Number(room.price).toFixed(2) }}</p>
-              <p>Available: {{ room.available }}</p>
-              <p>Max Occupancy: {{ room.maxOccupancy }}</p>
-              <p v-if="room.discountPercentage > 0" class="discount">
-                Discount: {{ room.discountPercentage }}%
-              </p>
-            </div>
-          </div>
-
-          <div class="actions-section">
-            <button @click="navigateToEditRoom(room.id)" class="edit-btn">Edit</button>
-            <button @click="handleDeleteRoom(room.id, room.name)" class="delete-btn">Delete</button>
-          </div>
-        </div>
-      </div>
+      <RoomCard
+        v-for="room in roomStore.rooms"
+        :key="room.id"
+        :room="room"
+        @edit="navigateToEditRoom"
+        @delete="handleDeleteRoom"
+      />
     </div>
   </div>
 </template>
@@ -50,8 +32,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useRoomStore, type Room } from '@/stores/roomStore';
+import { useRoomStore } from '@/stores/roomStore';
 import { useHotelStore } from '@/stores/hotelStore';
+import RoomCard from '@/components/room/RoomCard.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -69,16 +52,6 @@ onMounted(async () => {
     hotelName.value = hotel.name;
   }
 });
-
-const getRoomImage = (room: Room) => {
-  if (room.images && room.images.length > 0) {
-    const img = room.images[0];
-    if (img) {
-      return img.startsWith('http') ? img : `http://localhost:3000${img}`;
-    }
-  }
-  return 'https://via.placeholder.com/220x140?text=No+Image';
-};
 
 const navigateToAddRoom = () => {
   router.push({ name: 'add-room', params: { id: hotelId } });
@@ -148,82 +121,6 @@ const handleDeleteRoom = async (roomId: string, roomName: string) => {
   gap: 24px;
 }
 
-.card {
-  border: 1px solid #e5e7eb;
-  border-radius: 24px;
-  padding: 24px;
-  background-color: #FFFFFF;
-}
-
-.card-body {
-  display: flex;
-  align-items: center;
-  gap: 25px;
-}
-
-.image-section {
-  width: 220px;
-  height: 140px;
-  flex-shrink: 0;
-}
-
-.image-section img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.content-section {
-  flex-grow: 1;
-}
-
-.content-section h2 {
-  font-size: 20px;
-  margin: 0 0 10px 0;
-  font-weight: bold;
-}
-
-.details p{
-  margin: 6px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #666;
-}
-
-.actions-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.edit-btn {
-  background-color: #e8ebf0;
-  border: none;
-  padding: 10px 30px;
-  border-radius: 15px;
-  cursor: pointer;
-  min-width: 100px;
-}
-
-.delete-btn {
-  background-color: #fc2020;
-  border: none;
-  color: white;
-  padding: 10px 30px;
-  border-radius: 15px;
-  cursor: pointer;
-  min-width: 100px;
-}
-
-.edit-btn:hover {
-  background-color: #d1d5db;
-}
-
-.delete-btn:hover {
-  background-color: #cc0000;
-}
-
 .loading-state,
 .empty-state {
   text-align: center;
@@ -231,10 +128,4 @@ const handleDeleteRoom = async (roomId: string, roomName: string) => {
   font-size: 18px;
   color: #666;
 }
-
-.discount {
-  color: #16a34a;
-  font-weight: bold;
-}
-
 </style>

@@ -46,7 +46,7 @@
             {{ room?.longDescription || room?.description || 'No description available for this room.' }}
           </p>
 
-          <div class="amenities-section" v-if="(room?.amenities?.length ?? 0) > 0 || room?.custom_amenities">
+          <div class="amenities-section" v-if="(room?.amenities?.length ?? 0) > 0">
             <div class="amenity-group">
               <h4><i class="ri-service-line"></i> Room Amenities</h4>
               <div class="amenity-tags">
@@ -54,9 +54,6 @@
                   <i class="ri-checkbox-circle-fill"></i> {{ amenity.name }}
                 </span>
               </div>
-              <p class="custom-amenities" v-if="room?.custom_amenities">
-                <strong>Additional:</strong> {{ room.custom_amenities }}
-              </p>
             </div>
           </div>
 
@@ -123,7 +120,6 @@ interface Room {
   stock?: number;
   images?: string[];
   amenities?: Amenity[];
-  custom_amenities?: string;
 }
 
 export default {
@@ -138,16 +134,17 @@ export default {
     const selectedThumbIndex = ref(0)
     
     const roomImages = computed(() => {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
       if (props.room?.images && props.room.images.length > 0) {
         return props.room.images.map((img: string) => {
           // Handle full URLs
           if (img.startsWith('http')) return img
           // Handle paths starting with /uploads/
-          if (img.startsWith('/uploads/')) return `http://localhost:3000${img}`
+          if (img.startsWith('/uploads/')) return `${apiUrl}${img}`
           // Handle paths starting with uploads/
-          if (img.startsWith('uploads/')) return `http://localhost:3000/${img}`
+          if (img.startsWith('uploads/')) return `${apiUrl}/${img}`
           // Default case - assume it's a relative path
-          return `http://localhost:3000/uploads/rooms/${img}`
+          return `${apiUrl}/uploads/rooms/${img}`
         })
       }
       return [defaultRoomImage]

@@ -74,8 +74,9 @@ export default defineComponent({
     };
 
     const getHotelImage = (hotel: any) => {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
       if (hotel.images && hotel.images.length > 0) {
-        return `http://localhost:3000${hotel.images[0]}`;
+        return `${apiUrl}${hotel.images[0]}`;
       }
       return defaultHotelImage;
     };

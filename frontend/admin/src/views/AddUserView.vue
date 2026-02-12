@@ -1,0 +1,421 @@
+<template>
+  <main class="page-container">
+    <header class="form-header">
+      <button class="back-btn" @click="$router.back()">
+        <img :src="backIcon" alt="Go back" class="btn-icon" />
+      </button>
+      <h1>Add New User</h1>
+    </header>
+
+    <form @submit.prevent="handleCreate" class="user-form">
+      <h2 class="section-title">Personal Information</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name <span class="required">*</span></label>
+          <input
+            v-model="form.firstName"
+            type="text"
+            placeholder="Enter first name"
+            :class="{ 'input-error': errors.firstName }"
+          />
+          <span v-if="errors.firstName" class="error-text">{{ errors.firstName }}</span>
+        </div>
+        <div class="form-group">
+          <label>Last Name <span class="required">*</span></label>
+          <input
+            v-model="form.lastName"
+            type="text"
+            placeholder="Enter last name"
+            :class="{ 'input-error': errors.lastName }"
+          />
+          <span v-if="errors.lastName" class="error-text">{{ errors.lastName }}</span>
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Email <span class="required">*</span></label>
+        <input
+          v-model="form.email"
+          type="email"
+          placeholder="Enter email address"
+          :class="{ 'input-error': errors.email }"
+        />
+        <span v-if="errors.email" class="error-text">{{ errors.email }}</span>
+      </div>
+
+      <h2 class="section-title">Security</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Password <span class="required">*</span></label>
+          <input
+            v-model="form.password"
+            type="password"
+            placeholder="Enter password (min 8 characters)"
+            :class="{ 'input-error': errors.password }"
+          />
+          <span v-if="errors.password" class="error-text">{{ errors.password }}</span>
+        </div>
+        <div class="form-group">
+          <label>Confirm Password <span class="required">*</span></label>
+          <input
+            v-model="form.confirmPassword"
+            type="password"
+            placeholder="Confirm password"
+            :class="{ 'input-error': errors.confirmPassword }"
+          />
+          <span v-if="errors.confirmPassword" class="error-text">{{ errors.confirmPassword }}</span>
+        </div>
+      </div>
+
+      <h2 class="section-title">Access & Permissions</h2>
+
+      <div class="form-group full-width">
+        <label>Roles <span class="required">*</span></label>
+        <div class="roles-container" :class="{ 'error-border': errors.roleIds }">
+          <div class="roles-list">
+            <div v-for="role in userStore.roles" :key="role.id" class="checkbox-item">
+              <input
+                type="checkbox"
+                :id="'role-' + role.id"
+                :value="role.id"
+                v-model="form.roleIds"
+              />
+              <label :for="'role-' + role.id">{{ role.name }}</label>
+            </div>
+          </div>
+        </div>
+        <span v-if="errors.roleIds" class="error-text">{{ errors.roleIds }}</span>
+        <p class="help-text">Select at least one role for the user.</p>
+      </div>
+
+      <div class="form-group full-width">
+        <label class="checkbox-label">
+          <input type="checkbox" v-model="form.isActive" />
+          <span>Active Account</span>
+        </label>
+        <p class="help-text">If unchecked, the user will not be able to log in.</p>
+      </div>
+
+      <div class="provider-info">
+        <span class="provider-badge badge-local">Local Account</span>
+        <p class="info-text">This user will be created with local authentication (email/password).</p>
+      </div>
+
+      <p v-if="apiError" class="error-text api-error">{{ apiError }}</p>
+
+      <div class="form-actions">
+        <button type="submit" class="create-btn" :disabled="userStore.isLoading">
+          {{ userStore.isLoading ? 'Creating...' : 'Create User' }}
+        </button>
+        <button type="button" class="cancel-btn" @click="$router.back()">Cancel</button>
+      </div>
+    </form>
+  </main>
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/userStore'
+import { validateCreateUserForm } from '@/utils/user-validator'
+import backIcon from '@/assets/icons/back-icon.svg'
+
+const userStore = useUserStore()
+const router = useRouter()
+const errors = ref<Record<string, string>>({})
+const apiError = ref('')
+
+const form = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  roleIds: [] as number[],
+  isActive: true,
+})
+
+onMounted(() => {
+  userStore.fetchRoles()
+})
+
+const handleCreate = async () => {
+  errors.value = {}
+  apiError.value = ''
+
+  const validation = validateCreateUserForm(form.value)
+
+  if (!validation.isValid) {
+    errors.value = validation.errors
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    return
+  }
+
+  const result = await userStore.createUser({
+    firstName: form.value.firstName.trim(),
+    lastName: form.value.lastName.trim(),
+    email: form.value.email.trim(),
+    password: form.value.password,
+    roleIds: form.value.roleIds,
+    isActive: form.value.isActive,
+  })
+
+  if (result.success) {
+    router.push('/users')
+  } else {
+    apiError.value = result.message || 'Failed to create user'
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+watch(
+  form,
+  () => {
+    if (Object.keys(errors.value).length > 0) {
+      const validation = validateCreateUserForm(form.value)
+      errors.value = validation.errors
+    }
+  },
+  { deep: true }
+)
+</script>
+
+<style scoped>
+.page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px;
+  font-family: 'Lato', sans-serif;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.back-btn {
+  background-color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+label {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+}
+
+.required {
+  color: #dc2626;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  padding: 12px;
+  border: 1px solid #D9D9D9;
+  font-size: 16px;
+  border-radius: 12px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #0D4798;
+}
+
+.roles-container {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-item label {
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+.help-text {
+  color: #666;
+  font-size: 14px;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.provider-info {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.provider-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.badge-local {
+  background: #e3f2fd;
+  color: #0D4798;
+}
+
+.info-text {
+  color: #0369a1;
+  font-size: 14px;
+  margin: 0;
+}
+
+.section-title {
+  margin: 10px 0;
+  font-size: 24px;
+  color: #0D4798;
+  font-weight: 700;
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.create-btn {
+  background: #0D4798;
+  color: white;
+  padding: 15px 30px;
+  border-radius: 15px;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.create-btn:hover {
+  background-color: #07316d;
+}
+
+.create-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: #FF0000;
+  color: white;
+  padding: 15px 25px;
+  border-radius: 15px;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.cancel-btn:hover {
+  background-color: #cc0000;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.api-error {
+  font-size: 14px;
+  padding: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+}
+
+.input-error {
+  border-color: #dc2626 !important;
+  background-color: #fff5f5;
+}
+
+.error-border {
+  border: 2px solid #dc2626 !important;
+  background-color: #fff5f5;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+
+  .page-container {
+    padding: 20px;
+  }
+}
+</style>

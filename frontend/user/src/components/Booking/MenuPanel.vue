@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="search-item" @click="showDestinationDropdown = !showDestinationDropdown">
-      <i class="ri-search-line"></i>
+      <i class="ri-map-pin-line"></i>
       <div class="text-content">
         <span class="label">Destination</span>
         <span class="sub-text">{{ destination || 'Select location' }}</span>
@@ -229,7 +229,7 @@ export default defineComponent({
   background-color: white;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  z-index: 10;
+  z-index: 150;
 
   display: flex;
   align-items: center;
@@ -309,7 +309,7 @@ export default defineComponent({
   background: white;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  z-index: 100;
+  z-index: 200;
   max-height: 200px;
   overflow-y: auto;
   margin-top: 5px;

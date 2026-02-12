@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
@@ -14,7 +12,7 @@ export function createUploadConfig(folderName: string) {
       },
     }),
     limits: {
-      fileSize: 1 * 1024 * 1024,
+      fileSize: 5 * 1024 * 1024,
     },
     fileFilter: (
       req: Express.Request,

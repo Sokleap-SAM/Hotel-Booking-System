@@ -234,6 +234,7 @@ watch(form, () => {
     margin: 0 auto;
     padding: 40px;
     font-family: 'Lato', sans-serif;
+    box-sizing: border-box;
 }
 
 .form-header {

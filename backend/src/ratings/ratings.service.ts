@@ -25,14 +25,13 @@ export class RatingsService {
   private calculateOverallScore(
     dto: CreateRatingDto | UpdateRatingDto,
   ): number {
-    const staff = dto.staff ?? 0;
+    const service = dto.service ?? 0;
     const facilities = dto.facilities ?? 0;
     const comfort = dto.comfort ?? 0;
     const value = dto.value ?? 0;
     const location = dto.location ?? 0;
-    const wifi = dto.wifi ?? 0;
     const avgCategoryScore =
-      (staff + facilities + comfort + value + location + wifi) / 6;
+      (service + facilities + comfort + value + location) / 5;
     // Convert 1-10 scale to 1-5 scale
     return Math.round((avgCategoryScore / 2) * 10) / 10;
   }
@@ -80,12 +79,11 @@ export class RatingsService {
       avgRating: number;
       totalRatings: number;
       categoryAverages: {
-        staff: number;
+        service: number;
         facilities: number;
         comfort: number;
         value: number;
         location: number;
-        wifi: number;
       };
     };
   }> {
@@ -104,41 +102,38 @@ export class RatingsService {
           avgRating: 0,
           totalRatings: 0,
           categoryAverages: {
-            staff: 0,
+            service: 0,
             facilities: 0,
             comfort: 0,
             value: 0,
             location: 0,
-            wifi: 0,
           },
         },
       };
     }
 
     const categoryAverages = {
-      staff: 0,
+      service: 0,
       facilities: 0,
       comfort: 0,
       value: 0,
       location: 0,
-      wifi: 0,
     };
 
     let totalOverall = 0;
 
     ratings.forEach((rating) => {
-      categoryAverages.staff += Number(rating.staff);
+      categoryAverages.service += Number(rating.service);
       categoryAverages.facilities += Number(rating.facilities);
       categoryAverages.comfort += Number(rating.comfort);
       categoryAverages.value += Number(rating.value);
       categoryAverages.location += Number(rating.location);
-      categoryAverages.wifi += Number(rating.wifi);
       totalOverall += Number(rating.overallScore);
     });
 
     // Calculate averages
-    categoryAverages.staff =
-      Math.round((categoryAverages.staff / totalRatings) * 10) / 10;
+    categoryAverages.service =
+      Math.round((categoryAverages.service / totalRatings) * 10) / 10;
     categoryAverages.facilities =
       Math.round((categoryAverages.facilities / totalRatings) * 10) / 10;
     categoryAverages.comfort =
@@ -147,8 +142,6 @@ export class RatingsService {
       Math.round((categoryAverages.value / totalRatings) * 10) / 10;
     categoryAverages.location =
       Math.round((categoryAverages.location / totalRatings) * 10) / 10;
-    categoryAverages.wifi =
-      Math.round((categoryAverages.wifi / totalRatings) * 10) / 10;
 
     const avgRating = Math.round((totalOverall / totalRatings) * 10) / 10;
 
@@ -204,20 +197,18 @@ export class RatingsService {
 
     // Recalculate overall score if category ratings changed
     if (
-      updateRatingDto.staff !== undefined ||
+      updateRatingDto.service !== undefined ||
       updateRatingDto.facilities !== undefined ||
       updateRatingDto.comfort !== undefined ||
       updateRatingDto.value !== undefined ||
-      updateRatingDto.location !== undefined ||
-      updateRatingDto.wifi !== undefined
+      updateRatingDto.location !== undefined
     ) {
       updatedData.overallScore = this.calculateOverallScore({
-        staff: updatedData.staff,
+        service: updatedData.service,
         facilities: updatedData.facilities,
         comfort: updatedData.comfort,
         value: updatedData.value,
         location: updatedData.location,
-        wifi: updatedData.wifi,
         hotelId: rating.hotelId,
       });
     }

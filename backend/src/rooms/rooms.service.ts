@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -38,6 +39,14 @@ export class RoomsService {
   ) {}
 
   async create(createRoomDto: CreateRoomDto, files: any[]): Promise<Room> {
+    const existingRoom = await this.roomsRepository.findOne({
+      where: { name: createRoomDto.name, hotelId: createRoomDto.hotelId },
+    });
+    if (existingRoom) {
+      throw new ConflictException(
+        `Room with name "${createRoomDto.name}" already exists in this hotel`,
+      );
+    }
     const { hotelId, amenityIds, roomBeds, ...roomData } = createRoomDto;
     const filePaths = files.map((f) => `/uploads/rooms/${f.filename}`);
 
@@ -114,6 +123,18 @@ export class RoomsService {
     if (!room) throw new NotFoundException(`Room ${id} not found`);
 
     const { amenityIds, existingImages, roomBeds, ...rest } = updateRoomDto;
+
+    // Check for duplicate name within the same hotel (only if name is being changed)
+    if (updateRoomDto.name && updateRoomDto.name !== room.name) {
+      const existingRoom = await this.roomsRepository.findOne({
+        where: { name: updateRoomDto.name, hotelId: room.hotelId },
+      });
+      if (existingRoom) {
+        throw new ConflictException(
+          `Room with name "${updateRoomDto.name}" already exists in this hotel`,
+        );
+      }
+    }
 
     const newPaths = newFiles.map((f) => `/uploads/rooms/${f.filename}`);
     const currentExisting = (existingImages as string[]) || [];

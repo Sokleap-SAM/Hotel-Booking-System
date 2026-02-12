@@ -1,4 +1,5 @@
 <template>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
   <header class="navbar">
     <div class="logo">CamBook</div>
     <nav class="nav-links">
@@ -7,16 +8,20 @@
       <a href="#" @click.prevent="goToMyBookings">My Bookings</a>
       <a href="#" @click.prevent="goToContact">Contact Us</a>
     </nav>
-    <button class="Profile" @click="isProfileOpen = true">
+    <button v-if="isAuthenticated" class="profile" @click="isProfileOpen = true">
       <i class="ri-user-line"></i>
     </button>
+    <button v-else class="login-btn" @click="goToLogin">Login</button>
     <ProfileDetail v-if="isProfileOpen" @close="isProfileOpen = false" />
   </header>
 </template>
 
 <script lang="ts">
+import { computed } from 'vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
 import ProfileDetail from '@/view/ProfileDetail.vue'
 export default {
   name: 'HeaderScreen',
@@ -27,6 +32,8 @@ export default {
     const isProfileOpen = ref(false)
 
     const router = useRouter()
+    const authStore = useAuthStore()
+    const isAuthenticated = computed(() => authStore.isAuthenticated)
 
     const goToLogin = () => {
       router.push('/login')
@@ -53,6 +60,7 @@ export default {
     }
 
     return {
+      isAuthenticated,
       goToLogin,
       goToHome,
       goToBooking,

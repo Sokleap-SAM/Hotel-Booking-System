@@ -10,9 +10,11 @@ import {
   ManyToMany,
   JoinTable,
   OneToMany,
+  Unique,
 } from 'typeorm';
 
 @Entity()
+@Unique(['name', 'hotelId'])
 export class Room {
   @PrimaryGeneratedColumn('uuid')
   id: string;

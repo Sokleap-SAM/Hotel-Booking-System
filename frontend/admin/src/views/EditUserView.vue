@@ -267,7 +267,12 @@ const handleUpdate = async () => {
     const result = await userStore.updateUser(user.value.id, updateData)
 
     if (!result.success) {
-      apiError.value = result.message || 'Failed to update user'
+      const errorResult = result as { errors?: Record<string, string>; message?: string }
+      if (errorResult.errors && Object.keys(errorResult.errors).length > 0) {
+        errors.value = { ...errors.value, ...errorResult.errors }
+      } else {
+        apiError.value = errorResult.message || 'Failed to update user'
+      }
       isUpdating.value = false
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
@@ -279,7 +284,8 @@ const handleUpdate = async () => {
     })
 
     if (!result.success) {
-      apiError.value = result.message || 'Failed to update user status'
+      const errorResult = result as { errors?: Record<string, string>; message?: string }
+      apiError.value = errorResult.message || 'Failed to update user status'
       isUpdating.value = false
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
@@ -317,6 +323,7 @@ watch(
   margin: 0 auto;
   padding: 40px;
   font-family: 'Lato', sans-serif;
+  box-sizing: border-box;
 }
 
 .form-header {

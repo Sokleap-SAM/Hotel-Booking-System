@@ -92,8 +92,34 @@ export default defineComponent({
     const router = useRouter()
     const hotelStore = useHotelStore()
 
-    // Locations
-    const locations = ['Siem Reap', 'Phnom Penh', 'Sihanoukville', 'Battambang', 'Kampot']
+    // Destinations (Cambodian provinces)
+    const locations = [
+      'Banteay Meanchey',
+      'Battambang',
+      'Kampong Cham',
+      'Kampong Chhnang',
+      'Kampong Speu',
+      'Kampong Thom',
+      'Kampot',
+      'Kandal',
+      'Kep',
+      'Koh Kong',
+      'Takéo',
+      'Mondulkiri',
+      'Oddar Meanchey',
+      'Pailin',
+      'Phnom Penh',
+      'Preah Sihanouk',
+      'Preah Vihear',
+      'Prey Veng',
+      'Pursat',
+      'Ratanakiri',
+      'Siem Reap',
+      'Stung Treng',
+      'Svay Rieng',
+      'Takeo',
+      'Tboung Khmum',
+    ]
     const destination = ref('')
     const showDestinationDropdown = ref(false)
 
@@ -126,7 +152,7 @@ export default defineComponent({
     // Initialize from route query params
     const initializeFromQuery = () => {
       const query = route.query
-      if (query.location) destination.value = String(query.location)
+      if (query.destination) destination.value = String(query.destination)
       if (query.checkIn) dateRange.value[0] = new Date(String(query.checkIn))
       if (query.checkOut) dateRange.value[1] = new Date(String(query.checkOut))
       if (query.adults) adults.value = parseInt(String(query.adults), 10)
@@ -137,7 +163,7 @@ export default defineComponent({
     const handleSearch = async () => {
       // Update URL with search params
       const query: Record<string, string> = {}
-      if (destination.value) query.location = destination.value
+      if (destination.value) query.destination = destination.value
       if (dateRange.value[0]) query.checkIn = dateRange.value[0].toISOString()
       if (dateRange.value[1]) query.checkOut = dateRange.value[1].toISOString()
       query.adults = String(adults.value)
@@ -149,7 +175,7 @@ export default defineComponent({
 
       // Perform search with availability check
       await hotelStore.searchHotelsWithAvailability({
-        location: destination.value || undefined,
+        destination: destination.value || undefined,
         checkIn: dateRange.value[0]?.toISOString(),
         checkOut: dateRange.value[1]?.toISOString(),
         guests: adults.value + children.value,
@@ -277,8 +303,8 @@ export default defineComponent({
 /* Dropdown Styles */
 .dropdown {
   position: absolute;
-  top: 100px;
-  left: 0;
+  top: 100%;
+  right: 0;
   width: 100%;
   background: white;
   border-radius: 8px;
@@ -286,6 +312,7 @@ export default defineComponent({
   z-index: 100;
   max-height: 200px;
   overflow-y: auto;
+  margin-top: 5px;
 }
 
 .dropdown-item {

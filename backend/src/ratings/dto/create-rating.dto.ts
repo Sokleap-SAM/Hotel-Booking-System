@@ -7,7 +7,7 @@ export class CreateRatingDto {
   @IsNumber()
   @Min(1)
   @Max(10)
-  staff: number;
+  service: number;
 
   @IsNumber()
   @Min(1)
@@ -28,11 +28,6 @@ export class CreateRatingDto {
   @Min(1)
   @Max(10)
   location: number;
-
-  @IsNumber()
-  @Min(1)
-  @Max(10)
-  wifi: number;
 
   @IsString()
   @IsOptional()

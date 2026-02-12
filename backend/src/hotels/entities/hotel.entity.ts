@@ -10,10 +10,32 @@ import {
   JoinTable,
 } from 'typeorm';
 
-export enum HotelStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  SUSPEND = 'suspend',
+export enum Destination {
+  BANTEAY_MEANCHEY = 'Banteay Meanchey',
+  BATTAMBANG = 'Battambang',
+  KAMPONG_CHAM = 'Kampong Cham',
+  KAMPONG_CHHNANG = 'Kampong Chhnang',
+  KAMPONG_SPEU = 'Kampong Speu',
+  KAMPONG_THOM = 'Kampong Thom',
+  KAMPOT = 'Kampot',
+  KANDAL = 'Kandal',
+  KEP = 'Kep',
+  KOH_KONG = 'Koh Kong',
+  TAKEO = 'Takéo',
+  MONDULKIRI = 'Mondulkiri',
+  ODDAR_MEANCHEY = 'Oddar Meanchey',
+  PAILIN = 'Pailin',
+  PHNOM_PENH = 'Phnom Penh',
+  PREAH_SIHANOUK = 'Preah Sihanouk',
+  PREAH_VIHEAR = 'Preah Vihear',
+  PREY_VENG = 'Prey Veng',
+  PURSAT = 'Pursat',
+  RATANAKIRI = 'Ratanakiri',
+  SIEM_REAP = 'Siem Reap',
+  STUNG_TRENG = 'Stung Treng',
+  SVAY_RIENG = 'Svay Rieng',
+  TAKEO_PROVINCE = 'Takeo',
+  TBOUNG_KHMUM = 'Tboung Khmum',
 }
 
 @Entity()
@@ -21,12 +43,15 @@ export class Hotel {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @Column({
     type: 'enum',
-    enum: HotelStatus,
-    default: HotelStatus.ACTIVE,
+    enum: Destination,
+    nullable: true,
   })
-  status: HotelStatus;
+  destination: Destination;
 
   @Column({ type: 'decimal', precision: 2, scale: 1, default: 0 })
   avgRating: number;
@@ -34,7 +59,7 @@ export class Hotel {
   @Column({ type: 'int', nullable: true, default: 0 })
   totalRating: number;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @Column()
@@ -59,7 +84,7 @@ export class Hotel {
   @Column()
   phoneNumber: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @OneToMany(() => Room, (room) => room.hotel)

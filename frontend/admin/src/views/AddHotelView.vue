@@ -16,6 +16,15 @@
         <span v-if="errors.name" class="error-text">{{ errors.name }}</span>
       </div>
 
+      <div class="form-group full-width">
+        <label>Destination</label>
+        <select v-model="form.destination" :class="{ 'input-error': errors.destination }">
+          <option value="">Select a destination</option>
+          <option v-for="dest in destinations" :key="dest" :value="dest">{{ dest }}</option>
+        </select>
+        <span v-if="errors.destination" class="error-text">{{ errors.destination }}</span>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Short Description</label>
@@ -113,8 +122,37 @@ const imagePreviews = ref<string[]>([]);
 const errors = ref<Record<string, string>>({});
 const router = useRouter();
 
+const destinations = [
+  'Banteay Meanchey',
+  'Battambang',
+  'Kampong Cham',
+  'Kampong Chhnang',
+  'Kampong Speu',
+  'Kampong Thom',
+  'Kampot',
+  'Kandal',
+  'Kep',
+  'Koh Kong',
+  'Takéo',
+  'Mondulkiri',
+  'Oddar Meanchey',
+  'Pailin',
+  'Phnom Penh',
+  'Preah Sihanouk',
+  'Preah Vihear',
+  'Prey Veng',
+  'Pursat',
+  'Ratanakiri',
+  'Siem Reap',
+  'Stung Treng',
+  'Svay Rieng',
+  'Takeo',
+  'Tboung Khmum',
+];
+
 const form = ref({
   name: '',
+  destination: '',
   shortDescription: '',
   longDescription: '',
   location: '',
@@ -189,6 +227,7 @@ watch(form, () => {
   margin: 0 auto;
   padding: 40px;
   font-family: 'Lato', sans-serif;
+  box-sizing: border-box;
 }
 
 .form-header {

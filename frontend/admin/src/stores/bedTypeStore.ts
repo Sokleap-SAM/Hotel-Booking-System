@@ -55,9 +55,7 @@ export const useBedTypeStore = defineStore('bedType', {
         this.bedTypes.push(data)
         return { success: true, data }
       } catch (error: unknown) {
-        const axiosError = error as { response?: { data?: { message?: string } } }
-        const message = axiosError.response?.data?.message || 'Failed to create bed type'
-        return { success: false, message }
+        return this.handleError(error, 'Failed to create bed type')
       }
     },
 
@@ -70,9 +68,7 @@ export const useBedTypeStore = defineStore('bedType', {
         }
         return { success: true, data }
       } catch (error: unknown) {
-        const axiosError = error as { response?: { data?: { message?: string } } }
-        const message = axiosError.response?.data?.message || 'Failed to update bed type'
-        return { success: false, message }
+        return this.handleError(error, 'Failed to update bed type')
       }
     },
 
@@ -85,6 +81,23 @@ export const useBedTypeStore = defineStore('bedType', {
         const axiosError = error as { response?: { data?: { message?: string } } }
         const message = axiosError.response?.data?.message || 'Failed to delete bed type'
         return { success: false, message }
+      }
+    },
+
+    handleError(error: unknown, defaultMessage: string) {
+      const axiosError = error as { response?: { data?: { message?: string } } }
+      const message = axiosError.response?.data?.message || defaultMessage
+      const fieldErrors: Record<string, string> = {}
+
+      const m = message.toLowerCase()
+      if (m.includes('name')) {
+        fieldErrors.name = message
+      }
+
+      return {
+        success: false,
+        errors: fieldErrors,
+        message,
       }
     },
   },

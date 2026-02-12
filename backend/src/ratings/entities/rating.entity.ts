@@ -30,7 +30,7 @@ export class Rating {
 
   // Category ratings (1-10 scale)
   @Column({ type: 'decimal', precision: 3, scale: 1 })
-  staff: number;
+  service: number;
 
   @Column({ type: 'decimal', precision: 3, scale: 1 })
   facilities: number;
@@ -43,9 +43,6 @@ export class Rating {
 
   @Column({ type: 'decimal', precision: 3, scale: 1 })
   location: number;
-
-  @Column({ type: 'decimal', precision: 3, scale: 1 })
-  wifi: number;
 
   // Overall score (1-5 scale, calculated from category averages)
   @Column({ type: 'decimal', precision: 2, scale: 1 })

@@ -3,24 +3,22 @@ import { defineStore } from 'pinia'
 import api from '../utils/api'
 
 export interface CategoryRatings {
-  staff: number
+  service: number
   facilities: number
   comfort: number
   value: number
   location: number
-  wifi: number
 }
 
 export interface Rating {
   id: string
   hotelId: string
   userId: number
-  staff: number
+  service: number
   facilities: number
   comfort: number
   value: number
   location: number
-  wifi: number
   overallScore: number
   comment: string | null
   createdAt: string
@@ -49,12 +47,11 @@ export interface HotelRatingsResponse {
 
 export interface CreateRatingPayload {
   hotelId: string
-  staff: number
+  service: number
   facilities: number
   comfort: number
   value: number
   location: number
-  wifi: number
   comment?: string
 }
 
@@ -109,6 +106,7 @@ export const useRatingStore = defineStore('rating', {
       } catch (err: any) {
         // User hasn't rated yet - that's fine
         this.userRating = null
+        console.error('Error fetching hotel ratings:', err)
       }
     },
 

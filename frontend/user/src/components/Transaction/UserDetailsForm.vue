@@ -32,20 +32,37 @@
       <div class="form-group">
         <label>Date of Birth <span class="required">*</span></label>
         <div class="date-input-container">
-          <input type="date" v-model="formData.dateOfBirth" class="date-picker" required />
+          <input 
+            type="date" 
+            v-model="formData.dateOfBirth" 
+            class="date-picker" 
+            :class="{ 'input-error': errors.dateOfBirth }"
+            :max="maxDateOfBirth"
+            required 
+          />
         </div>
+        <span v-if="errors.dateOfBirth" class="error-text">{{ errors.dateOfBirth }}</span>
       </div>
 
       <div class="form-group">
         <label>Phone number <span class="required">*</span></label>
-        <input type="tel" v-model="formData.phone" placeholder="+855..." required />
+        <input 
+          type="tel" 
+          v-model="formData.phone" 
+          placeholder="0XX XXX XXXX" 
+          :class="{ 'input-error': errors.phone }"
+          @input="formatPhone"
+          required 
+        />
+        <span v-if="errors.phone" class="error-text">{{ errors.phone }}</span>
+        <span class="help-text">Enter 9-10 digits (e.g., 012345678)</span>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, computed, watch } from 'vue'
+import { defineComponent, reactive, computed, watch, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useBookingStore } from '@/stores/bookingStore'
 
@@ -67,16 +84,70 @@ export default defineComponent({
       phone: bookingStore.guestDetails.phone || '',
     })
 
-    // Sync form data to bookingStore whenever it changes
+    const errors = ref<Record<string, string>>({})
+
+    // Calculate max date (must be at least 16 years old)
+    const maxDateOfBirth = computed(() => {
+      const date = new Date()
+      date.setFullYear(date.getFullYear() - 16)
+      return date.toISOString().split('T')[0]
+    })
+
+    // Validate date of birth (16+ years)
+    const validateDateOfBirth = (dateStr: string): string | null => {
+      if (!dateStr) return null
+      const birthDate = new Date(dateStr)
+      const today = new Date()
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+      if (age < 16) {
+        return 'You must be at least 16 years old to make a booking'
+      }
+      return null
+    }
+
+    // Validate phone number (9-10 digits)
+    const validatePhone = (phone: string): string | null => {
+      if (!phone) return null
+      const cleanedPhone = phone.replace(/\s+/g, '')
+      const phoneRegex = /^[0-9]{9,10}$/
+      if (!phoneRegex.test(cleanedPhone)) {
+        return 'Phone number must be between 9 and 10 digits'
+      }
+      return null
+    }
+
+    // Format phone input (remove non-digits)
+    const formatPhone = (e: Event) => {
+      const input = e.target as HTMLInputElement
+      formData.phone = input.value.replace(/[^0-9]/g, '').slice(0, 10)
+    }
+
+    // Sync form data to bookingStore and validate
     watch(
       () => ({ ...formData }),
       (newVal) => {
-        bookingStore.setGuestDetails(newVal.dateOfBirth, newVal.phone)
+        // Validate and update errors
+        const dobError = validateDateOfBirth(newVal.dateOfBirth)
+        const phoneError = validatePhone(newVal.phone)
+        
+        errors.value = {}
+        if (dobError) errors.value.dateOfBirth = dobError
+        if (phoneError) errors.value.phone = phoneError
+
+        // Only sync valid data to store
+        bookingStore.setGuestDetails(
+          dobError ? '' : newVal.dateOfBirth,
+          phoneError ? '' : newVal.phone
+        )
       },
       { deep: true }
     )
 
-    return { userData, formData }
+    return { userData, formData, errors, maxDateOfBirth, formatPhone }
   },
 })
 </script>
@@ -148,5 +219,20 @@ input,
 }
 .date-picker {
   font-family: inherit;
+}
+.input-error {
+  border-color: #dc3545 !important;
+}
+.error-text {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 5px;
+  display: block;
+}
+.help-text {
+  color: #666;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  display: block;
 }
 </style>

@@ -2,6 +2,14 @@
 import { defineStore } from 'pinia'
 import api from '@/utils/api'
 
+const fieldLabels: Record<string, string> = {
+  email: 'Email',
+  firstName: 'First Name',
+  lastName: 'Last Name',
+  password: 'Password',
+  roleIds: 'Roles',
+}
+
 export interface Role {
   id: number
   name: string
@@ -173,14 +181,7 @@ export const useUserStore = defineStore('user', {
         await this.fetchStats()
         return { success: true, data }
       } catch (error: unknown) {
-        const axiosError = error as { response?: { data?: { message?: string | string[] } } }
-        let message = 'Failed to create user'
-        if (axiosError.response?.data?.message) {
-          message = Array.isArray(axiosError.response.data.message)
-            ? axiosError.response.data.message.join(', ')
-            : axiosError.response.data.message
-        }
-        return { success: false, message }
+        return this.handleError(error)
       }
     },
 
@@ -191,14 +192,7 @@ export const useUserStore = defineStore('user', {
         await this.fetchStats()
         return { success: true, data }
       } catch (error: unknown) {
-        const axiosError = error as { response?: { data?: { message?: string | string[] } } }
-        let message = 'Failed to update user'
-        if (axiosError.response?.data?.message) {
-          message = Array.isArray(axiosError.response.data.message)
-            ? axiosError.response.data.message.join(', ')
-            : axiosError.response.data.message
-        }
-        return { success: false, message }
+        return this.handleError(error)
       }
     },
 
@@ -252,6 +246,37 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         console.error('Failed to fetch user:', error)
         return null
+      }
+    },
+
+    handleError(error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string | string[] } } }
+      const rawMessages = axiosError.response?.data?.message
+      const fieldErrors: Record<string, string> = {}
+
+      const messages = Array.isArray(rawMessages) ? rawMessages : [rawMessages || 'Server Error']
+
+      messages.forEach((msg: string) => {
+        const m = msg.toLowerCase()
+        let formattedMsg = msg
+
+        Object.keys(fieldLabels).forEach((key) => {
+          if (m.includes(key.toLowerCase()) && fieldLabels[key]) {
+            formattedMsg = msg.replace(new RegExp(key, 'gi'), fieldLabels[key] as string)
+          }
+        })
+
+        if (m.includes('email')) fieldErrors.email = formattedMsg
+        else if (m.includes('firstname') || m.includes('first name')) fieldErrors.firstName = formattedMsg
+        else if (m.includes('lastname') || m.includes('last name')) fieldErrors.lastName = formattedMsg
+        else if (m.includes('password')) fieldErrors.password = formattedMsg
+        else if (m.includes('role')) fieldErrors.roleIds = formattedMsg
+      })
+
+      return {
+        success: false,
+        errors: fieldErrors,
+        message: Object.values(fieldErrors)[0] || 'Please check the form for errors.',
       }
     },
   },

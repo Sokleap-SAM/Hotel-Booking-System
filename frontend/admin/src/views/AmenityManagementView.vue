@@ -109,8 +109,10 @@
             type="text"
             placeholder="Enter amenity name"
             class="form-input"
+            :class="{ 'input-error': createError }"
             @keyup.enter="createAmenity"
           />
+          <span v-if="createError" class="error-text">{{ createError }}</span>
         </div>
 
         <div class="form-group">
@@ -120,8 +122,6 @@
             <option value="room">Room Amenity</option>
           </select>
         </div>
-
-        <p v-if="createError" class="error-text">{{ createError }}</p>
 
         <div class="modal-actions">
           <button class="btn-cancel" @click="closeCreateModal">Cancel</button>
@@ -239,7 +239,8 @@ const createAmenity = async () => {
   if (result.success) {
     closeCreateModal()
   } else {
-    createError.value = result.message || 'Failed to create amenity'
+    const errorResult = result as { errors?: Record<string, string>; message?: string }
+    createError.value = errorResult.errors?.name || errorResult.message || 'Failed to create amenity'
   }
 
   isCreating.value = false
@@ -257,6 +258,8 @@ const closeCreateModal = () => {
 .page-container {
   padding: 50px;
   font-family: 'Lato', sans-serif;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .header {
@@ -443,6 +446,10 @@ td {
 
 .form-input:focus {
   border-color: #0D4798;
+}
+
+.input-error {
+  border-color: #cc0000 !important;
 }
 
 .error-text {

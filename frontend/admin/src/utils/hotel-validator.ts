@@ -1,3 +1,31 @@
+const VALID_DESTINATIONS = [
+  'Banteay Meanchey',
+  'Battambang',
+  'Kampong Cham',
+  'Kampong Chhnang',
+  'Kampong Speu',
+  'Kampong Thom',
+  'Kampot',
+  'Kandal',
+  'Kep',
+  'Koh Kong',
+  'Takéo',
+  'Mondulkiri',
+  'Oddar Meanchey',
+  'Pailin',
+  'Phnom Penh',
+  'Preah Sihanouk',
+  'Preah Vihear',
+  'Prey Veng',
+  'Pursat',
+  'Ratanakiri',
+  'Siem Reap',
+  'Stung Treng',
+  'Svay Rieng',
+  'Takeo',
+  'Tboung Khmum',
+];
+
 export const validateHotelForm = (data: any) => {
   const errors: Record<string, string> = {};
 
@@ -5,6 +33,11 @@ export const validateHotelForm = (data: any) => {
     errors.name = 'Hotel Name must be at least 3 characters.';
   } else if (data.name.trim().length > 30) {
     errors.name = 'Hotel Name cannot exceed 30 characters.';
+  }
+
+  // Destination validation (optional but must be valid if provided)
+  if (data.destination && !VALID_DESTINATIONS.includes(data.destination)) {
+    errors.destination = 'Please select a valid destination.';
   }
 
   const cleanedShortDescription = data.shortDescription ? data.shortDescription.trim() : '';

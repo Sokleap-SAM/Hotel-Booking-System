@@ -111,7 +111,7 @@
           </div>
         </div>
       </div>
-      
+
       <button class="btn-reserve" @click="handleReserve" :disabled="isCalculating">
         <span v-if="isCalculating">Calculating...</span>
         <span v-else>Reserve Now</span>
@@ -125,7 +125,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-//import { useBookingStore } from '@/stores/bookingStore'
+import { useBookingStore } from '@/stores/bookingStore'
+import { useAuthStore } from '@/stores/auth'
 import RoomDetailModal from './RoomDetailModal.vue'
 
 interface Room {
@@ -156,6 +157,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const bookingStore = useBookingStore()
+const authStore = useAuthStore()
 
 // State for Modal
 const isModalOpen = ref(false)
@@ -220,6 +222,12 @@ const handleRoomSelection = async (room: Room, event: Event) => {
 }
 
 const handleReserve = () => {
+  // Check if user is authenticated
+  if (!authStore.isAuthenticated) {
+    // Redirect to login page
+    router.push({ name: 'login' })
+    return
+  }
   // Navigate to transaction payment page
   router.push({ name: 'TransactionPayment' })
   emit('reserve')
@@ -230,7 +238,7 @@ onMounted(() => {
   // Clear any previous selections
   bookingStore.clearSelections()
   roomSelections.value = {}
-  
+
   if (props.hotelId && props.hotelName) {
     bookingStore.setHotelInfo({
       id: props.hotelId,

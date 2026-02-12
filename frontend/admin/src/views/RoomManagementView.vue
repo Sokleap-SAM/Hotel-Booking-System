@@ -76,6 +76,8 @@ const handleDeleteRoom = async (roomId: string, roomName: string) => {
   padding: 40px;
   background-color: #fff;
   font-family: sans-serif;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .header {

@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { Hotel, HotelStatus } from './entities/hotel.entity';
+import { Hotel } from './entities/hotel.entity';
 import { CreateHotelDto } from './dto/create_hotel.dto';
 import { UpdateHotelDto } from './dto/update_hotel.dto';
 import {
@@ -17,6 +19,7 @@ import { BookingItem } from '../booking/entities/booking-item.entity';
 import { BookingStatus } from '../booking/entities/booking.entity';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
+import { Destination } from './entities/hotel.entity';
 
 @Injectable()
 export class HotelsService {
@@ -32,6 +35,26 @@ export class HotelsService {
   async create(dto: CreateHotelDto, files: any[]): Promise<Hotel> {
     const { amenityIds, ...hotelData } = dto;
     const filePaths = files.map((f) => `/uploads/hotels/${f.filename}`);
+
+    const existingName = await this.hotelsRepository.findOne({
+      where: { name: dto.name },
+    });
+
+    if (existingName) {
+      throw new ConflictException(
+        `Hotel with name "${dto.name}" already exists`,
+      );
+    }
+
+    const existingEmail = await this.hotelsRepository.findOne({
+      where: { email: dto.email },
+    });
+
+    if (existingEmail) {
+      throw new ConflictException(
+        `Hotel with email "${dto.email}" already exists`,
+      );
+    }
 
     const amenities = await this.amenitiesRepository.find({
       where: {
@@ -51,6 +74,16 @@ export class HotelsService {
 
   async findAll(): Promise<Hotel[]> {
     return await this.hotelsRepository.find({
+      where: { isActive: true },
+      relations: ['rooms'],
+      order: {
+        name: 'ASC',
+      },
+    });
+  }
+
+  async findAllAdmin(): Promise<Hotel[]> {
+    return await this.hotelsRepository.find({
       relations: ['rooms'],
       order: {
         name: 'ASC',
@@ -59,6 +92,19 @@ export class HotelsService {
   }
 
   async findOne(id: string): Promise<Hotel> {
+    const hotel = await this.hotelsRepository.findOne({
+      where: { id, isActive: true },
+      relations: ['amenities', 'rooms'],
+    });
+
+    if (!hotel) {
+      throw new NotFoundException(`Hotel with ID ${id} not found`);
+    }
+
+    return hotel;
+  }
+
+  async findOneAdmin(id: string): Promise<Hotel> {
     const hotel = await this.hotelsRepository.findOne({
       where: { id },
       relations: ['amenities', 'rooms'],
@@ -76,8 +122,34 @@ export class HotelsService {
     dto: UpdateHotelDto,
     newFiles: any[],
   ): Promise<Hotel> {
-    const hotel = await this.findOne(id);
+    const hotel = await this.findOneAdmin(id);
+    if (!hotel) throw new NotFoundException(`Hotel with ${id} not found`);
+
     const { amenityIds, existingImages, ...rest } = dto;
+
+    // Check for duplicate name (only if name is being changed)
+    if (dto.name && dto.name !== hotel.name) {
+      const existingName = await this.hotelsRepository.findOne({
+        where: { name: dto.name },
+      });
+      if (existingName) {
+        throw new ConflictException(
+          `Hotel with name "${dto.name}" already exists`,
+        );
+      }
+    }
+
+    // Check for duplicate email (only if email is being changed)
+    if (dto.email && dto.email !== hotel.email) {
+      const existingEmail = await this.hotelsRepository.findOne({
+        where: { email: dto.email },
+      });
+      if (existingEmail) {
+        throw new ConflictException(
+          `Hotel with email "${dto.email}" already exists`,
+        );
+      }
+    }
 
     const newPaths = newFiles.map((f) => `/uploads/hotels/${f.filename}`);
     const currentExisting = (existingImages as string[]) || [];
@@ -118,7 +190,7 @@ export class HotelsService {
   }
 
   async remove(id: string): Promise<{ message: string }> {
-    const hotel = await this.findOne(id);
+    const hotel = await this.findOneAdmin(id);
     if (hotel.images) {
       for (const imagePath of hotel.images) {
         try {
@@ -140,7 +212,7 @@ export class HotelsService {
       .createQueryBuilder('hotel')
       .leftJoinAndSelect('hotel.rooms', 'room')
       .leftJoinAndSelect('hotel.amenities', 'amenity')
-      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .where('hotel.isActive = :isActive', { isActive: true })
       .orderBy('room.price', 'ASC')
       .getMany();
 
@@ -152,7 +224,7 @@ export class HotelsService {
       .createQueryBuilder('hotel')
       .leftJoinAndSelect('hotel.rooms', 'room')
       .leftJoinAndSelect('hotel.amenities', 'amenity')
-      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .where('hotel.isActive = :isActive', { isActive: true })
       .orderBy('room.price', 'DESC')
       .getMany();
 
@@ -162,7 +234,7 @@ export class HotelsService {
   async getAvailableHotelByHighestRating(): Promise<Hotel[]> {
     return await this.hotelsRepository.find({
       where: {
-        status: HotelStatus.ACTIVE,
+        isActive: true,
       },
       relations: ['rooms', 'amenities'],
       order: {
@@ -176,7 +248,7 @@ export class HotelsService {
   ): Promise<Hotel[]> {
     if (!amenityIds || amenityIds.length === 0) {
       return await this.hotelsRepository.find({
-        where: { status: HotelStatus.ACTIVE },
+        where: { isActive: true },
         relations: ['rooms', 'amenities'],
       });
     }
@@ -185,7 +257,7 @@ export class HotelsService {
       .createQueryBuilder('hotel')
       .leftJoinAndSelect('hotel.rooms', 'room')
       .leftJoinAndSelect('hotel.amenities', 'amenity')
-      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .where('hotel.isActive = :isActive', { isActive: true })
       .andWhere('amenity.id IN (:...amenityIds)', { amenityIds })
       .getMany();
 
@@ -198,7 +270,7 @@ export class HotelsService {
   async getAvailableHotelByBedType(bedTypeIds: number[]): Promise<Hotel[]> {
     if (!bedTypeIds || bedTypeIds.length === 0) {
       return await this.hotelsRepository.find({
-        where: { status: HotelStatus.ACTIVE },
+        where: { isActive: true },
         relations: ['rooms', 'amenities'],
       });
     }
@@ -209,7 +281,7 @@ export class HotelsService {
       .leftJoinAndSelect('room.roomBeds', 'roomBed')
       .leftJoinAndSelect('roomBed.bedType', 'bedType')
       .leftJoinAndSelect('hotel.amenities', 'amenity')
-      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .where('hotel.isActive = :isActive', { isActive: true })
       .andWhere('roomBed.bedTypeId IN (:...bedTypeIds)', { bedTypeIds })
       .getMany();
 
@@ -221,7 +293,7 @@ export class HotelsService {
       .createQueryBuilder('hotel')
       .leftJoinAndSelect('hotel.rooms', 'room')
       .leftJoinAndSelect('hotel.amenities', 'amenity')
-      .where('hotel.status = :status', { status: HotelStatus.ACTIVE })
+      .where('hotel.isActive = :isActive', { isActive: true })
       .andWhere('room.discountPercentage > 0')
       .orderBy('room.discountPercentage', 'DESC')
       .getMany();
@@ -238,13 +310,21 @@ export class HotelsService {
     checkOut?: Date,
     totalGuests?: number,
     roomsNeeded?: number,
+    destination?: Destination,
   ): Promise<any[]> {
     // Build base query
     let queryBuilder = this.hotelsRepository
       .createQueryBuilder('hotel')
       .leftJoinAndSelect('hotel.rooms', 'room')
       .leftJoinAndSelect('hotel.amenities', 'amenity')
-      .where('hotel.status = :status', { status: HotelStatus.ACTIVE });
+      .where('hotel.isActive = :isActive', { isActive: true });
+
+    // Filter by destination if provided
+    if (destination) {
+      queryBuilder = queryBuilder.andWhere('hotel.destination = :destination', {
+        destination,
+      });
+    }
 
     // Filter by location if provided
     if (location) {
@@ -313,6 +393,16 @@ export class HotelsService {
 
     // Filter hotels that have available rooms matching criteria
     return hotelsWithAvailability.filter((hotel) => hotel.hasAvailability);
+  }
+
+  async updateStatus(id: string, isActive: boolean): Promise<Hotel> {
+    const hotel = await this.findOneAdmin(id);
+    if (!hotel) {
+      throw new NotFoundException(`Hotel with ID ${id} not found`);
+    }
+
+    hotel.isActive = isActive;
+    return await this.hotelsRepository.save(hotel);
   }
 
   /**

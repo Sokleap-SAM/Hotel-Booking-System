@@ -1,7 +1,7 @@
 <template>
   <div class="cards-container">
     <div class="summary-card card-revenue">
-      <div class="card-icon">💰</div>
+      <!-- <div class="card-icon"></div> -->
       <div class="card-content">
         <span class="card-label">Total Revenue</span>
         <span class="card-value">${{ formatNumber(totalRevenue) }}</span>
@@ -9,7 +9,7 @@
     </div>
 
     <div class="summary-card card-users">
-      <div class="card-icon">👥</div>
+      <!-- <div class="card-icon"></div> -->
       <div class="card-content">
         <span class="card-label">Total Users</span>
         <span class="card-value">{{ formatNumber(totalUsers) }}</span>
@@ -17,7 +17,7 @@
     </div>
 
     <div class="summary-card card-bookings">
-      <div class="card-icon">📋</div>
+      <!-- <div class="card-icon"></div> -->
       <div class="card-content">
         <span class="card-label">Pending Bookings</span>
         <span class="card-value">{{ formatNumber(pendingBookings) }}</span>

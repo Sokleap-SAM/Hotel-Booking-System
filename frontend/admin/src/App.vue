@@ -21,11 +21,12 @@ const showNavigation = computed(() => route.path !== '/login')
 body {
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 .main-layout {
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
 }
 
 .content-area {
@@ -33,6 +34,9 @@ body {
   min-height: 100vh;
   background-color: #ffffff;
   overflow-y: auto;
+  overflow-x: hidden;
+  max-width: calc(100vw - 280px);
+  box-sizing: border-box;
 }
 
 .content-area.no-margin {

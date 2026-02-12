@@ -18,10 +18,12 @@
 
       <div class="form-group full-width">
         <label>Destination</label>
-        <select v-model="form.destination" :class="{ 'input-error': errors.destination }">
-          <option value="">Select a destination</option>
-          <option v-for="dest in destinations" :key="dest" :value="dest">{{ dest }}</option>
-        </select>
+        <div class="select-wrapper">
+          <select v-model="form.destination" :class="['custom-select', { 'input-error': errors.destination }]">
+            <option value="" disabled>Select a destination</option>
+            <option v-for="dest in destinations" :key="dest" :value="dest">{{ dest }}</option>
+          </select>
+        </div>
         <span v-if="errors.destination" class="error-text">{{ errors.destination }}</span>
       </div>
 
@@ -47,8 +49,10 @@
           <span v-if="errors.location" class="error-text">{{ errors.location }}</span>
         </div>
         <div class="form-group">
-          <label>Map link</label>
-          <input v-model="form.googleMapUrl" type="url" :class="{ 'input-error': errors.googleMapUrl }" />
+          <label>Google Map URL (Embed)</label>
+          <input v-model="form.googleMapUrl" type="url" :class="{ 'input-error': errors.googleMapUrl }"
+            placeholder="https://www.google.com/maps/embed?pb=..." />
+          <span class="helper-text">For Google Map URL: Please copy the src URL from iframe from Google Map</span>
           <span v-if="errors.googleMapUrl" class="error-text">{{ errors.googleMapUrl }}</span>
         </div>
       </div>
@@ -228,6 +232,8 @@ watch(form, () => {
   padding: 40px;
   font-family: 'Lato', sans-serif;
   box-sizing: border-box;
+  min-height: 100vh;
+  overflow: visible;
 }
 
 .form-header {
@@ -247,6 +253,7 @@ watch(form, () => {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow: visible;
 }
 
 .form-row {
@@ -286,6 +293,60 @@ input {
 
 input:focus {
   border-color: #0D4798;
+}
+
+.select-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+.select-wrapper::after {
+  content: '\25BC';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #666;
+  font-size: 12px;
+}
+
+select.custom-select {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border: 1px solid #D9D9D9;
+  font-size: 16px;
+  border-radius: 12px;
+  outline: none;
+  background-color: white;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color: #333;
+  font-family: inherit;
+  direction: ltr;
+}
+
+select.custom-select:focus {
+  border-color: #0D4798;
+  box-shadow: 0 0 0 3px rgba(13, 71, 152, 0.1);
+}
+
+select.custom-select option {
+  padding: 10px;
+  background-color: white;
+  color: #333;
+  direction: ltr;
+}
+
+select.custom-select option:hover {
+  background-color: #f0f4ff;
+}
+
+select.custom-select option:disabled {
+  color: #999;
 }
 
 .amenities-container {
@@ -442,6 +503,13 @@ input:focus {
 .error-text {
   color: #dc2626;
   font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.helper-text {
+  color: #666;
+  font-size: 0.75rem;
   margin-top: 0.25rem;
   display: block;
 }

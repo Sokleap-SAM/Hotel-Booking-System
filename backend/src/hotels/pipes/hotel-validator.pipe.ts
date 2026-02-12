@@ -45,29 +45,42 @@ export class HotelValidatorPipe implements PipeTransform {
 
   private validatePhoneNumber(phone: string): void {
     const cleanedPhone = phone.replace(/\s+/g, '');
-    const phoneRegex = /^[0-9]{9,10}$/;
 
-    if (!phoneRegex.test(cleanedPhone)) {
+    const internationalRegex = /^\+855[0-9]{8,9}$/;
+    const localRegex = /^[0-9]{9,10}$/;
+
+    if (
+      !internationalRegex.test(cleanedPhone) &&
+      !localRegex.test(cleanedPhone)
+    ) {
       throw new BadRequestException(
-        'Phone Number must be between 9 and 10 digits.',
+        'Phone Number must be 9-10 digits or in +855 format with 8-9 digits.',
       );
     }
   }
 
   private formatCambodianPhoneNumber(phone: string): string {
-    if (phone.startsWith('0')) {
-      return `+855${phone.substring(1)}`;
+    const cleanedPhone = phone.replace(/\s+/g, '');
+
+    if (cleanedPhone.startsWith('+855')) {
+      return cleanedPhone;
     }
-    return phone;
+
+    if (cleanedPhone.startsWith('0')) {
+      return `+855${cleanedPhone.substring(1)}`;
+    }
+    return cleanedPhone;
   }
 
   private validateGoogleMapDomain(url: string): void {
-    const isGoogle =
-      url.includes('google.com') ||
-      url.includes('goo.gl') ||
-      url.includes('googleusercontent.com');
-    if (!isGoogle) {
-      throw new BadRequestException('Please provide a valid Google Maps link.');
+    // Only accept Google Maps embed URLs for accurate map display
+    const isEmbedUrl =
+      url.includes('google.com/maps/embed') || url.includes('output=embed');
+
+    if (!isEmbedUrl) {
+      throw new BadRequestException(
+        'Please provide a Google Maps embed URL. Go to Google Maps → Share → Embed a map → Copy the src URL from the iframe code.',
+      );
     }
   }
 

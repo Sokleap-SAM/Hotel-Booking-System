@@ -22,6 +22,14 @@
       <div class="section-header">
         <h2>Hotel Revenue</h2>
         <div class="header-actions">
+          <div class="month-filter">
+            <select v-model="selectedMonth" @change="updateMonth" class="month-select">
+              <option :value="-1">All Months</option>
+              <option v-for="(month, index) in monthNames" :key="index" :value="index">
+                {{ month }}
+              </option>
+            </select>
+          </div>
           <div class="search-wrapper">
             <input
               v-model="searchQuery"
@@ -70,7 +78,7 @@
             <th>Email</th>
             <th>Total Revenue</th>
             <th>Avg Monthly Revenue</th>
-            <th>Room Count</th>
+            <th>{{ selectedMonth === -1 ? 'Year Revenue' : monthNames[selectedMonth] + ' Revenue' }}</th>
           </tr>
         </thead>
         <tbody>
@@ -95,7 +103,7 @@
             <td>{{ hotel.email }}</td>
             <td>${{ formatNumber(hotel.totalRevenue) }}</td>
             <td>${{ formatNumber(hotel.averageMonthlyRevenue) }}</td>
-            <td>{{ hotel.roomCount }}</td>
+            <td>${{ formatNumber(getMonthlyRevenue(hotel)) }}</td>
           </tr>
         </tbody>
       </table>
@@ -110,12 +118,28 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useDashboardStore } from '../stores/dashboardStore'
+import { useDashboardStore, type HotelRevenue } from '../stores/dashboardStore'
 import KpiCards from '@/components/dashboard/KpiCards.vue'
 import TrendCharts from '@/components/dashboard/TrendCharts.vue'
 
 const dashboardStore = useDashboardStore()
 const searchQuery = ref('')
+const selectedMonth = ref(-1) // -1 = all months, 0-11 = specific month
+
+const monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
 onMounted(() => {
   dashboardStore.fetchDashboardData()
@@ -123,6 +147,18 @@ onMounted(() => {
 
 const updateSearch = () => {
   dashboardStore.setSearchQuery(searchQuery.value)
+}
+
+const updateMonth = () => {
+  dashboardStore.setSelectedMonth(selectedMonth.value)
+}
+
+const getMonthlyRevenue = (hotel: HotelRevenue): number => {
+  if (selectedMonth.value === -1) {
+    // Return total year revenue (sum of all months)
+    return hotel.totalRevenue
+  }
+  return hotel.monthlyRevenue[selectedMonth.value] || 0
 }
 
 const formatNumber = (num: number): string => {
@@ -183,6 +219,26 @@ const formatNumber = (num: number): string => {
 }
 
 .search-input:focus {
+  border-color: #0D4798;
+}
+
+.month-filter {
+  display: flex;
+  align-items: center;
+}
+
+.month-select {
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: 1px solid #D9D9D9;
+  outline: none;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.month-select:focus {
   border-color: #0D4798;
 }
 

@@ -28,10 +28,7 @@ import { Destination } from './entities/hotel.entity';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('hotels')
 export class HotelsController {
-  constructor(
-    private readonly hotelsService: HotelsService,
-    private readonly hotelValidatorPipe: HotelValidatorPipe,
-  ) {}
+  constructor(private readonly hotelsService: HotelsService) {}
 
   @Roles('admin')
   @Post()

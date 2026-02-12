@@ -57,9 +57,15 @@ export const validateHotelForm = (data: any) => {
   }
 
   const cleanedGoogleMapUrl = data.googleMapUrl ? data.googleMapUrl.trim() : '';
-  const googleRegex = /(google\.com|goo\.gl|googleusercontent\.com)/;
-  if (!googleRegex.test(cleanedGoogleMapUrl)) {
-    errors.googleMapUrl = 'Please provide a valid Google Maps link.';
+  
+  // Only accept Google Maps embed URLs
+  const isEmbedUrl =
+    cleanedGoogleMapUrl.includes('google.com/maps/embed') ||
+    cleanedGoogleMapUrl.includes('output=embed');
+
+  if (!isEmbedUrl) {
+    errors.googleMapUrl =
+      'Please use a Google Maps embed URL. Go to Google Maps → Share → Embed a map → Copy the src URL.';
   }
 
   const hasStandard = Array.isArray(data.amenityIds) && data.amenityIds.length > 0;
@@ -78,9 +84,12 @@ export const validateHotelForm = (data: any) => {
 
   const phone = data.phoneNumber ? data.phoneNumber.trim() : '';
   const cleanedPhone = phone.replace(/\s+/g, '');
-  const phoneRegex = /^[0-9]{9,10}$/;
-  if (!cleanedPhone || !phoneRegex.test(cleanedPhone)) {
-    errors.phoneNumber = 'Phone number must be between 9 and 10 digits (numbers only).';
+  
+  const internationalRegex = /^\+855[0-9]{8,9}$/;
+  const localRegex = /^[0-9]{9,10}$/;
+  
+  if (!cleanedPhone || (!internationalRegex.test(cleanedPhone) && !localRegex.test(cleanedPhone))) {
+    errors.phoneNumber = 'Phone number must be 9-10 digits or in +855 format.';
   }
 
   return {

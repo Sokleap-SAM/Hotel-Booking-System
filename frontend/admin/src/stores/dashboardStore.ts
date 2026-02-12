@@ -7,7 +7,7 @@ export interface HotelRevenue {
   email: string
   totalRevenue: number
   averageMonthlyRevenue: number
-  roomCount: number
+  monthlyRevenue: Record<number, number> // 0-11 for Jan-Dec
 }
 
 export interface MonthlyRevenue {
@@ -32,6 +32,7 @@ interface DashboardState {
   error: string | null
   searchQuery: string
   sortBy: 'highest-revenue' | 'lowest-revenue' | 'highest-avg' | 'lowest-avg'
+  selectedMonth: number // 0-11 for Jan-Dec, -1 for all months
 }
 
 export const useDashboardStore = defineStore('dashboard', {
@@ -46,6 +47,7 @@ export const useDashboardStore = defineStore('dashboard', {
     error: null,
     searchQuery: '',
     sortBy: 'highest-revenue',
+    selectedMonth: -1, // -1 means all months
   }),
 
   getters: {
@@ -89,6 +91,10 @@ export const useDashboardStore = defineStore('dashboard', {
 
     setSortBy(sort: 'highest-revenue' | 'lowest-revenue' | 'highest-avg' | 'lowest-avg') {
       this.sortBy = sort
+    },
+
+    setSelectedMonth(month: number) {
+      this.selectedMonth = month
     },
 
     async fetchDashboardData() {
@@ -170,33 +176,45 @@ export const useDashboardStore = defineStore('dashboard', {
 
     calculateHotelRevenues(
       hotels: Array<{ id: string; name: string; email: string; rooms?: Array<{ id: string }> }>,
-      bookings: Array<{ 
-        id: string; 
-        status: string; 
-        totalPrice: number | string; 
-        createdAt: string;
-        bookingItems: Array<{ room: { hotel?: { id: string } } }> 
+      bookings: Array<{
+        id: string
+        status: string
+        totalPrice: number | string
+        createdAt: string
+        bookingItems: Array<{ room: { hotel?: { id: string } } }>
       }>,
-      payments: Array<{ bookingId: string; status: string; amount: number | string; completedAt: string | null }>
+      payments: Array<{
+        bookingId: string
+        status: string
+        amount: number | string
+        completedAt: string | null
+      }>
     ): HotelRevenue[] {
-      const hotelRevenueMap = new Map<string, { 
-        totalRevenue: number; 
-        monthlyRevenues: Map<string, number>;
-        roomCount: number;
-      }>()
+      const currentYear = new Date().getFullYear()
 
-      // Initialize hotel map
+      const hotelRevenueMap = new Map<
+        string,
+        {
+          totalRevenue: number
+          monthlyRevenue: Record<number, number> // 0-11 for Jan-Dec
+        }
+      >()
+
+      // Initialize hotel map with monthly revenue for each month
       hotels.forEach((hotel) => {
+        const monthlyRevenue: Record<number, number> = {}
+        for (let i = 0; i < 12; i++) {
+          monthlyRevenue[i] = 0
+        }
         hotelRevenueMap.set(hotel.id, {
           totalRevenue: 0,
-          monthlyRevenues: new Map(),
-          roomCount: hotel.rooms?.length || 0,
+          monthlyRevenue,
         })
       })
 
       // Calculate revenue from completed payments
       const completedPayments = payments.filter((p) => p.status === 'completed')
-      
+
       completedPayments.forEach((payment) => {
         const booking = bookings.find((b) => b.id === payment.bookingId)
         if (booking && booking.bookingItems?.length > 0) {
@@ -204,13 +222,16 @@ export const useDashboardStore = defineStore('dashboard', {
           if (hotelId && hotelRevenueMap.has(hotelId)) {
             const hotelData = hotelRevenueMap.get(hotelId)!
             const amount = parseFloat(String(payment.amount || 0))
-            hotelData.totalRevenue += amount
 
-            // Track monthly revenue
+            // Track monthly revenue for current year only
             if (payment.completedAt) {
-              const monthKey = payment.completedAt.substring(0, 7) // YYYY-MM
-              const currentMonthly = hotelData.monthlyRevenues.get(monthKey) || 0
-              hotelData.monthlyRevenues.set(monthKey, currentMonthly + amount)
+              const date = new Date(payment.completedAt)
+              if (date.getFullYear() === currentYear) {
+                const month = date.getMonth() // 0-11
+                hotelData.monthlyRevenue[month] =
+                  (hotelData.monthlyRevenue[month] || 0) + amount
+                hotelData.totalRevenue += amount
+              }
             }
           }
         }
@@ -218,14 +239,17 @@ export const useDashboardStore = defineStore('dashboard', {
 
       // Convert to array format
       return hotels.map((hotel) => {
-        const data = hotelRevenueMap.get(hotel.id) || { 
-          totalRevenue: 0, 
-          monthlyRevenues: new Map(),
-          roomCount: 0,
+        const data = hotelRevenueMap.get(hotel.id) || {
+          totalRevenue: 0,
+          monthlyRevenue: {},
         }
-        
-        const monthCount = Math.max(data.monthlyRevenues.size, 1)
-        const averageMonthlyRevenue = data.totalRevenue / monthCount
+
+        // Calculate average from months that have revenue
+        const monthsWithRevenue = Object.values(data.monthlyRevenue).filter(
+          (r) => r > 0
+        ).length
+        const averageMonthlyRevenue =
+          monthsWithRevenue > 0 ? data.totalRevenue / monthsWithRevenue : 0
 
         return {
           id: hotel.id,
@@ -233,7 +257,7 @@ export const useDashboardStore = defineStore('dashboard', {
           email: hotel.email,
           totalRevenue: data.totalRevenue,
           averageMonthlyRevenue: Math.round(averageMonthlyRevenue * 100) / 100,
-          roomCount: data.roomCount,
+          monthlyRevenue: data.monthlyRevenue,
         }
       })
     },

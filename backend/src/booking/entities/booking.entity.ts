@@ -15,6 +15,7 @@ export enum BookingStatus {
   CONFIRMED = 'confirmed',
   CANCELLED = 'cancelled',
   COMPLETED = 'completed',
+  FAILED = 'failed',
 }
 
 @Entity()
@@ -50,6 +51,9 @@ export class Booking {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  confirmedAt: Date;
 
   @OneToMany(() => BookingItem, (bookingItem) => bookingItem.booking, {
     cascade: true,

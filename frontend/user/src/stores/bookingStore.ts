@@ -22,6 +22,7 @@ export interface PriceBreakdownItem {
   pricePerNight: number
   nights: number
   discount: number
+  quantity: number
   itemTotal: number
 }
 
@@ -226,6 +227,7 @@ export const useBookingStore = defineStore('booking', {
           pricePerNight: discountedPrice,
           nights: this.nights,
           discount: sel.discount,
+          quantity: sel.quantity,
           itemTotal: Math.round(itemTotal * 100) / 100,
         })
 
@@ -354,6 +356,7 @@ export const useBookingStore = defineStore('booking', {
         pricePerNight: sel.pricePerNight,
         nights: this.nights,
         discount: sel.discount,
+        quantity: sel.quantity,
         itemTotal: sel.pricePerNight * sel.quantity * this.nights,
       }))
 

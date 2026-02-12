@@ -43,6 +43,11 @@
             <span>Rejection reason: {{ booking.rejectionReason }}</span>
           </div>
 
+          <div v-if="booking.status === 'failed'" class="status-info failed-info">
+            <i class="ri-error-warning-line"></i>
+            <span>{{ booking.rejectionReason || 'Booking failed' }}</span>
+          </div>
+
           <div v-if="booking.status === 'completed'" class="status-info completed-info">
             <i class="ri-star-smile-line"></i>
             <span>Stay completed! We'd love to hear about your experience.</span>
@@ -261,8 +266,8 @@
           </div>
 
           <!-- Rejection Reason -->
-          <div class="detail-section rejection" v-if="selectedBooking.status === 'cancelled' && selectedBooking.rejectionReason">
-            <h3 class="section-label"><i class="ri-error-warning-line"></i> Rejection Reason</h3>
+          <div class="detail-section rejection" v-if="(selectedBooking.status === 'cancelled' || selectedBooking.status === 'failed') && selectedBooking.rejectionReason">
+            <h3 class="section-label"><i class="ri-error-warning-line"></i> {{ selectedBooking.status === 'failed' ? 'Failure Reason' : 'Rejection Reason' }}</h3>
             <p>{{ selectedBooking.rejectionReason }}</p>
           </div>
         </div>
@@ -601,6 +606,11 @@ export default defineComponent({
   color: #0c5460;
 }
 
+.status-failed {
+  background: #f8d7da;
+  color: #dc3545;
+}
+
 .status-info {
   padding: 10px 20px;
   display: flex;
@@ -628,6 +638,11 @@ export default defineComponent({
 .rejected-info {
   background: #f8d7da;
   color: #721c24;
+}
+
+.failed-info {
+  background: #f8d7da;
+  color: #dc3545;
   border-bottom: 1px solid #f5c6cb;
 }
 

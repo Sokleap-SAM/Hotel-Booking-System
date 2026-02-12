@@ -64,6 +64,11 @@
             <span class="total-label">Total</span>
             <span class="total-price">${{ booking.totalPrice }}</span>
           </div>
+
+          <div v-if="booking.status === 'failed' && booking.rejectionReason" class="rejection-reason">
+            <i class="ri-error-warning-line"></i>
+            <span>{{ booking.rejectionReason }}</span>
+          </div>
         </div>
 
         <div class="button-wrapper">
@@ -286,6 +291,11 @@ onMounted(() => {
   color: white;
 }
 
+.status-badge.failed {
+  background: #dc3545;
+  color: white;
+}
+
 .booking-info {
   padding: 16px 20px;
   flex: 1;
@@ -369,5 +379,21 @@ onMounted(() => {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.rejection-reason {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #dc3545;
+  background: #f8d7da;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.rejection-reason i {
+  font-size: 14px;
 }
 </style>

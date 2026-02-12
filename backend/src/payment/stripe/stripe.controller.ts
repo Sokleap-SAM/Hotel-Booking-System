@@ -4,7 +4,6 @@ import {
   Controller,
   Post,
   Body,
-  Param,
   Get,
   Query,
   UseGuards,
@@ -44,11 +43,5 @@ export class StripeController {
     @Headers('stripe-signature') signature: string,
   ) {
     return this.stripeService.handleWebhook(req.rawBody!, signature);
-  }
-
-  @Roles('admin')
-  @Post(':id/refund')
-  processRefund(@Param('id') id: string) {
-    return this.stripeService.processRefund(id);
   }
 }

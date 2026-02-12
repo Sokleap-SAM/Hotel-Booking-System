@@ -6,14 +6,16 @@ import { Booking } from './entities/booking.entity';
 import { Room } from '../rooms/entities/room.entity';
 import { BookingItem } from './entities/booking-item.entity';
 import { RoomsModule } from '../rooms/rooms.module';
+import { BookingTasksService } from './booking-tasks.service';
+import { Payment } from '../payment/entities/payment.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Booking, Room, BookingItem]),
+    TypeOrmModule.forFeature([Booking, Room, BookingItem, Payment]),
     RoomsModule,
   ],
   controllers: [BookingController],
-  providers: [BookingService],
+  providers: [BookingService, BookingTasksService],
   exports: [BookingService],
 })
 export class BookingModule {}

@@ -16,7 +16,6 @@ import {
 import { Booking, BookingStatus } from 'src/booking/entities/booking.entity';
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto';
 import { StripeCheckoutResponseDto } from './dto/stripe-response.dto';
-import { PaymentStatusResponseDto } from '../dto/payment-response.dto';
 
 @Injectable()
 export class StripeService {
@@ -298,62 +297,6 @@ export class StripeService {
     }
 
     return { received: true };
-  }
-
-  /**
-   * Refund a completed Stripe payment.
-   */
-  async processRefund(paymentId: string): Promise<PaymentStatusResponseDto> {
-    if (!this.stripe) {
-      throw new BadRequestException('Stripe is not configured');
-    }
-
-    const payment = await this.paymentRepository.findOne({
-      where: { id: paymentId },
-    });
-
-    if (!payment) {
-      throw new NotFoundException('Payment not found');
-    }
-
-    if (payment.status !== PaymentStatus.COMPLETED) {
-      throw new BadRequestException('Only completed payments can be refunded');
-    }
-
-    if (payment.paymentMethod !== PaymentMethod.STRIPE) {
-      throw new BadRequestException('This is not a Stripe payment');
-    }
-
-    // Get payment intent from the checkout session
-    const session = await this.stripe.checkout.sessions.retrieve(
-      payment.stripeCheckoutSessionId,
-    );
-
-    if (!session.payment_intent) {
-      throw new BadRequestException('No payment intent found for this session');
-    }
-
-    await this.stripe.refunds.create({
-      payment_intent: session.payment_intent as string,
-    });
-
-    payment.status = PaymentStatus.REFUNDED;
-    await this.paymentRepository.save(payment);
-
-    await this.bookingRepository.update(payment.bookingId, {
-      status: BookingStatus.CANCELLED,
-    });
-
-    return {
-      paymentId: payment.id,
-      bookingId: payment.bookingId,
-      amount: Number(payment.amount),
-      paymentMethod: payment.paymentMethod,
-      status: payment.status,
-      transactionId: payment.transactionId,
-      completedAt: payment.completedAt,
-      failureReason: payment.failureReason,
-    };
   }
 
   private async handleCheckoutSessionCompleted(

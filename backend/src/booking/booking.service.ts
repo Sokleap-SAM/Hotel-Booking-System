@@ -46,6 +46,45 @@ export class BookingService {
     let totalPrice = 0;
     const bookingItems: Partial<BookingItem>[] = [];
 
+    // Group selections by roomId to validate total quantity per room type
+    const roomQuantities = new Map<string, number>();
+    for (const selection of roomSelections) {
+      const count = roomQuantities.get(selection.roomId) || 0;
+      roomQuantities.set(selection.roomId, count + 1);
+    }
+
+    // Validate availability for each room type before processing
+    for (const [roomId, requestedQuantity] of roomQuantities) {
+      const room = await this.roomRepository.findOne({
+        where: { id: roomId },
+      });
+
+      if (!room) {
+        throw new NotFoundException(`Room with id ${roomId} not found`);
+      }
+
+      // Use dates from first selection for this room
+      const firstSelection = roomSelections.find((s) => s.roomId === roomId);
+      if (!firstSelection) {
+        throw new NotFoundException(`No selection found for room ${roomId}`);
+      }
+      const checkIn = new Date(firstSelection.checkIn);
+      const checkOut = new Date(firstSelection.checkOut);
+
+      const availableCount = await this.roomsService.getAvailableRoomCount(
+        roomId,
+        checkIn,
+        checkOut,
+      );
+
+      if (availableCount < requestedQuantity) {
+        throw new BadRequestException(
+          `Room "${room.name}" only has ${availableCount} available for the selected dates, but you requested ${requestedQuantity}`,
+        );
+      }
+    }
+
+    // Process each room selection
     for (const selection of roomSelections) {
       const room = await this.roomRepository.findOne({
         where: { id: selection.roomId },
@@ -63,19 +102,6 @@ export class BookingService {
       if (checkOut <= checkIn) {
         throw new BadRequestException(
           'Check-out date must be after check-in date',
-        );
-      }
-
-      // Check room availability for the date range
-      const availableCount = await this.roomsService.getAvailableRoomCount(
-        room.id,
-        checkIn,
-        checkOut,
-      );
-
-      if (availableCount < 1) {
-        throw new BadRequestException(
-          `Room "${room.name}" is not available for the selected dates`,
         );
       }
 
@@ -196,6 +222,7 @@ export class BookingService {
     }
 
     booking.status = BookingStatus.CONFIRMED;
+    booking.confirmedAt = new Date();
     return await this.bookingRepository.save(booking);
   }
 
@@ -214,14 +241,18 @@ export class BookingService {
   async calculatePrice(createBookingDto: CreateBookingDto) {
     const { roomSelections } = createBookingDto;
     let subtotal = 0;
-    const items: {
-      roomId: string;
-      roomName: string;
-      pricePerNight: number;
-      nights: number;
-      discount: number;
-      itemTotal: number;
-    }[] = [];
+    const itemsMap = new Map<
+      string,
+      {
+        roomId: string;
+        roomName: string;
+        pricePerNight: number;
+        nights: number;
+        discount: number;
+        quantity: number;
+        itemTotal: number;
+      }
+    >();
 
     for (const selection of roomSelections) {
       const room = await this.roomRepository.findOne({
@@ -245,17 +276,31 @@ export class BookingService {
       const discountedPrice = basePrice * (1 - discount / 100);
       const itemTotal = discountedPrice * nights;
 
-      subtotal += itemTotal;
+      // Group by roomId - each selection represents 1 unit
+      const existingItem = itemsMap.get(room.id);
+      if (existingItem) {
+        existingItem.quantity += 1;
+        existingItem.itemTotal += itemTotal;
+      } else {
+        itemsMap.set(room.id, {
+          roomId: room.id,
+          roomName: room.name,
+          pricePerNight: discountedPrice,
+          nights,
+          discount,
+          quantity: 1,
+          itemTotal,
+        });
+      }
 
-      items.push({
-        roomId: room.id,
-        roomName: room.name,
-        pricePerNight: discountedPrice,
-        nights,
-        discount,
-        itemTotal: Math.round(itemTotal * 100) / 100,
-      });
+      subtotal += itemTotal;
     }
+
+    // Convert map to array and round values
+    const items = Array.from(itemsMap.values()).map((item) => ({
+      ...item,
+      itemTotal: Math.round(item.itemTotal * 100) / 100,
+    }));
 
     const tax = subtotal * 0.1;
     const total = subtotal + tax;

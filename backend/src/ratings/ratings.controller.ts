@@ -42,6 +42,12 @@ export class RatingsController {
   }
 
   @Roles('admin', 'user')
+  @Get('booking/:bookingId')
+  getRatingByBookingId(@Param('bookingId') bookingId: string, @Request() req) {
+    return this.ratingsService.getRatingByBookingId(bookingId, req.user.id);
+  }
+
+  @Roles('admin', 'user')
   @Get('my-ratings')
   findMyRatings(@Request() req) {
     return this.ratingsService.findByUser(req.user.id);

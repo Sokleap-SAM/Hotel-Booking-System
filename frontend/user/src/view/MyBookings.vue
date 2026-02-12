@@ -126,11 +126,18 @@
                 Cancel Booking
               </button>
               <button
-                v-if="booking.status === 'completed'"
+                v-if="booking.status === 'completed' && !bookingRatings[booking.id]"
                 class="btn-rate"
                 @click="openRatingModal(booking)"
               >
                 <i class="ri-star-line"></i> Rate
+              </button>
+              <button
+                v-if="booking.status === 'completed' && bookingRatings[booking.id]"
+                class="btn-view-rate"
+                @click="viewRating(booking)"
+              >
+                <i class="ri-star-fill"></i> View Rate
               </button>
             </div>
           </div>
@@ -278,12 +285,13 @@
 
     <!-- Rating Modal -->
     <RatingModal
-      v-if="ratingBooking"
-      :hotel-id="ratingBooking.bookingItems[0]?.room?.hotel?.id || ''"
+      v-if="ratingBooking && ratingBooking.bookingItems[0]?.room?.hotel?.id"
+      :hotel-id="ratingBooking.bookingItems[0].room.hotel.id"
+      :booking-id="ratingBooking.id"
       :hotel-name="ratingBooking.bookingItems[0]?.room?.hotel?.name || 'Hotel'"
       :hotel-location="ratingBooking.bookingItems[0]?.room?.hotel?.location || ''"
       :hotel-image="getHotelImage(ratingBooking)"
-      :existing-rating="userRatingForHotel"
+      :existing-rating="bookingRatingData"
       @close="closeRatingModal"
       @rated="handleRated"
     />
@@ -313,7 +321,8 @@ export default defineComponent({
     const backgroundHeader = { backgroundImage: `url(${background})` }
     const selectedBooking = ref<any>(null)
     const ratingBooking = ref<any>(null)
-    const userRatingForHotel = ref<Rating | null>(null)
+    const bookingRatingData = ref<Rating | null>(null)
+    const bookingRatings = ref<Record<string, Rating>>({})
 
     const formatDate = (dateStr: string) => {
       if (!dateStr) return 'N/A'
@@ -378,26 +387,68 @@ export default defineComponent({
     }
 
     const openRatingModal = async (booking: any) => {
-      ratingBooking.value = booking
       const hotelId = booking.bookingItems?.[0]?.room?.hotel?.id
-      if (hotelId) {
-        await ratingStore.fetchUserRatingForHotel(hotelId)
-        userRatingForHotel.value = ratingStore.userRating
+      if (!hotelId) {
+        console.error('Cannot open rating modal: Hotel ID not found in booking')
+        return
       }
+      
+      // Clear previous rating data first
+      bookingRatingData.value = null
+      
+      // Fetch fresh rating data for this booking
+      await ratingStore.fetchRatingByBookingId(booking.id)
+      bookingRatingData.value = ratingStore.bookingRating
+      
+      // Only show modal after data is loaded
+      ratingBooking.value = booking
     }
 
     const closeRatingModal = () => {
       ratingBooking.value = null
-      userRatingForHotel.value = null
+      bookingRatingData.value = null
     }
 
-    const handleRated = () => {
-      // Rating submitted successfully
+    const viewRating = async (booking: any) => {
+      const hotelId = booking.bookingItems?.[0]?.room?.hotel?.id
+      if (!hotelId) {
+        console.error('Cannot view rating: Hotel ID not found in booking')
+        return
+      }
+      
+      // Fetch the rating for this booking
+      await ratingStore.fetchRatingByBookingId(booking.id)
+      bookingRatingData.value = ratingStore.bookingRating
+      
+      // Open modal to view rating
+      ratingBooking.value = booking
+    }
+
+    const handleRated = (rating: Rating) => {
+      // Rating submitted successfully - store it in our lookup
+      if (ratingBooking.value) {
+        bookingRatings.value[ratingBooking.value.id] = rating
+      }
       closeRatingModal()
+      // Refresh bookings to update UI
+      bookingStore.fetchMyBookings()
     }
 
-    onMounted(() => {
-      bookingStore.fetchMyBookings()
+    const fetchBookingRatings = async () => {
+      // Fetch ratings for all completed bookings
+      const completedBookings = bookingStore.bookings.filter(b => b.status === 'completed')
+      for (const booking of completedBookings) {
+        await ratingStore.fetchRatingByBookingId(booking.id)
+        if (ratingStore.bookingRating) {
+          bookingRatings.value[booking.id] = ratingStore.bookingRating
+        }
+      }
+    }
+
+    onMounted(async () => {
+      await bookingStore.fetchMyBookings()
+      // After fetching bookings, check which ones have ratings
+      await fetchBookingRatings()
     })
 
     return { 
@@ -413,9 +464,11 @@ export default defineComponent({
       handleCancel, 
       handlePayNow,
       ratingBooking,
-      userRatingForHotel,
+      bookingRatingData,
+      bookingRatings,
       openRatingModal,
       closeRatingModal,
+      viewRating,
       handleRated,
     }
   },
@@ -860,6 +913,31 @@ export default defineComponent({
 }
 
 .btn-rate i {
+  font-size: 1rem;
+}
+
+.btn-view-rate {
+  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-view-rate:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.btn-view-rate i {
   font-size: 1rem;
 }
 

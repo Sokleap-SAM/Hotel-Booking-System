@@ -23,7 +23,7 @@
           <i class="ri-checkbox-circle-fill"></i>
           <p>You have already rated this hotel. Thank you for your feedback!</p>
           <div class="existing-rating">
-            <span class="overall-score">{{ existingRating?.overallScore }}</span>
+            <span class="overall-score">{{ existingRating?.overallScore || 'N/A' }}</span>
             <span class="out-of">/5</span>
           </div>
         </div>
@@ -71,16 +71,22 @@
       </div>
 
       <div class="modal-footer">
-        <button class="btn-cancel" @click="$emit('close')">Cancel</button>
-        <button
-          v-if="!hasExistingRating"
-          class="btn-submit"
-          @click="submitRating"
-          :disabled="isSubmitting"
-        >
-          <i v-if="isSubmitting" class="ri-loader-4-line spinning"></i>
-          <span v-else>Submit Rating</span>
-        </button>
+        <div v-if="ratingStore.error" class="error-message">
+          <i class="ri-error-warning-line"></i>
+          {{ ratingStore.error }}
+        </div>
+        <div class="footer-buttons">
+          <button class="btn-cancel" @click="$emit('close')">Cancel</button>
+          <button
+            v-if="!hasExistingRating"
+            class="btn-submit"
+            @click="submitRating"
+            :disabled="isSubmitting"
+          >
+            <i v-if="isSubmitting" class="ri-loader-4-line spinning"></i>
+            <span v-else>Submit Rating</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -91,7 +97,7 @@ import { defineComponent, ref, computed, type PropType } from 'vue'
 import { useRatingStore, type Rating } from '@/stores/ratingStore'
 
 interface RatingValues {
-  staff: number
+  service: number
   facilities: number
   comfort: number
   value: number
@@ -102,6 +108,10 @@ export default defineComponent({
   name: 'RatingModal',
   props: {
     hotelId: {
+      type: String,
+      required: true,
+    },
+    bookingId: {
       type: String,
       required: true,
     },
@@ -127,7 +137,7 @@ export default defineComponent({
     const ratingStore = useRatingStore()
 
     const categories = [
-      { key: 'staff' as keyof RatingValues, label: 'Staff', icon: 'ri-user-smile-line' },
+      { key: 'service' as keyof RatingValues, label: 'Staff', icon: 'ri-user-smile-line' },
       { key: 'facilities' as keyof RatingValues, label: 'Facilities', icon: 'ri-building-2-line' },
       { key: 'comfort' as keyof RatingValues, label: 'Comfort', icon: 'ri-hotel-bed-line' },
       { key: 'value' as keyof RatingValues, label: 'Value for Money', icon: 'ri-money-dollar-circle-line' },
@@ -135,7 +145,7 @@ export default defineComponent({
     ]
 
     const ratings = ref<RatingValues>({
-      staff: 7,
+      service: 7,
       facilities: 7,
       comfort: 7,
       value: 7,
@@ -145,11 +155,15 @@ export default defineComponent({
     const comment = ref('')
     const isSubmitting = ref(false)
 
-    const hasExistingRating = computed(() => props.existingRating !== null)
+    const hasExistingRating = computed(() => {
+      return props.existingRating !== null && 
+             props.existingRating !== undefined && 
+             typeof props.existingRating.overallScore === 'number'
+    })
 
     const calculateOverallScore = computed(() => {
       const sum =
-        ratings.value.staff +
+        ratings.value.service +
         ratings.value.facilities +
         ratings.value.comfort +
         ratings.value.value +
@@ -160,11 +174,25 @@ export default defineComponent({
     })
 
     const submitRating = async () => {
+      // Validate hotelId before submitting
+      if (!props.hotelId) {
+        ratingStore.error = 'Hotel ID is missing. Please close and try again.'
+        return
+      }
+      
+      if (!props.bookingId) {
+        ratingStore.error = 'Booking ID is missing. Please close and try again.'
+        return
+      }
+      
       isSubmitting.value = true
+      ratingStore.error = null
+      
       try {
         const result = await ratingStore.submitRating({
           hotelId: props.hotelId,
-          staff: ratings.value.staff,
+          bookingId: props.bookingId,
+          service: ratings.value.service,
           facilities: ratings.value.facilities,
           comfort: ratings.value.comfort,
           value: ratings.value.value,
@@ -184,6 +212,7 @@ export default defineComponent({
     }
 
     return {
+      ratingStore,
       categories,
       ratings,
       comment,
@@ -472,10 +501,32 @@ export default defineComponent({
 /* Modal Footer */
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: 12px;
   padding: 20px 24px;
   border-top: 1px solid #eee;
+}
+
+.footer-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #c33;
+  font-size: 0.9rem;
+}
+
+.error-message i {
+  font-size: 1.2rem;
 }
 
 .btn-cancel {

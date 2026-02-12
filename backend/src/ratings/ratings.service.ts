@@ -48,13 +48,13 @@ export class RatingsService {
       throw new NotFoundException('Hotel not found');
     }
 
-    // Check if user already rated this hotel
+    // Check if user already rated this booking
     const existingRating = await this.ratingRepository.findOne({
-      where: { hotelId: createRatingDto.hotelId, userId },
+      where: { bookingId: createRatingDto.bookingId, userId },
     });
 
     if (existingRating) {
-      throw new BadRequestException('You have already rated this hotel');
+      throw new BadRequestException('You have already rated this booking');
     }
 
     const overallScore = this.calculateOverallScore(createRatingDto);
@@ -273,6 +273,15 @@ export class RatingsService {
   ): Promise<Rating | null> {
     return this.ratingRepository.findOne({
       where: { hotelId, userId },
+    });
+  }
+
+  async getRatingByBookingId(
+    bookingId: string,
+    userId: number,
+  ): Promise<Rating | null> {
+    return this.ratingRepository.findOne({
+      where: { bookingId, userId },
     });
   }
 }

@@ -13,6 +13,7 @@ export interface CategoryRatings {
 export interface Rating {
   id: string
   hotelId: string
+  bookingId?: string
   userId: number
   service: number
   facilities: number
@@ -47,6 +48,7 @@ export interface HotelRatingsResponse {
 
 export interface CreateRatingPayload {
   hotelId: string
+  bookingId: string
   service: number
   facilities: number
   comfort: number
@@ -63,6 +65,9 @@ export const useRatingStore = defineStore('rating', {
     
     // User's rating for current hotel
     userRating: null as Rating | null,
+    
+    // User's rating for current booking
+    bookingRating: null as Rating | null,
     
     // User's all ratings
     myRatings: [] as Rating[],
@@ -104,9 +109,30 @@ export const useRatingStore = defineStore('rating', {
         const response = await api.get<Rating | null>(`/ratings/hotel/${hotelId}/user`)
         this.userRating = response.data
       } catch (err: any) {
-        // User hasn't rated yet - that's fine
-        this.userRating = null
-        console.error('Error fetching hotel ratings:', err)
+        // If it's a 404 or the data is null, user simply hasn't rated yet
+        if (err.response?.status === 404 || err.response?.data === null) {
+          this.userRating = null
+        } else {
+          // For other errors, also set to null but log the error
+          this.userRating = null
+          console.error('Error fetching user rating for hotel:', err)
+        }
+      }
+    },
+
+    async fetchRatingByBookingId(bookingId: string) {
+      this.bookingRating = null
+      try {
+        const response = await api.get<Rating | null>(`/ratings/booking/${bookingId}`)
+        this.bookingRating = response.data
+      } catch (err: any) {
+        // If it's a 404 or the data is null, user simply hasn't rated this booking yet
+        if (err.response?.status === 404 || err.response?.data === null) {
+          this.bookingRating = null
+        } else {
+          this.bookingRating = null
+          console.error('Error fetching rating for booking:', err)
+        }
       }
     },
 
@@ -199,6 +225,7 @@ export const useRatingStore = defineStore('rating', {
       this.hotelRatings = []
       this.ratingSummary = null
       this.userRating = null
+      this.bookingRating = null
       this.error = null
     },
   },

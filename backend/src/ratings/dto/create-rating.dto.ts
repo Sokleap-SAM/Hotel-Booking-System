@@ -4,6 +4,9 @@ export class CreateRatingDto {
   @IsString()
   hotelId: string;
 
+  @IsString()
+  bookingId: string;
+
   @IsNumber()
   @Min(1)
   @Max(10)

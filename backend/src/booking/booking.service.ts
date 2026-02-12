@@ -119,7 +119,11 @@ export class BookingService {
   async findAllByUser(userId: string) {
     return await this.bookingRepository.find({
       where: { userId },
-      relations: ['bookingItems', 'bookingItems.room'],
+      relations: [
+        'bookingItems',
+        'bookingItems.room',
+        'bookingItems.room.hotel',
+      ],
       order: { createdAt: 'DESC' },
     });
   }

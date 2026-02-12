@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Hotel } from 'src/hotels/entities/hotel.entity';
 import { User } from 'src/auth/user/entities/user.entity';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 @Entity()
 export class Rating {
@@ -27,6 +28,13 @@ export class Rating {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @Column({ nullable: true })
+  bookingId: string;
+
+  @ManyToOne(() => Booking, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'bookingId' })
+  booking: Booking;
 
   // Category ratings (1-10 scale)
   @Column({ type: 'decimal', precision: 3, scale: 1 })

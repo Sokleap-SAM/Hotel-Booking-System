@@ -1,19 +1,13 @@
 <template>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
-  <div class="bookingpage" :style="backgroundHeader">
-    <div class="RowHeader">
-      <div class="title" @click="goToHome" style="cursor: pointer;">CamBook.com</div>
-      <div class="nav-actions">
-        <router-link to="/home" class="nav-link">Home</router-link>
-        <router-link to="/MyBookings" class="nav-link">My Bookings</router-link>
-        <button class="Profile" @click="isProfileOpen = true">
-          <i class="ri-user-line"></i>
-        </button>
-      </div>
+  <div class="bookingpage-wrapper">
+    <div class="bookingpage-hero" :style="backgroundHeader">
+      <MenuPanel />
     </div>
-    <MenuPanel />
-    <FilterPanel />
-    <ViewHotelDetail />
+    <div class="content-area">
+      <FilterPanel />
+      <ViewHotelDetail />
+    </div>
 
     <ProfileDetail v-if="isProfileOpen" @close="isProfileOpen = false" />
   </div>
@@ -58,67 +52,23 @@ export default {
 </script>
 
 <style scoped>
-.bookingpage {
-  /* 1. Set a specific height to 'cut' the bottom of the image */
-  height: 250px;
+.bookingpage-wrapper {
+  font-family: 'Lato', sans-serif;
+}
 
-  /* 2. Anchor the image to the TOP so the sky and temple tops stay visible */
+.bookingpage-hero {
+  height: 280px;
   background-position: center 50%;
-
-  /* 3. Scale the image to cover the entire width of the header */
   background-size: cover;
-
-  /* 4. Prevent the image from repeating if the container is wider than the image */
   background-repeat: no-repeat;
+  width: 100%;
+  position: relative;
+}
 
-  /* Optional: Alignment for your logo and icons */
+.content-area {
   display: flex;
-  align-items: flex-start; /* Keeps content at the top */
-  padding: 20px 80px;
-  width: 100%;
-  font-family: 'Lato', sans-serif;
-}
-.RowHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-.title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: white;
-  font-family: 'Lato', sans-serif;
-}
-.Profile {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: white;
-}
-.Profile:hover {
-  background-color: #5a70d4;
-  cursor: pointer;
-}
-.Profile i {
-  font-size: 24px;
-  color: #0d4798;
-  line-height: 50px;
-  text-align: center;
-  display: block;
-}
-.nav-actions {
-  display: flex;
-  align-items: center;
   gap: 30px;
-}
-.nav-link {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 1rem;
-}
-.nav-link:hover {
-  text-decoration: underline;
+  padding: 100px 80px 50px 80px;
+  min-height: 600px;
 }
 </style>

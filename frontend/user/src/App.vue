@@ -1,7 +1,23 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import MainLayout from '@/layouts/MainLayout.vue'
+
+const route = useRoute()
+
+// Pages that should NOT have the main header/footer layout
+const excludedRoutes = ['login', 'signup', 'ForgotPassword', 'reset-password', 'login-success']
+
+const useMainLayout = computed(() => {
+  return !excludedRoutes.includes(route.name as string) && !route.path.startsWith('/auth')
+})
+</script>
 
 <template>
-  <router-view />
+  <MainLayout v-if="useMainLayout">
+    <router-view />
+  </MainLayout>
+  <router-view v-else />
 </template>
 
 <style>

@@ -2,11 +2,7 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
 
   <div class="confirmation-page">
-    <header class="blue-header" :style="backgroundHeader">
-      <nav class="nav-bar">
-        <div class="logo">CamBook.com</div>
-      </nav>
-    </header>
+    <div class="hero-banner" :style="backgroundHeader"></div>
 
     <main class="confirmation-content">
       <div class="confirmation-card">
@@ -50,8 +46,6 @@
         </div>
       </div>
     </main>
-
-    <FooterScreen />
   </div>
 </template>
 
@@ -60,11 +54,9 @@ import { defineComponent, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBookingStore } from '@/stores/bookingStore'
 import background from '@/assets/Background2.png'
-import FooterScreen from '@/components/homepage/FooterScreen.vue'
 
 export default defineComponent({
   name: 'BookingConfirmation',
-  components: { FooterScreen },
   setup() {
     const router = useRouter()
     const bookingStore = useBookingStore()
@@ -89,23 +81,10 @@ export default defineComponent({
   flex-direction: column;
 }
 
-.blue-header {
+.hero-banner {
   height: 200px;
   background-position: center;
   background-size: cover;
-  padding: 20px 80px;
-}
-
-.nav-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: white;
 }
 
 .confirmation-content {

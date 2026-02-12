@@ -4,7 +4,7 @@
     <div v-if="hotelStore.isLoading" class="loading">Loading hotels...</div>
     <div v-else-if="hotelStore.hotels.length === 0" class="no-hotels">No hotels available</div>
 
-    <div v-for="hotel in hotelStore.hotels" :key="hotel.id" class="container">
+    <div v-for="hotel in popularHotels" :key="hotel.id" class="container">
       <div class="containerImg" :style="{ backgroundImage: `url(${getHotelImage(hotel)})` }">
         </div>
 
@@ -33,35 +33,55 @@
 
 <script setup lang="ts">
 import { useHotelStore } from '@/stores/hotelStores'
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+
+interface Room {
+  id: string
+  name: string
+  price: number | string
+}
+
+interface Hotel {
+  id: string
+  name: string
+  location: string
+  images?: string[]
+  avgRating?: number | string
+  rooms?: Room[]
+}
 
 const hotelStore = useHotelStore()
 const router = useRouter()
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+// Limit to max 4 hotels
+const popularHotels = computed(() => hotelStore.hotels.slice(0, 4) as Hotel[])
+
 onMounted(() => {
   hotelStore.fetchHotels()
 })
 
-const getHotelImage = (hotel: any) => {
+const getHotelImage = (hotel: Hotel) => {
   if (hotel.images && hotel.images.length > 0) {
     const img = hotel.images[0]
-    return img.startsWith('http') ? img : `${API_URL}${img}`
+    if (img) {
+      return img.startsWith('http') ? img : `${API_URL}${img}`
+    }
   }
   return '/placeholder-hotel.jpg'
 }
 
-const getLowestPrice = (hotel: any) => {
+const getLowestPrice = (hotel: Hotel) => {
   if (hotel.rooms && hotel.rooms.length > 0) {
-    const prices = hotel.rooms.map((r: any) => Number(r.price) || 0)
+    const prices = hotel.rooms.map((r: Room) => Number(r.price) || 0)
     return Math.min(...prices)
   }
   return 0
 }
 
 const goToHotel = (id: string) => {
-  router.push(`/booking/${id}`)
+  router.push(`/BookingDetail/${id}`)
 }
 </script>
 

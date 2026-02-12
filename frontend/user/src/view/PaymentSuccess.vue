@@ -2,15 +2,7 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
 
   <div class="payment-result-container">
-    <header class="blue-header" :style="backgroundHeader">
-      <nav class="nav-bar">
-        <div class="logo" @click="goToHome" style="cursor: pointer;">CamBook.com</div>
-        <div class="nav-actions">
-          <router-link to="/home" class="nav-link">Home</router-link>
-          <router-link to="/MyBookings" class="nav-link">My Bookings</router-link>
-        </div>
-      </nav>
-    </header>
+    <div class="hero-banner" :style="backgroundHeader"></div>
 
     <main class="result-content">
       <div class="result-card success">
@@ -41,8 +33,6 @@
         </template>
       </div>
     </main>
-
-    <FooterScreen />
   </div>
 </template>
 
@@ -50,14 +40,10 @@
 import { defineComponent, computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import background from '@/assets/Background2.png'
-import FooterScreen from '@/components/homepage/FooterScreen.vue'
 import api from '@/utils/api'
 
 export default defineComponent({
   name: 'PaymentSuccess',
-  components: {
-    FooterScreen,
-  },
   setup() {
     const router = useRouter()
     const route = useRoute()
@@ -117,36 +103,10 @@ export default defineComponent({
   flex-direction: column;
 }
 
-.blue-header {
+.hero-banner {
   background-size: cover;
   background-position: center;
-  padding: 15px 30px;
-}
-
-.nav-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: white;
-}
-
-.nav-actions {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.nav-link {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
+  height: 150px;
 }
 
 .result-content {

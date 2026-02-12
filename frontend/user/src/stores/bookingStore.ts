@@ -41,6 +41,15 @@ export interface BookingRecord {
   status: string
   rejectionReason?: string
   createdAt: string
+  user?: {
+    firstName?: string
+    lastName?: string
+    email?: string
+  }
+  payment?: {
+    method?: string
+    status?: string
+  }
   bookingItems: {
     id: string
     roomId: string
@@ -51,11 +60,14 @@ export interface BookingRecord {
       id: string
       name: string
       images?: string[]
+      capacity?: number
+      size?: number
       hotel?: {
         id?: string
         name: string
         location?: string
         images?: string[]
+        phone?: string
       }
     }
   }[]

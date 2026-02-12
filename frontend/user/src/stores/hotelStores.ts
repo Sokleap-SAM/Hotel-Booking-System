@@ -56,8 +56,7 @@ export const useHotelStore = defineStore('hotel', {
         ...hotel,
         roomCount: hotel.rooms?.length || 0,
         displayAmenities: [
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(hotel.amenities?.map((a: any) => a.name) || []),
+          ...(hotel.amenities?.map((a: { name: string }) => a.name) || []),
           ...(hotel.custom_amenities ? [hotel.custom_amenities] : []),
         ].join(', '),
       }))

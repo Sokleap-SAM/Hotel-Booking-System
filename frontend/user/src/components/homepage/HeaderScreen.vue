@@ -8,7 +8,7 @@
       <a href="#" @click.prevent="goToMyBookings">My Bookings</a>
       <a href="#" @click.prevent="goToContact">Contact Us</a>
     </nav>
-    <button v-if="isAuthenticated" class="profile" @click="isProfileOpen = true">
+    <button v-if="isAuthenticated" class="Profile" @click="isProfileOpen = true">
       <i class="ri-user-line"></i>
     </button>
     <button v-else class="login-btn" @click="goToLogin">Login</button>
@@ -74,11 +74,14 @@ export default {
 
 <style scoped>
 .navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background-color: #0d4798;
-  padding: 10px 20px;
+  padding: 10px 100px;
   color: white;
   font-family: 'Lato', sans-serif;
 }
@@ -87,16 +90,19 @@ export default {
   font-size: 1.5rem;
   font-weight: bold;
 }
+
 .Profile {
   width: 50px;
   height: 50px;
   border-radius: 50%;
   background-color: white;
 }
+
 .Profile:hover {
   background-color: #5a70d4;
   cursor: pointer;
 }
+
 .Profile i {
   font-size: 24px;
   color: #0d4798;
@@ -104,6 +110,7 @@ export default {
   text-align: center;
   display: block;
 }
+
 .nav-links {
   display: flex;
   gap: 40px;

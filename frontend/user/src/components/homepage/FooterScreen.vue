@@ -42,9 +42,9 @@
 .footer {
   display: flex;
   justify-content: space-between;
-  background-color: #007bff;
+  background-color: #0d4798;
   color: white;
-  padding: 20px;
+  padding: 20px 100px;
   flex-wrap: wrap;
   font-family: 'Lato', sans-serif;
 }

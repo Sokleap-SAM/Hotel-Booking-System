@@ -2,18 +2,7 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
 
   <div class="booking-page-container">
-    <header class="blue-header" :style="backgroundHeader">
-      <nav class="nav-bar">
-        <div class="logo" @click="goToHome" style="cursor: pointer;">CamBook.com</div>
-        <div class="nav-actions">
-          <router-link to="/home" class="nav-link">Home</router-link>
-          <router-link to="/MyBookings" class="nav-link">My Bookings</router-link>
-          <button class="profile-btn" @click="isProfileOpen = true">
-            <i class="ri-user-line"></i>
-          </button>
-        </div>
-      </nav>
-    </header>
+    <div class="hero-banner" :style="backgroundHeader"></div>
 
     <div class="stepper-wrapper">
       <div class="stepper">
@@ -50,7 +39,6 @@
       </div>
     </main>
 
-    <FooterScreen />
     <ProfileDetail v-if="isProfileOpen" @close="isProfileOpen = false" />
   </div>
 </template>
@@ -60,7 +48,6 @@ import { ref, onMounted } from 'vue'
 import { defineComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import background from '@/assets/Background2.png'
-import FooterScreen from '@/components/homepage/FooterScreen.vue'
 import BookingSummary from '@/components/Transaction/BookingSummary.vue'
 import UserDetailsForm from '@/components/Transaction/UserDetailsForm.vue'
 import SpecialRequests from '@/components/Transaction/SpecialRequests.vue'
@@ -70,7 +57,6 @@ import { useBookingStore } from '@/stores/bookingStore'
 export default defineComponent({
   name: 'TransactionPayment',
   components: {
-    FooterScreen,
     BookingSummary,
     UserDetailsForm,
     SpecialRequests,
@@ -119,52 +105,12 @@ export default defineComponent({
   flex-direction: column;
 }
 
-/* Header UI */
-.blue-header {
+/* Hero Banner */
+.hero-banner {
   height: 200px;
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  padding: 20px 80px;
-}
-.nav-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.logo {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: white;
-}
-.profile-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.profile-btn i {
-  font-size: 22px;
-  color: #0d4798;
-}
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-.nav-link {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 1rem;
-}
-.nav-link:hover {
-  text-decoration: underline;
 }
 
 /* Stepper UI */
@@ -272,8 +218,7 @@ export default defineComponent({
   .content-body {
     padding: 20px 0;
   }
-  .blue-header {
-    padding: 20px;
+  .hero-banner {
     height: 150px;
   }
 }

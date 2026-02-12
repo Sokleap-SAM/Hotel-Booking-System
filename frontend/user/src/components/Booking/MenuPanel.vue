@@ -221,10 +221,11 @@ export default defineComponent({
 .container {
   position: absolute;
   left: 50%;
-  bottom: 0;
-  transform: translate(-50%, -400%);
+  bottom: -60px;
+  transform: translateX(-50%);
 
   width: 1234px;
+  max-width: calc(100% - 40px);
   height: 121px;
   background-color: white;
   border-radius: 15px;

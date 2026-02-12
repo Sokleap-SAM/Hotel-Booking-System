@@ -26,44 +26,51 @@
       </div>
     </div>
 
-    <!-- Show latest booking with image -->
-    <div v-else class="container booking-card">
-      <!-- Hotel Image -->
-      <div class="hotel-image" :style="{ backgroundImage: `url(${getHotelImage})` }">
-        <span class="status-badge" :class="latestBooking?.status?.toLowerCase()">
-          {{ latestBooking?.status }}
-        </span>
-      </div>
-
-      <!-- Booking Info -->
-      <div class="booking-info">
-        <h3 class="hotel-name">{{ getHotelName }}</h3>
-        
-        <div class="info-row">
-          <i class="ri-calendar-check-line"></i>
-          <span>Check-in: {{ formatDate(latestBooking?.checkInDate) }}</span>
-        </div>
-        
-        <div class="info-row">
-          <i class="ri-calendar-close-line"></i>
-          <span>Check-out: {{ formatDate(latestBooking?.checkOutDate) }}</span>
-        </div>
-        
-        <div class="info-row">
-          <i class="ri-hotel-bed-line"></i>
-          <span>{{ getRoomSummary }}</span>
+    <!-- Show latest 3 bookings with images -->
+    <template v-else>
+      <div 
+        v-for="booking in latestBookings" 
+        :key="booking.id" 
+        class="container booking-card clickable"
+        @click="viewBooking(booking.id)"
+      >
+        <!-- Hotel Image -->
+        <div class="hotel-image" :style="{ backgroundImage: `url(${getBookingHotelImage(booking)})` }">
+          <span class="status-badge" :class="booking.status?.toLowerCase()">
+            {{ booking.status }}
+          </span>
         </div>
 
-        <div class="price-row">
-          <span class="total-label">Total</span>
-          <span class="total-price">${{ latestBooking?.totalPrice }}</span>
+        <!-- Booking Info -->
+        <div class="booking-info">
+          <h3 class="hotel-name">{{ getBookingHotelName(booking) }}</h3>
+          
+          <div class="info-row">
+            <i class="ri-calendar-check-line"></i>
+            <span>Check-in: {{ formatDate(booking.bookingItems?.[0]?.checkIn) }}</span>
+          </div>
+          
+          <div class="info-row">
+            <i class="ri-calendar-close-line"></i>
+            <span>Check-out: {{ formatDate(booking.bookingItems?.[0]?.checkOut) }}</span>
+          </div>
+          
+          <div class="info-row">
+            <i class="ri-hotel-bed-line"></i>
+            <span>{{ getBookingRoomSummary(booking) }}</span>
+          </div>
+
+          <div class="price-row">
+            <span class="total-label">Total</span>
+            <span class="total-price">${{ booking.totalPrice }}</span>
+          </div>
+        </div>
+
+        <div class="button-wrapper">
+          <button class="explore-btn" @click.stop="viewBooking(booking.id)">View Details</button>
         </div>
       </div>
-
-      <div class="button-wrapper">
-        <button class="explore-btn" @click="viewAllBookings">View All Bookings</button>
-      </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -71,7 +78,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useBookingStore } from '@/stores/bookingStore'
+import { useBookingStore, type BookingRecord } from '@/stores/bookingStore'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -82,10 +89,13 @@ const isLoading = ref(false)
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const bookings = computed(() => bookingStore.userBookings)
-const latestBooking = computed(() => bookings.value?.[0])
 
-const getHotelImage = computed(() => {
-  const hotel = latestBooking.value?.bookingItems?.[0]?.room?.hotel
+// Limit to maximum 3 latest bookings
+const latestBookings = computed(() => bookings.value?.slice(0, 4) || [])
+
+// Helper function to get hotel image for a specific booking
+const getBookingHotelImage = (booking: BookingRecord) => {
+  const hotel = booking?.bookingItems?.[0]?.room?.hotel
   if (hotel?.images && hotel.images.length > 0) {
     const img = hotel.images[0]
     if (img) {
@@ -93,19 +103,21 @@ const getHotelImage = computed(() => {
     }
   }
   return '/placeholder-hotel.jpg'
-})
+}
 
-const getHotelName = computed(() => {
-  return latestBooking.value?.bookingItems?.[0]?.room?.hotel?.name || 'Hotel Booking'
-})
+// Helper function to get hotel name for a specific booking
+const getBookingHotelName = (booking: BookingRecord) => {
+  return booking?.bookingItems?.[0]?.room?.hotel?.name || 'Hotel Booking'
+}
 
-const getRoomSummary = computed(() => {
-  const items = latestBooking.value?.bookingItems || []
+// Helper function to get room summary for a specific booking
+const getBookingRoomSummary = (booking: BookingRecord) => {
+  const items = booking?.bookingItems || []
   if (items.length === 0) return 'No rooms'
   
   // Group rooms by type
   const roomCounts: Record<string, number> = {}
-  items.forEach(item => {
+  items.forEach((item) => {
     const roomName = item.room?.name || 'Room'
     roomCounts[roomName] = (roomCounts[roomName] || 0) + 1
   })
@@ -114,7 +126,7 @@ const getRoomSummary = computed(() => {
   return Object.entries(roomCounts)
     .map(([name, count]) => `${count}x ${name}`)
     .join(', ')
-})
+}
 
 const fetchUserBookings = async () => {
   if (!isAuthenticated.value) return
@@ -143,11 +155,12 @@ const goToLogin = () => {
 }
 
 const exploreHotels = () => {
-  router.push('/booking')
+  router.push('/Bookingpage')
 }
 
-const viewAllBookings = () => {
-  router.push('/MyBookings')
+// Navigate to MyBookings page to view the specific booking
+const viewBooking = (bookingId: string) => {
+  router.push(`/MyBookings?bookingId=${bookingId}`)
 }
 
 onMounted(() => {
@@ -179,8 +192,8 @@ onMounted(() => {
   margin-bottom: 30px;
   background-color: #eaeaea;
   padding: 30px;
-  width: 440px;
-  height: 440px;
+  width: 350px;
+  height: 420px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -223,6 +236,16 @@ onMounted(() => {
   overflow: hidden;
   background: white;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.booking-card.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.booking-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
 .hotel-image {

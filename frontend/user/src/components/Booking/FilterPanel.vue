@@ -133,22 +133,23 @@ export default defineComponent({
 <style scoped>
 .filter-container {
   /* Positioning Logic */
-  position: absolute;
-  top: 380px;
-  left: 10%;
+  position: sticky;
+  top: 90px;
+  align-self: flex-start;
   z-index: 100;
 
   display: flex;
   flex-direction: column;
   background-color: #DFDFDF;
   width: 304px;
+  min-width: 304px;
   height: auto;
-  max-height: 700px;
+  max-height: calc(100vh - 120px);
   border-radius: 10px;
   padding: 15px;
   box-sizing: border-box;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  overflow: visible;
+  overflow-y: auto;
 }
 
 .filter-content {

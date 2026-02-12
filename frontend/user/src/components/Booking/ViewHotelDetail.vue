@@ -122,10 +122,7 @@ export default defineComponent({
 <style scoped>
 /* Keeping your existing styles */
 .list-container {
-  position: absolute;
-  top: 380px;
-  left: 35%;
-  width: 60%;
+  flex: 1;
   padding-bottom: 50px;
 }
 

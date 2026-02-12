@@ -17,19 +17,7 @@
 
     <!-- Main Content -->
     <template v-else-if="hotel">
-      <header class="blue-header" :style="backgroundHeader">
-        <div class="nav-bar">
-          <div class="logo" @click="goToHome" style="cursor: pointer;">CamBook.com</div>
-          <div class="nav-actions">
-            <router-link to="/home" class="nav-link">Home</router-link>
-            <router-link to="/Bookingpage" class="nav-link">Book Now</router-link>
-            <router-link to="/MyBookings" class="nav-link">My Bookings</router-link>
-            <button class="profile-btn">
-              <i class="ri-user-line"></i>
-            </button>
-          </div>
-        </div>
-      </header>
+      <div class="hero-banner" :style="backgroundHeader"></div>
 
       <main class="main-content">
 
@@ -69,7 +57,6 @@
         />
 
       </main>
-      <FooterScreen />
     </template>
   </div>
 </template>
@@ -87,7 +74,6 @@ import MapCard from '@/components/BookingDetail/MapCard.vue';
 import BookingDescription from '@/components/BookingDetail/BookingDescription.vue';
 import GuestReviews from '@/components/BookingDetail/GuestReviews.vue';
 import AvailabilitySection from '@/components/BookingDetail/AvailabilitySection.vue';
-import FooterScreen from '@/components/homepage/FooterScreen.vue';
 
 interface Hotel {
   id: string;
@@ -114,7 +100,6 @@ export default defineComponent({
     BookingDescription,
     GuestReviews,
     AvailabilitySection,
-    FooterScreen,
   },
   props: {
     hotelId: {
@@ -212,54 +197,12 @@ export default defineComponent({
   font-family: 'Lato', sans-serif;
 }
 
-/* 1. Header Styles */
-.blue-header {
-  height: 280px;
+/* 1. Hero Banner Styles */
+.hero-banner {
+  height: 200px;
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  padding: 20px 80px;
-}
-
-.nav-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: white;
-}
-
-.profile-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.profile-btn i { font-size: 22px; color: #0D4798; }
-
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-.nav-link {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 1rem;
-}
-.nav-link:hover {
-  text-decoration: underline;
 }
 
 /* 2. Overlap Layout */

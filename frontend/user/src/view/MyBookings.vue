@@ -2,14 +2,7 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.8.0/fonts/remixicon.css" rel="stylesheet" />
 
   <div class="my-bookings-page">
-    <header class="blue-header" :style="backgroundHeader">
-      <nav class="nav-bar">
-        <div class="logo">CamBook.com</div>
-        <button class="profile-btn" @click="$router.push({ name: 'home' })">
-          <i class="ri-home-line"></i>
-        </button>
-      </nav>
-    </header>
+    <div class="hero-banner" :style="backgroundHeader"></div>
 
     <main class="content">
       <h1 class="page-title">My Bookings</h1>
@@ -295,32 +288,29 @@
       @close="closeRatingModal"
       @rated="handleRated"
     />
-
-    <FooterScreen />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue'
-import { useBookingStore } from '@/stores/bookingStore'
+import { useBookingStore, type BookingRecord } from '@/stores/bookingStore'
 import { useRatingStore, type Rating } from '@/stores/ratingStore'
 import { useRouter } from 'vue-router'
 import background from '@/assets/Background2.png'
-import FooterScreen from '@/components/homepage/FooterScreen.vue'
 import RatingModal from '@/components/rating/RatingModal.vue'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export default defineComponent({
   name: 'MyBookings',
-  components: { FooterScreen, RatingModal },
+  components: { RatingModal },
   setup() {
     const bookingStore = useBookingStore()
     const ratingStore = useRatingStore()
     const router = useRouter()
     const backgroundHeader = { backgroundImage: `url(${background})` }
-    const selectedBooking = ref<any>(null)
-    const ratingBooking = ref<any>(null)
+    const selectedBooking = ref<BookingRecord | null>(null)
+    const ratingBooking = ref<BookingRecord | null>(null)
     const bookingRatingData = ref<Rating | null>(null)
     const bookingRatings = ref<Record<string, Rating>>({})
 
@@ -353,7 +343,7 @@ export default defineComponent({
       return diff > 0 ? diff : 1
     }
 
-    const getHotelImage = (booking: any) => {
+    const getHotelImage = (booking: BookingRecord) => {
       const hotel = booking.bookingItems?.[0]?.room?.hotel
       if (hotel?.images && hotel.images.length > 0) {
         const img = hotel.images[0]
@@ -364,7 +354,7 @@ export default defineComponent({
       return '/placeholder-hotel.jpg'
     }
 
-    const openDetailModal = (booking: any) => {
+    const openDetailModal = (booking: BookingRecord) => {
       selectedBooking.value = booking
     }
 
@@ -386,7 +376,7 @@ export default defineComponent({
       router.push({ name: 'LastPayment', query: { bookingId } })
     }
 
-    const openRatingModal = async (booking: any) => {
+    const openRatingModal = async (booking: BookingRecord) => {
       const hotelId = booking.bookingItems?.[0]?.room?.hotel?.id
       if (!hotelId) {
         console.error('Cannot open rating modal: Hotel ID not found in booking')
@@ -409,7 +399,7 @@ export default defineComponent({
       bookingRatingData.value = null
     }
 
-    const viewRating = async (booking: any) => {
+    const viewRating = async (booking: BookingRecord) => {
       const hotelId = booking.bookingItems?.[0]?.room?.hotel?.id
       if (!hotelId) {
         console.error('Cannot view rating: Hotel ID not found in booking')
@@ -484,40 +474,10 @@ export default defineComponent({
   flex-direction: column;
 }
 
-.blue-header {
+.hero-banner {
   height: 180px;
   background-position: center;
   background-size: cover;
-  padding: 20px 80px;
-}
-
-.nav-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: white;
-}
-
-.profile-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.profile-btn i {
-  font-size: 22px;
-  color: #0d4798;
 }
 
 .content {

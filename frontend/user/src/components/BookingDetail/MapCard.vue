@@ -9,18 +9,15 @@
     </div>
 
     <div class="map-frame">
-      <iframe
-        :src="mapUrl"
-        width="100%"
-        height="100%"
-        style="border: 0"
-        :allowfullscreen="true"
-        loading="lazy"
-      >
-      </iframe>
+      <div class="map-placeholder">
+        <i class="ri-map-pin-line"></i>
+        <p class="map-text">View hotel location on Google Maps</p>
+      </div>
 
       <div class="map-overlay">
-        <button class="btn-show-map">Show on map</button>
+        <a :href="mapUrl" target="_blank" rel="noopener noreferrer" class="btn-show-map">
+          <i class="ri-external-link-line"></i> Show on map
+        </a>
       </div>
     </div>
   </div>
@@ -34,8 +31,7 @@ defineProps({
   },
   mapUrl: {
     type: String,
-    // // Default placeholder map link
-    // default: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3881.0258123!2d103.856!3d13.36!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTPCsDIxJzM2LjAiTiAxMDPCsDUxJzIxLjYiRQ!5e0!3m2!1sen!2skh!4v123456789"
+    default: '',
   },
 })
 </script>
@@ -82,6 +78,30 @@ defineProps({
   min-height: 200px;
 }
 
+.map-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.map-placeholder i {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+.map-text {
+  font-size: 16px;
+  margin: 0;
+  opacity: 0.9;
+}
+
 .map-overlay {
   position: absolute;
   top: 0;
@@ -100,10 +120,18 @@ defineProps({
   background: #006ce4;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 5px;
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-show-map:hover {
+  background: #0056b3;
 }
 </style>

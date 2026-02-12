@@ -303,8 +303,8 @@ export default defineComponent({
 /* Dropdown Styles */
 .dropdown {
   position: absolute;
-  top: 100px;
-  left: 0;
+  top: 100%;
+  right: 0;
   width: 100%;
   background: white;
   border-radius: 8px;
@@ -312,6 +312,7 @@ export default defineComponent({
   z-index: 100;
   max-height: 200px;
   overflow-y: auto;
+  margin-top: 5px;
 }
 
 .dropdown-item {

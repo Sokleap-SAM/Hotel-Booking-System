@@ -10,12 +10,6 @@ import {
   JoinTable,
 } from 'typeorm';
 
-export enum HotelStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  SUSPEND = 'suspend',
-}
-
 export enum Destination {
   BANTEAY_MEANCHEY = 'Banteay Meanchey',
   BATTAMBANG = 'Battambang',
@@ -49,12 +43,8 @@ export class Hotel {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({
-    type: 'enum',
-    enum: HotelStatus,
-    default: HotelStatus.ACTIVE,
-  })
-  status: HotelStatus;
+  @Column({ default: true })
+  isActive: boolean;
 
   @Column({
     type: 'enum',

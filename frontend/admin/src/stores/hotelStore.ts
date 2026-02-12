@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { defineStore } from 'pinia';
 import api from '@/utils/api';
 import { toRaw } from 'vue';
@@ -19,23 +20,36 @@ export const useHotelStore = defineStore('hotel', {
     amenitiesList: [] as any[],
     isLoading: false,
     searchQuery: '',
+    statusFilter: 'all' as 'all' | 'active' | 'inactive',
   }),
 
   getters: {
     filteredHotels: (state) => {
-      const query = state.searchQuery.toLowerCase().trim();
+      let result = state.hotels;
 
-      if (!query) {
-        return state.hotels;
+      // Filter by status
+      if (state.statusFilter === 'active') {
+        result = result.filter((hotel) => hotel.isActive === true);
+      } else if (state.statusFilter === 'inactive') {
+        result = result.filter((hotel) => hotel.isActive === false);
       }
 
-      return state.hotels.filter((hotel) => {
-        const name = (hotel.name || '').toLowerCase();
-        const email = (hotel.email || '').toLowerCase();
+      // Filter by search query
+      const query = state.searchQuery.toLowerCase().trim();
+      if (query) {
+        result = result.filter((hotel) => {
+          const name = (hotel.name || '').toLowerCase();
+          const email = (hotel.email || '').toLowerCase();
+          return name.includes(query) || email.includes(query);
+        });
+      }
 
-        return name.includes(query) || email.includes(query);
-      });
+      return result;
     },
+
+    totalCount: (state) => state.hotels.length,
+    activeCount: (state) => state.hotels.filter((h) => h.isActive === true).length,
+    inactiveCount: (state) => state.hotels.filter((h) => h.isActive === false).length,
 
     formattedHotels: (state) => {
       return state.hotels.map(hotel => ({
@@ -51,6 +65,26 @@ export const useHotelStore = defineStore('hotel', {
   actions: {
     setSearchQuery(query: string) {
       this.searchQuery = query;
+    },
+
+    setStatusFilter(status: 'all' | 'active' | 'inactive') {
+      this.statusFilter = status;
+    },
+
+    async updateHotelStatus(id: string, isActive: boolean) {
+      try {
+        const { data } = await api.patch(`/hotels/${id}/status`, { isActive });
+        // Update local state
+        const hotel = this.hotels.find((h) => h.id === id);
+        if (hotel) {
+          hotel.isActive = isActive;
+        }
+        return { success: true, data };
+      } catch (error: unknown) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        const message = axiosError.response?.data?.message || 'Failed to update hotel status';
+        return { success: false, message };
+      }
     },
 
     prepareFormData(data: any) {
@@ -135,7 +169,7 @@ export const useHotelStore = defineStore('hotel', {
       this.isLoading = true;
 
       try {
-        const { data } = await api.get('/hotels');
+        const { data } = await api.get('/hotels/admin/all');
         this.hotels = data;
       } catch (error) {
         console.error("Fetch hotels error:", error);
@@ -146,7 +180,7 @@ export const useHotelStore = defineStore('hotel', {
 
     async getHotelById(id: string) {
       try {
-        const { data } = await api.get(`/hotels/${id}`);
+        const { data } = await api.get(`/hotels/admin/${id}`);
         return data;
       } catch (error) {
         console.error('Error getting hotel:', error);

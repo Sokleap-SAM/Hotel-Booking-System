@@ -15,6 +15,7 @@ import {
 import { HotelsService } from './hotels.service';
 import { CreateHotelDto } from './dto/create_hotel.dto';
 import { UpdateHotelDto } from './dto/update_hotel.dto';
+import { UpdateHotelStatusDto } from './dto/update-hotel-status.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { hotelUploadConfig } from '../config/file-upload.config';
 import { HotelValidatorPipe } from './pipes/hotel-validtor.pipe';
@@ -45,6 +46,18 @@ export class HotelsController {
     files: Express.Multer.File[],
   ) {
     return this.hotelsService.create(dto, files);
+  }
+
+  @Roles('admin')
+  @Get('admin/all')
+  findAllAdmin() {
+    return this.hotelsService.findAllAdmin();
+  }
+
+  @Roles('admin')
+  @Get('admin/:id')
+  findOneAdmin(@Param('id') id: string) {
+    return this.hotelsService.findOneAdmin(id);
   }
 
   @Public()
@@ -154,5 +167,14 @@ export class HotelsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.hotelsService.remove(id);
+  }
+
+  @Roles('admin')
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id') id: string,
+    @Body() updateStatusDto: UpdateHotelStatusDto,
+  ) {
+    return this.hotelsService.updateStatus(id, updateStatusDto.isActive);
   }
 }

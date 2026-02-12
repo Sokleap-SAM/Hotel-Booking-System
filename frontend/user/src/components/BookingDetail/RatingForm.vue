@@ -70,38 +70,35 @@ const emit = defineEmits<{
 const ratingStore = useRatingStore()
 
 const categories = [
-  { key: 'staff', label: 'Staff', icon: 'ri-group-line' },
+  { key: 'service', label: 'Service', icon: 'ri-customer-service-2-line' },
   { key: 'facilities', label: 'Facilities', icon: 'ri-hotel-line' },
   { key: 'comfort', label: 'Comfort', icon: 'ri-hotel-bed-line' },
   { key: 'value', label: 'Value for money', icon: 'ri-money-dollar-circle-line' },
   { key: 'location', label: 'Location', icon: 'ri-map-pin-line' },
-  { key: 'wifi', label: 'WiFi', icon: 'ri-wifi-line' }
 ]
 
 const formData = reactive({
-  staff: 7,
+  service: 7,
   facilities: 7,
   comfort: 7,
   value: 7,
   location: 7,
-  wifi: 7,
   comment: ''
 })
 
 const calculatedOverall = computed(() => {
-  const avg = (formData.staff + formData.facilities + formData.comfort + formData.value + formData.location + formData.wifi) / 6
+  const avg = (formData.service + formData.facilities + formData.comfort + formData.value + formData.location) / 5
   return (avg / 2).toFixed(1)
 })
 
 const submitRating = async () => {
   const result = await ratingStore.submitRating({
     hotelId: props.hotelId,
-    staff: formData.staff,
+    service: formData.service,
     facilities: formData.facilities,
     comfort: formData.comfort,
     value: formData.value,
     location: formData.location,
-    wifi: formData.wifi,
     comment: formData.comment || undefined
   })
   

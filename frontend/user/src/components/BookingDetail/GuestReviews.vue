@@ -50,15 +50,32 @@
       <!-- Write Review Button -->
       <div class="write-review-section">
         <button 
-          v-if="!showRatingForm && !ratingStore.hasUserRated" 
+          v-if="!showRatingForm && canWriteReview" 
           class="write-review-btn"
           @click="showRatingForm = true"
         >
           <i class="ri-edit-line"></i> Write a Review
         </button>
-        <p v-else-if="ratingStore.hasUserRated" class="already-rated">
+        <p v-else-if="authStore.isAuthenticated && ratingStore.hasUserRated" class="already-rated">
           <i class="ri-check-line"></i> You have already reviewed this hotel
         </p>
+        <p v-else-if="!authStore.isAuthenticated && !showRatingForm" class="login-prompt">
+          <router-link to="/login">Log in</router-link> to write a review
+        </p>
+      </div>
+
+      <!-- Guest Highlights -->
+      <div v-if="topRatedCategories.length > 0" class="guest-highlights">
+        <h4 class="highlights-title">
+          <i class="ri-star-line"></i> What guests loved the most
+        </h4>
+        <div class="highlights-list">
+          <div v-for="item in topRatedCategories" :key="item.label" class="highlight-item">
+            <i :class="item.icon"></i>
+            <span class="highlight-label">{{ item.label }}</span>
+            <span class="highlight-score">{{ item.score.toFixed(1) }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- Rating Form -->
@@ -78,7 +95,7 @@
         </div>
 
         <div v-else class="reviews-list">
-          <div v-for="rating in ratingStore.hotelRatings" :key="rating.id" class="review-card">
+          <div v-for="rating in visibleReviews" :key="rating.id" class="review-card">
             <div class="review-header">
               <div class="reviewer-info">
                 <div class="reviewer-avatar">
@@ -100,13 +117,20 @@
             <p v-if="rating.comment" class="review-comment">{{ rating.comment }}</p>
             
             <div class="review-categories">
-              <span class="category-tag">Staff: {{ rating.staff }}</span>
+              <span class="category-tag">Service: {{ rating.service }}</span>
               <span class="category-tag">Facilities: {{ rating.facilities }}</span>
               <span class="category-tag">Comfort: {{ rating.comfort }}</span>
               <span class="category-tag">Value: {{ rating.value }}</span>
               <span class="category-tag">Location: {{ rating.location }}</span>
-              <span class="category-tag">WiFi: {{ rating.wifi }}</span>
             </div>
+          </div>
+
+          <!-- Show More Button -->
+          <div v-if="hasMoreReviews" class="show-more-container">
+            <button class="show-more-btn" @click="showMoreReviews">
+              <i class="ri-arrow-down-line"></i>
+              Show More Reviews ({{ sortedReviews.length - visibleReviewsCount }} remaining)
+            </button>
           </div>
         </div>
       </div>
@@ -128,6 +152,32 @@ const ratingStore = useRatingStore()
 const authStore = useAuthStore()
 const showRatingForm = ref(false)
 
+// Reviews pagination
+const visibleReviewsCount = ref(5)
+const reviewsPerPage = 5
+
+// Sort reviews by latest (newest first)
+const sortedReviews = computed(() => {
+  return [...ratingStore.hotelRatings].sort((a, b) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+})
+
+// Get only visible reviews
+const visibleReviews = computed(() => {
+  return sortedReviews.value.slice(0, visibleReviewsCount.value)
+})
+
+// Check if there are more reviews to show
+const hasMoreReviews = computed(() => {
+  return visibleReviewsCount.value < sortedReviews.value.length
+})
+
+// Show more reviews
+const showMoreReviews = () => {
+  visibleReviewsCount.value += reviewsPerPage
+}
+
 const displayAvgRating = computed(() => {
   return ratingStore.ratingSummary?.avgRating?.toFixed(1) || '0.0'
 })
@@ -145,13 +195,37 @@ const ratingLabel = computed(() => {
 const categoryItems = computed(() => {
   const cats = ratingStore.ratingSummary?.categoryAverages
   return [
-    { label: 'Staff', score: cats?.staff || 0, icon: 'ri-group-line' },
+    { label: 'Service', score: cats?.service || 0, icon: 'ri-customer-service-2-line' },
     { label: 'Facilities', score: cats?.facilities || 0, icon: 'ri-hotel-line' },
     { label: 'Comfort', score: cats?.comfort || 0, icon: 'ri-hotel-bed-line' },
     { label: 'Value', score: cats?.value || 0, icon: 'ri-money-dollar-circle-line' },
     { label: 'Location', score: cats?.location || 0, icon: 'ri-map-pin-line' },
-    { label: 'WiFi', score: cats?.wifi || 0, icon: 'ri-wifi-line' }
   ]
+})
+
+// Check if user can write a review (logged in and hasn't rated yet)
+const canWriteReview = computed(() => {
+  return authStore.isAuthenticated && !ratingStore.hasUserRated
+})
+
+// Get top 3 highest rated categories to display as highlights
+const topRatedCategories = computed(() => {
+  const cats = ratingStore.ratingSummary?.categoryAverages
+  if (!cats) return []
+  
+  const items = [
+    { label: 'Service', score: cats.service || 0, icon: 'ri-customer-service-2-line' },
+    { label: 'Facilities', score: cats.facilities || 0, icon: 'ri-hotel-line' },
+    { label: 'Comfort', score: cats.comfort || 0, icon: 'ri-hotel-bed-line' },
+    { label: 'Value', score: cats.value || 0, icon: 'ri-money-dollar-circle-line' },
+    { label: 'Location', score: cats.location || 0, icon: 'ri-map-pin-line' },
+  ]
+  
+  // Filter out items with 0 score and sort by highest rating
+  return items
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
 })
 
 const getProfileImageUrl = (image: string) => {
@@ -191,6 +265,7 @@ onMounted(() => {
 })
 
 watch(() => props.hotelId, () => {
+  visibleReviewsCount.value = 5 // Reset when hotel changes
   loadRatings()
 })
 </script>
@@ -452,6 +527,80 @@ watch(() => props.hotelId, () => {
   font-weight: 500;
 }
 
+/* Guest Highlights */
+.guest-highlights {
+  margin-top: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 100%);
+  border-radius: 12px;
+  border: 1px solid #d0e3f0;
+}
+
+.highlights-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #003580;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.highlights-title i {
+  color: #ffc107;
+}
+
+.highlights-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.highlight-item i {
+  color: #006ce4;
+  font-size: 18px;
+}
+
+.highlight-label {
+  font-weight: 600;
+  color: #333;
+}
+
+.highlight-score {
+  background: #003580;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Login Prompt */
+.login-prompt {
+  color: #666;
+  font-size: 14px;
+}
+
+.login-prompt a {
+  color: #006ce4;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-prompt a:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .ratings-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -469,5 +618,38 @@ watch(() => props.hotelId, () => {
     width: 100px;
     height: 100px;
   }
+}
+
+/* Show More Button */
+.show-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.show-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: #fff;
+  color: #006ce4;
+  border: 1px solid #006ce4;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.show-more-btn:hover {
+  background-color: #006ce4;
+  color: #fff;
+}
+
+.show-more-btn i {
+  font-size: 16px;
 }
 </style>

@@ -28,8 +28,8 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   resetPasswordExpires: Date | null;
 
-  @Column({ nullable: true })
-  profileImage: string;
+  @Column({ type: 'varchar', nullable: true })
+  profileImage: string | null;
 
   @Column({ default: true })
   isActive: boolean;

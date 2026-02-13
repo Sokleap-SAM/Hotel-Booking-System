@@ -152,6 +152,7 @@ export class BookingService {
         'bookingItems',
         'bookingItems.room',
         'bookingItems.room.hotel',
+        'user',
       ],
       order: { createdAt: 'DESC' },
     });

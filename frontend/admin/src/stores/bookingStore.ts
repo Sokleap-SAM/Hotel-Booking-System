@@ -23,6 +23,7 @@ export interface Booking {
   totalPrice: number
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
   rejectionReason?: string
+  guestPhone?: string
   createdAt: string
   bookingItems: BookingItem[]
   user: {

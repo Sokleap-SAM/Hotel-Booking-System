@@ -41,6 +41,7 @@ export interface BookingRecord {
   totalPrice: number
   status: string
   rejectionReason?: string
+  guestPhone?: string
   createdAt: string
   user?: {
     firstName?: string

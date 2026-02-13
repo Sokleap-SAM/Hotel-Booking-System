@@ -26,6 +26,7 @@
           <div class="guest-info">
             <strong>{{ booking.user?.firstName || 'N/A' }} {{ booking.user?.lastName || '' }}</strong>
             <span class="guest-email">{{ booking.user?.email }}</span>
+            <span class="guest-phone" v-if="booking.guestPhone">{{ booking.guestPhone }}</span>
           </div>
         </td>
         <td>
@@ -109,6 +110,11 @@ const formatDateTime = (dateStr: string) => {
 }
 
 .guest-email {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.guest-phone {
   font-size: 0.85rem;
   color: #666;
 }

@@ -262,13 +262,24 @@ export class RoomsService {
     checkIn: Date,
     checkOut: Date,
   ): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Count overlapping bookings that are:
+    // 1. PENDING or CONFIRMED (active bookings), OR
+    // 2. COMPLETED but checkout date hasn't passed yet (guest still in room)
     const overlappingBookings = await this.bookingItemRepository
       .createQueryBuilder('bookingItem')
       .innerJoin('bookingItem.booking', 'booking')
       .where('bookingItem.roomId = :roomId', { roomId })
-      .andWhere('booking.status IN (:...statuses)', {
-        statuses: [BookingStatus.PENDING, BookingStatus.CONFIRMED],
-      })
+      .andWhere(
+        '(booking.status IN (:...activeStatuses) OR (booking.status = :completedStatus AND bookingItem.checkOut > :today))',
+        {
+          activeStatuses: [BookingStatus.PENDING, BookingStatus.CONFIRMED],
+          completedStatus: BookingStatus.COMPLETED,
+          today: today.toISOString().split('T')[0],
+        },
+      )
       .andWhere('bookingItem.checkIn < :checkOut', { checkOut })
       .andWhere('bookingItem.checkOut > :checkIn', { checkIn })
       .getCount();

@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
@@ -100,11 +100,23 @@ const showLocationDropdown = ref(false);
 
 // Date picker
 const today = new Date();
-today.setHours(7, 0, 0, 0);
+today.setHours(11, 0, 0, 0); // Check-in time: 11:00
 const tomorrow = new Date(today);
 tomorrow.setDate(tomorrow.getDate() + 1);
+tomorrow.setHours(9, 0, 0, 0); // Check-out time: 9:00
 const dateRange = ref<Date[]>([today, tomorrow]);
 const showDatePicker = ref(false);
+
+// Ensure static times: check-in at 11:00, check-out at 9:00
+const normalizeDateTime = (dates: Date[] | null) => {
+  if (!dates || dates.length < 2) return;
+  if (dates[0]) dates[0].setHours(11, 0, 0, 0);
+  if (dates[1]) dates[1].setHours(9, 0, 0, 0);
+};
+
+watch(dateRange, (newDates) => {
+  normalizeDateTime(newDates);
+}, { deep: true });
 
 // Guest configuration
 const adults = ref(2);

@@ -12,7 +12,8 @@
           :min-range="1"
           :enable-time-picker="false"
           placeholder="Select Check-in - Check-out"
-          format="MM/dd/yyyy"
+          :format="formatDateDisplay"
+          :preview-format="formatDateDisplay"
           auto-apply
           :teleport="true"
         >
@@ -159,11 +160,28 @@ const props = defineProps<{
 }>();
 
 const today = new Date();
-today.setHours(7, 0, 0, 0);
+today.setHours(11, 0, 0, 0); // Check-in time: 11:00
 const tomorrow = new Date(today);
 tomorrow.setDate(tomorrow.getDate() + 1);
+tomorrow.setHours(9, 0, 0, 0); // Check-out time: 9:00
 
 const dateRange = ref([today, tomorrow]);
+
+// Ensure static times: check-in at 11:00, check-out at 9:00
+const normalizeDateTime = (dates: Date[] | null) => {
+  if (!dates || dates.length < 2) return;
+  if (dates[0]) dates[0].setHours(11, 0, 0, 0);
+  if (dates[1]) dates[1].setHours(9, 0, 0, 0);
+};
+
+// Format date display without time
+const formatDateDisplay = (date: Date | Date[]) => {
+  if (Array.isArray(date)) {
+    const formatSingle = (d: Date) => d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    return date.map(d => formatSingle(d)).join(' - ');
+  }
+  return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+};
 
 // Guest selection
 const adults = ref(2);
@@ -233,7 +251,8 @@ const fetchRoomsWithAvailability = async () => {
 };
 
 // Watch for date changes and refetch availability
-watch(dateRange, () => {
+watch(dateRange, (newDates) => {
+  normalizeDateTime(newDates);
   fetchRoomsWithAvailability();
 }, { deep: true });
 

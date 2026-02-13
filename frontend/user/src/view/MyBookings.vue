@@ -247,6 +247,10 @@
                 <span class="label">Email</span>
                 <span class="value">{{ selectedBooking.user.email }}</span>
               </div>
+              <div class="info-item" v-if="selectedBooking.guestPhone">
+                <span class="label">Phone</span>
+                <span class="value">{{ selectedBooking.guestPhone }}</span>
+              </div>
             </div>
           </div>
 

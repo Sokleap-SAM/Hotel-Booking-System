@@ -1,11 +1,6 @@
-<template>
+<!-- <template>
   <div class="payment-upload-container">
     <h3>Confirm payment</h3>
-
-    <div class="info-banner">
-      <span class="info-icon">ⓘ</span>
-      <p>Please upload your payment proof used for the payment.</p>
-    </div>
 
     <div
       class="drop-zone"
@@ -206,4 +201,4 @@ h3 {
   font-size: 0.85rem;
   margin-top: 10px;
 }
-</style>
+</style> -->

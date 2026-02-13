@@ -26,12 +26,6 @@
             <nav class="breadcrumbs">Home > {{ hotel.name }}</nav>
             <h1 class="hotel-name">{{ hotel.name }}</h1>
           </div>
-
-          <div class="action-group">
-            <button class="icon-btn"><i class="ri-heart-line"></i></button>
-            <button class="icon-btn"><i class="ri-share-line"></i></button>
-            <button class="book-now-btn">Booking</button>
-          </div>
         </div>
 
         <div class="media-grid">
@@ -143,7 +137,7 @@ export default defineComponent({
     // Load hotel and rooms data
     const loadHotelData = async () => {
       const id = props.hotelId || (route.params.hotelId as string);
-      
+
       if (!id) {
         error.value = 'No hotel ID provided';
         isLoading.value = false;

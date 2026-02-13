@@ -11,10 +11,10 @@
             <img :src="mainImage" alt="Room Main View" class="main-img" @error="handleImageError" />
           </div>
           <div class="thumb-grid">
-            <img 
-              v-for="(thumb, index) in thumbnails" 
-              :key="index" 
-              :src="thumb" 
+            <img
+              v-for="(thumb, index) in thumbnails"
+              :key="index"
+              :src="thumb"
               class="thumb-img"
               :class="{ active: selectedThumbIndex === index }"
               @click="selectImage(index)"
@@ -31,13 +31,13 @@
           </div>
 
           <h2 class="section-title">{{ room?.name || 'Room' }}</h2>
-          
+
           <div class="price-info">
             <span class="current-price">USD ${{ finalPrice }}</span>
             <span class="original-price" v-if="(room?.discount ?? 0) > 0">USD ${{ room?.price }}</span>
             <span class="discount-badge" v-if="(room?.discount ?? 0) > 0">{{ room?.discount }}% OFF</span>
           </div>
-          
+
           <p class="rating-subtext" v-if="(room?.stock ?? 0) < 5 && (room?.stock ?? 0) > 0">
             <i class="ri-alarm-warning-line"></i> Only {{ room?.stock }} rooms left!
           </p>
@@ -87,7 +87,6 @@
               <span class="amount">USD ${{ finalPrice }}</span>
               <span class="tax-note">Includes taxes and fees</span>
             </div>
-            <button class="btn-primary">Book Now</button>
           </div>
         </div>
       </div>
@@ -132,7 +131,7 @@ export default {
   emits: ['close'],
   setup(props) {
     const selectedThumbIndex = ref(0)
-    
+
     const roomImages = computed(() => {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
       if (props.room?.images && props.room.images.length > 0) {
@@ -149,15 +148,15 @@ export default {
       }
       return [defaultRoomImage]
     })
-    
+
     const mainImage = computed(() => {
       return roomImages.value[selectedThumbIndex.value] || defaultRoomImage
     })
-    
+
     const thumbnails = computed(() => {
       return roomImages.value.slice(0, 8)
     })
-    
+
     const finalPrice = computed(() => {
       if (props.room?.finalPrice) return props.room.finalPrice
       if (props.room?.discount && props.room?.price) {
@@ -168,21 +167,21 @@ export default {
       }
       return props.room?.price || 0
     })
-    
+
     const selectImage = (index: number) => {
       selectedThumbIndex.value = index
     }
-    
+
     const handleImageError = (event: Event) => {
       const img = event.target as HTMLImageElement
       img.src = defaultRoomImage
     }
-    
+
     const handleThumbError = (event: Event) => {
       const img = event.target as HTMLImageElement
       img.src = defaultRoomImage
     }
-    
+
     return {
       mainImage,
       thumbnails,
@@ -515,11 +514,11 @@ export default {
     flex-direction: column;
     overflow-y: auto;
   }
-  
+
   .gallery-col {
     flex: none;
   }
-  
+
   .details-col {
     overflow-y: visible;
     padding-right: 0;

@@ -30,7 +30,7 @@
         </div>
 
         <div class="right-section">
-          <PaymentForm 
+          <PaymentForm
             @method-changed="onPaymentMethodChanged"
           />
         </div>
@@ -55,12 +55,12 @@
             <i class="ri-information-line"></i>
             <span>This booking requires admin approval before payment. Check "My Bookings" for status updates.</span>
           </div>
-          
+
           <!-- Different button based on payment method -->
           <template v-if="canPay && !isLoadingBooking">
-            <button 
-              class="btn-confirm btn-stripe" 
-              :disabled="isSubmitting" 
+            <button
+              class="btn-confirm btn-stripe"
+              :disabled="isSubmitting"
               @click="initiateStripeCheckout"
             >
               <span v-if="isSubmitting">Redirecting to Stripe...</span>
@@ -87,7 +87,7 @@ import background from '@/assets/Background2.png'
 import BookingSummary from '@/components/Transaction/BookingSummary.vue'
 import ProfileDetail from '@/view/ProfileDetail.vue'
 import PaymentForm from '@/components/Transaction/Payment.vue'
-import Policy from '@/components/Transaction/Policy.vue'
+// import Policy from '@/components/Transaction/Policy.vue'
 import { useBookingStore } from '@/stores/bookingStore'
 import { usePaymentStore, type PaymentMethod } from '@/stores/paymentStore'
 
@@ -97,14 +97,14 @@ export default defineComponent({
     BookingSummary,
     ProfileDetail,
     PaymentForm,
-    Policy,
+    //Policy,
   },
   setup() {
     const router = useRouter()
     const route = useRoute()
     const bookingStore = useBookingStore()
     const paymentStore = usePaymentStore()
-    
+
     const backgroundHeader = {
       backgroundImage: `url(${background})`,
     }
@@ -163,10 +163,10 @@ export default defineComponent({
 
       isSubmitting.value = true
       bookingError.value = ''
-      
+
       try {
         const result = await paymentStore.createStripeCheckout(currentBooking.value.id)
-        
+
         if (result && result.checkoutUrl) {
           // Redirect to Stripe Checkout page
           window.location.href = result.checkoutUrl

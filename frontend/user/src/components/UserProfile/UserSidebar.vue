@@ -52,7 +52,7 @@ export default defineComponent({
         user.value.lastName = authStore.user.lastName || '';
         // If authStore.user has profileImage, use it, otherwise keep localAvatar
         user.value.profileImage = authStore.user.profileImage ? 
-                                 (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/' + authStore.user.profileImage
+                                 (import.meta.env.VITE_API_URL || 'http://localhost:3000') + authStore.user.profileImage
                                  : localAvatar;
       } else {
         // If not authenticated, reset to default or empty

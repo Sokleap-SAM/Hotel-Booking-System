@@ -5,7 +5,6 @@
     <PopularHotel />
     <MyBooking />
     <WhyCamBook />
-    <ClientFeebBack />
     <NewsLetter />
   </div>
 </template>
@@ -15,7 +14,6 @@ import BackgroundHomeScreen from '@/components/homepage/BackgroundHomeScreen.vue
 import PopularHotel from '@/components/homepage/PopularHotel.vue'
 import MyBooking from '@/components/homepage/MyBooking.vue'
 import WhyCamBook from '@/components/homepage/WhyCamBook.vue'
-import ClientFeebBack from '@/components/homepage/ClientFeebBack.vue'
 import NewsLetter from '@/components/homepage/NewsLetter.vue'
 
 export default {
@@ -24,7 +22,6 @@ export default {
     BackgroundHomeScreen,
     MyBooking,
     WhyCamBook,
-    ClientFeebBack,
     NewsLetter,
     PopularHotel,
   },

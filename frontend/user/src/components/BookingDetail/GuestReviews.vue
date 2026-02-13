@@ -231,7 +231,8 @@ const topRatedCategories = computed(() => {
 const getProfileImageUrl = (image: string) => {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
   if (image.startsWith('http')) return image
-  return `${apiUrl}/uploads/profiles/${image}`
+  console.log('Profile image path:', image)
+  return `${apiUrl}${image}`
 }
 
 const formatDate = (dateStr: string) => {

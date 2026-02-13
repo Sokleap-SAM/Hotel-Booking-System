@@ -173,7 +173,9 @@ export class AuthService {
     const user = await this.userService.findById(userId);
 
     if (!user || user.provider !== 'local') {
-      throw new UnauthorizedException('User not found or cannot change password this way.');
+      throw new UnauthorizedException(
+        'User not found or cannot change password this way.',
+      );
     }
 
     const salt = await bcrypt.genSalt();
@@ -203,7 +205,7 @@ export class AuthService {
       user.lastName = updateProfileDto.lastName;
     }
     if (file) {
-      user.profileImage = file.path;
+      user.profileImage = `/uploads/profiles/${file.filename}`;
     } else if (updateProfileDto.profileImage === null) {
       // Allow setting profileImage to null if explicitly requested (e.g., removing existing image)
       user.profileImage = null;

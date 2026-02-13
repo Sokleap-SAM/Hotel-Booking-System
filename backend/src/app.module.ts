@@ -34,7 +34,7 @@ import { PaymentModule } from './payment/payment.module';
         password: config.get<string>('database.password'),
         database: config.get<string>('database.database'),
         autoLoadEntities: true,
-        synchronize: true, // Auto-creates tables (only for development!)
+        synchronize: true,
       }),
     }),
     HotelsModule,

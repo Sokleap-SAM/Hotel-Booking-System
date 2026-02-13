@@ -88,6 +88,7 @@ export class BookingService {
     for (const selection of roomSelections) {
       const room = await this.roomRepository.findOne({
         where: { id: selection.roomId },
+        relations: ['hotel'],
       });
 
       if (!room) {
@@ -118,6 +119,8 @@ export class BookingService {
 
       bookingItems.push({
         roomId: room.id,
+        roomName: room.name,
+        hotelName: room.hotel?.name || 'Unknown Hotel',
         checkIn: new Date(selection.checkIn),
         checkOut: new Date(selection.checkOut),
         priceAtBooking: Math.round(priceAtBooking * 100) / 100,

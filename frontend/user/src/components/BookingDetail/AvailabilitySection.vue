@@ -9,6 +9,7 @@
           v-model="dateRange"
           range
           :min-date="new Date()"
+          :min-range="1"
           :enable-time-picker="false"
           placeholder="Select Check-in - Check-out"
           format="MM/dd/yyyy"

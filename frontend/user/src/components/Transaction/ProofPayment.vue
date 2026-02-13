@@ -98,7 +98,6 @@ const clearFile = () => {
 }
 
 // --- Exposed for Parent Component ---
-// This allows the parent 'Complete Booking' logic to access the file data
 defineExpose({
   selectedFile,
   clearFile,

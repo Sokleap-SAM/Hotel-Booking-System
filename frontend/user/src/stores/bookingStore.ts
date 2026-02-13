@@ -54,6 +54,8 @@ export interface BookingRecord {
   bookingItems: {
     id: string
     roomId: string
+    roomName?: string
+    hotelName?: string
     checkIn: string
     checkOut: string
     priceAtBooking: number
@@ -327,6 +329,14 @@ export const useBookingStore = defineStore('booking', {
           location: firstItem.room.hotel.location || '',
           images: firstItem.room.hotel.images || [],
         }
+      } else if (firstItem?.hotelName) {
+        // Use snapshot data if hotel was deleted
+        this.hotelInfo = {
+          id: '',
+          name: firstItem.hotelName,
+          location: '',
+          images: [],
+        }
       }
 
       this.checkInDate = firstItem?.checkIn || ''
@@ -339,7 +349,7 @@ export const useBookingStore = defineStore('booking', {
         if (!this.roomSelections[roomId]) {
           this.roomSelections[roomId] = {
             roomId,
-            roomName: item.room?.name || 'Room',
+            roomName: item.room?.name || item.roomName || 'Room',
             quantity: 1,
             pricePerNight: Number(item.priceAtBooking) / this.nights,
             discount: 0,

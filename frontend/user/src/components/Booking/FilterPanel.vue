@@ -86,28 +86,21 @@ export default defineComponent({
     });
 
     const handleSortChange = async () => {
-      await hotelStores.applySort(selectedSort.value);
+      // When sort changes, apply the combined filter with current selections
+      await hotelStores.fetchHotelsByCombinedFilters(
+        selectedAmenities.value,
+        selectedBedTypes.value,
+        selectedSort.value
+      );
     };
 
     const applyFilters = async () => {
-      applyAmenityFilter();
-      applyBedTypeFilter();
-    };
-
-    const applyBedTypeFilter = async () => {
-      if (selectedBedTypes.value.length > 0) {
-        await hotelStores.fetchHotelsByBedType(selectedBedTypes.value);
-      } else {
-        await hotelStores.applySort(selectedSort.value);
-      }
-    };
-
-    const applyAmenityFilter = async () => {
-      if (selectedAmenities.value.length > 0) {
-        await hotelStores.fetchHotelsByAmenities(selectedAmenities.value);
-      } else {
-        await hotelStores.applySort(selectedSort.value);
-      }
+      // Use combined endpoint to apply all filters together
+      await hotelStores.fetchHotelsByCombinedFilters(
+        selectedAmenities.value,
+        selectedBedTypes.value,
+        selectedSort.value
+      );
     };
 
     const clearFilters = async () => {

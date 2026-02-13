@@ -49,7 +49,6 @@ export class Hotel {
   @Column({
     type: 'enum',
     enum: Destination,
-    nullable: true,
   })
   destination: Destination;
 

@@ -112,7 +112,7 @@ const getBookingHotelImage = (booking: BookingRecord) => {
 
 // Helper function to get hotel name for a specific booking
 const getBookingHotelName = (booking: BookingRecord) => {
-  return booking?.bookingItems?.[0]?.room?.hotel?.name || 'Hotel Booking'
+  return booking?.bookingItems?.[0]?.room?.hotel?.name || booking?.bookingItems?.[0]?.hotelName || 'Hotel Booking'
 }
 
 // Helper function to get room summary for a specific booking
@@ -123,7 +123,7 @@ const getBookingRoomSummary = (booking: BookingRecord) => {
   // Group rooms by type
   const roomCounts: Record<string, number> = {}
   items.forEach((item) => {
-    const roomName = item.room?.name || 'Room'
+    const roomName = item.room?.name || item.roomName || 'Room'
     roomCounts[roomName] = (roomCounts[roomName] || 0) + 1
   })
   

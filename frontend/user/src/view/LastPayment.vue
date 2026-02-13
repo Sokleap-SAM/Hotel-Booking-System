@@ -35,25 +35,6 @@
           />
         </div>
 
-        <!-- KHQR QR Code Display -->
-        <div v-if="selectedPaymentMethod === 'khqr' && khqrData" class="qr-section">
-          <div class="qr-card">
-            <h3>Scan QR Code to Pay</h3>
-            <div class="qr-code-display">
-              <div class="qr-placeholder">
-                <i class="ri-qr-code-line"></i>
-                <p>{{ khqrData.qrReference }}</p>
-              </div>
-            </div>
-            <p class="amount-display">Amount: ${{ khqrData.amount.toFixed(2) }}</p>
-            <p class="expiry-note">QR code expires at {{ formatExpiry(khqrData.expiresAt) }}</p>
-            <button class="btn-paid" @click="confirmKhqrPayment" :disabled="isSubmitting">
-              <span v-if="isSubmitting">Confirming...</span>
-              <span v-else>I've Paid</span>
-            </button>
-          </div>
-        </div>
-
         <div class="fill-request">
           <Policy />
         </div>
@@ -77,27 +58,14 @@
           
           <!-- Different button based on payment method -->
           <template v-if="canPay && !isLoadingBooking">
-            <template v-if="selectedPaymentMethod === 'khqr'">
-              <button 
-                v-if="!khqrData" 
-                class="btn-confirm" 
-                :disabled="isSubmitting" 
-                @click="initiateKhqrPayment"
-              >
-                <span v-if="isSubmitting">Processing...</span>
-                <span v-else>Generate QR Code</span>
-              </button>
-            </template>
-            <template v-else>
-              <button 
-                class="btn-confirm btn-stripe" 
-                :disabled="isSubmitting" 
-                @click="initiateStripeCheckout"
-              >
-                <span v-if="isSubmitting">Redirecting to Stripe...</span>
-                <span v-else><i class="ri-bank-card-line"></i> Pay with Stripe</span>
-              </button>
-            </template>
+            <button 
+              class="btn-confirm btn-stripe" 
+              :disabled="isSubmitting" 
+              @click="initiateStripeCheckout"
+            >
+              <span v-if="isSubmitting">Redirecting to Stripe...</span>
+              <span v-else><i class="ri-bank-card-line"></i> Pay with Stripe</span>
+            </button>
           </template>
 
           <!-- Back to My Bookings if not approved -->
@@ -151,7 +119,6 @@ export default defineComponent({
       router.push('/home')
     }
 
-    const khqrData = computed(() => paymentStore.khqrData)
     const currentBooking = computed(() => bookingStore.currentBooking)
 
     // Check if booking is confirmed and ready for payment
@@ -185,67 +152,6 @@ export default defineComponent({
     const onPaymentMethodChanged = (method: PaymentMethod) => {
       selectedPaymentMethod.value = method
       paymentStore.clearPaymentState()
-    }
-
-
-
-    const formatExpiry = (dateStr: string) => {
-      return new Date(dateStr).toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
-
-    // Create booking first, then initiate KHQR payment
-    const initiateKhqrPayment = async () => {
-      if (!canPay.value || !currentBooking.value) {
-        bookingError.value = 'Booking must be approved before payment.'
-        return
-      }
-
-      isSubmitting.value = true
-      bookingError.value = ''
-      
-      try {
-        // Use existing confirmed booking
-        const result = await paymentStore.initializeKhqrPayment(currentBooking.value.id)
-        if (!result) {
-          throw new Error(paymentStore.error || 'Failed to initialize payment')
-        }
-      } catch (err: unknown) {
-        const error = err as { response?: { data?: { message?: string } }, message?: string }
-        bookingError.value = error.response?.data?.message || error.message || 'Failed to process. Please try again.'
-      } finally {
-        isSubmitting.value = false
-      }
-    }
-
-    // Confirm KHQR payment after user has paid
-    const confirmKhqrPayment = async () => {
-      if (!khqrData.value) return
-      
-      isSubmitting.value = true
-      bookingError.value = ''
-      
-      try {
-        const result = await paymentStore.confirmKhqrPayment(khqrData.value.paymentId)
-        if (result && result.status === 'completed') {
-          // Update booking status for confirmation page
-          if (bookingStore.currentBooking) {
-            bookingStore.currentBooking.status = 'completed'
-          }
-          bookingStore.clearBookingFlow()
-          paymentStore.clearPaymentState()
-          router.push({ name: 'BookingConfirmation' })
-        } else {
-          throw new Error('Payment confirmation failed')
-        }
-      } catch (err: unknown) {
-        const error = err as { response?: { data?: { message?: string } }, message?: string }
-        bookingError.value = error.response?.data?.message || error.message || 'Payment confirmation failed.'
-      } finally {
-        isSubmitting.value = false
-      }
     }
 
     // Initiate Stripe Checkout - redirects to Stripe hosted payment page
@@ -282,14 +188,10 @@ export default defineComponent({
       isLoadingBooking,
       bookingError,
       selectedPaymentMethod,
-      khqrData,
       canPay,
       currentBooking,
       paymentStore,
       onPaymentMethodChanged,
-      formatExpiry,
-      initiateKhqrPayment,
-      confirmKhqrPayment,
       initiateStripeCheckout,
       goToHome,
     }

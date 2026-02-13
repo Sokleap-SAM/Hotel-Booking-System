@@ -52,17 +52,17 @@ export class Room {
   @Column('simple-array')
   images: string[];
 
-  @ManyToMany(() => Amenity)
+  @ManyToMany(() => Amenity, (amenity) => amenity.rooms)
   @JoinTable()
   amenities: Amenity[];
 
   @ManyToOne(() => Hotel, (hotel) => hotel.rooms, {
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'hotelId' })
   hotel: Hotel;
 
-  @Column()
+  @Column({ nullable: true })
   hotelId: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

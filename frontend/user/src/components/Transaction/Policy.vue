@@ -29,11 +29,6 @@
       </p>
     </div>
 
-    <div class="action-wrapper">
-      <button @click="handleCompleteBooking" class="complete-btn">
-        <i class="ri-lock-fill"></i> Complete booking
-      </button>
-    </div>
   </div>
 </template>
 
@@ -48,18 +43,8 @@ export default defineComponent({
       marketingConsent: false,
     })
 
-    const handleCompleteBooking = () => {
-      if (!policyData.verifiedPayment) {
-        alert('Please verify your payment before completing.')
-        return
-      }
-      console.log('Finalizing Booking:', policyData)
-      // Future: axios.post('/bookings/complete', policyData)
-    }
-
     return {
       policyData,
-      handleCompleteBooking,
     }
   },
 })
@@ -117,25 +102,6 @@ export default defineComponent({
 .action-wrapper {
   display: flex;
   justify-content: flex-end;
-}
-
-.complete-btn {
-  background-color: #006ce4;
-  color: white;
-  border: none;
-  padding: 14px 40px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: background 0.2s;
-}
-
-.complete-btn:hover {
-  background-color: #0056b3;
 }
 
 .ri-lock-fill {

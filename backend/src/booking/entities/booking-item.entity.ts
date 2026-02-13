@@ -22,12 +22,19 @@ export class BookingItem {
   @JoinColumn({ name: 'bookingId' })
   booking: Booking;
 
-  @Column()
+  @Column({ nullable: true })
   roomId: string;
 
-  @ManyToOne(() => Room)
+  @ManyToOne(() => Room, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'roomId' })
   room: Room;
+
+  // Snapshot fields to preserve booking history even if room/hotel is deleted
+  @Column({ nullable: true })
+  roomName: string;
+
+  @Column({ nullable: true })
+  hotelName: string;
 
   @Column({ type: 'date' })
   checkIn: Date;

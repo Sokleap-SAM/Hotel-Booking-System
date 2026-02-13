@@ -1,17 +1,8 @@
 import { defineStore } from 'pinia'
 import api from '../utils/api'
 
-export type PaymentMethod = 'khqr' | 'stripe'
+export type PaymentMethod = 'stripe'
 export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
-
-export interface KhqrPaymentResponse {
-  paymentId: string
-  qrReference: string
-  qrCodeData: string
-  amount: number
-  expiresAt: string
-  status: string
-}
 
 export interface StripeCheckoutResponse {
   paymentId: string
@@ -68,12 +59,9 @@ export interface Payment {
 export const usePaymentStore = defineStore('payment', {
   state: () => ({
     // Current payment flow
-    currentPayment: null as KhqrPaymentResponse | StripeCheckoutResponse | null,
+    currentPayment: null as StripeCheckoutResponse | null,
     paymentStatus: null as PaymentStatusResponse | null,
     selectedMethod: 'stripe' as PaymentMethod,
-    
-    // KHQR specific
-    khqrData: null as KhqrPaymentResponse | null,
     
     // Stripe specific
     stripeCheckoutData: null as StripeCheckoutResponse | null,
@@ -100,27 +88,6 @@ export const usePaymentStore = defineStore('payment', {
       this.selectedMethod = method
     },
 
-    // Initialize KHQR payment
-    async initializeKhqrPayment(bookingId: string): Promise<KhqrPaymentResponse | null> {
-      this.isProcessing = true
-      this.error = null
-
-      try {
-        const response = await api.post<KhqrPaymentResponse>('/payments/khqr', {
-          bookingId,
-        })
-        this.khqrData = response.data
-        this.currentPayment = response.data
-        return response.data
-      } catch (err: unknown) {
-        const error = err as { response?: { data?: { message?: string } } }
-        this.error = error.response?.data?.message || 'Failed to initialize KHQR payment'
-        return null
-      } finally {
-        this.isProcessing = false
-      }
-    },
-
     // Create Stripe Checkout session - redirects to Stripe hosted page
     async createStripeCheckout(bookingId: string): Promise<StripeCheckoutResponse | null> {
       this.isProcessing = true
@@ -136,26 +103,6 @@ export const usePaymentStore = defineStore('payment', {
       } catch (err: unknown) {
         const error = err as { response?: { data?: { message?: string } } }
         this.error = error.response?.data?.message || 'Failed to create Stripe checkout'
-        return null
-      } finally {
-        this.isProcessing = false
-      }
-    },
-
-    // Confirm KHQR payment (simulate user confirming they've paid)
-    async confirmKhqrPayment(paymentId: string): Promise<PaymentStatusResponse | null> {
-      this.isProcessing = true
-      this.error = null
-
-      try {
-        const response = await api.post<PaymentStatusResponse>(
-          `/payments/khqr/${paymentId}/confirm`
-        )
-        this.paymentStatus = response.data
-        return response.data
-      } catch (err: unknown) {
-        const error = err as { response?: { data?: { message?: string } } }
-        this.error = error.response?.data?.message || 'Failed to confirm payment'
         return null
       } finally {
         this.isProcessing = false
@@ -240,39 +187,10 @@ export const usePaymentStore = defineStore('payment', {
       }
     },
 
-    // Start polling for KHQR payment status
-    startPollingPaymentStatus(paymentId: string, interval = 3000) {
-      this.isPollingStatus = true
-      
-      const pollInterval = setInterval(async () => {
-        if (!this.isPollingStatus) {
-          clearInterval(pollInterval)
-          return
-        }
-
-        const status = await this.checkPaymentStatus(paymentId)
-        if (status && (status.status === 'completed' || status.status === 'failed')) {
-          this.stopPollingPaymentStatus()
-          clearInterval(pollInterval)
-        }
-      }, interval)
-
-      // Auto-stop after 15 minutes
-      setTimeout(() => {
-        this.stopPollingPaymentStatus()
-        clearInterval(pollInterval)
-      }, 15 * 60 * 1000)
-    },
-
-    stopPollingPaymentStatus() {
-      this.isPollingStatus = false
-    },
-
     // Clear payment state
     clearPaymentState() {
       this.currentPayment = null
       this.paymentStatus = null
-      this.khqrData = null
       this.stripeCheckoutData = null
       this.error = null
       this.isPollingStatus = false

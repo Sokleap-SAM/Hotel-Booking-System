@@ -5,7 +5,6 @@
         <strong>Pay online</strong>
         <p>You'll pay when you complete this booking.</p>
         <div class="payment-badges">
-          <div class="khqr-mini-logo">KHQR</div>
           <div class="stripe-mini-logo">
             <i class="ri-bank-card-fill"></i> Stripe
           </div>
@@ -17,19 +16,19 @@
       <h2 class="form-title">How do you want to pay?</h2>
 
       <div class="payment-selection-area">
-        <!-- KHQR Option -->
+        <!-- KHQR Option - Disabled -->
         <div 
-          class="payment-option" 
-          :class="{ selected: selectedMethod === 'khqr' }"
-          @click="selectMethod('khqr')"
+          class="payment-option disabled"
+          title="KHQR payment is temporarily unavailable"
         >
           <input 
             type="radio" 
-            :checked="selectedMethod === 'khqr'" 
+            disabled
             class="top-left-checkbox" 
             name="payment-method"
           />
-          <div class="khqr-red-box">KHQR</div>
+          <div class="khqr-disabled-box">KHQR</div>
+          <span class="coming-soon-label">Unavailable</span>
         </div>
 
         <!-- Stripe Option -->
@@ -49,18 +48,6 @@
             Stripe
           </div>
         </div>
-      </div>
-
-      <!-- KHQR Instructions -->
-      <div v-if="selectedMethod === 'khqr'" class="instructions">
-        <p class="method-title">KHQR Payment</p>
-        <p class="next-steps-title">Here's what happens next</p>
-        <ul class="steps-list">
-          <li>Click "Generate QR" to get your payment QR code</li>
-          <li>Scan the QR code with your banking app</li>
-          <li>Complete the payment in your app</li>
-          <li>Click "I've Paid" to confirm your payment</li>
-        </ul>
       </div>
 
       <!-- Stripe Instructions -->
@@ -186,6 +173,17 @@ export default defineComponent({
   border-color: #635bff;
 }
 
+.payment-option.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+.payment-option.disabled:hover {
+  border-color: #ccc;
+}
+
 .payment-option.selected {
   border-color: #635bff;
   background: #f5f4ff;
@@ -196,6 +194,22 @@ export default defineComponent({
   top: 8px;
   left: 8px;
   cursor: pointer;
+}
+
+.khqr-disabled-box {
+  background: #9e9e9e;
+  color: white;
+  padding: 10px 15px;
+  font-weight: bold;
+  border-radius: 4px;
+}
+
+.coming-soon-label {
+  position: absolute;
+  bottom: 4px;
+  font-size: 9px;
+  color: #888;
+  font-weight: 500;
 }
 
 .khqr-red-box {

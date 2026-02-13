@@ -48,18 +48,18 @@
             <span>{{ booking.rejectionReason || 'Booking failed' }}</span>
           </div>
 
-          <div v-if="booking.status === 'completed'" class="status-info completed-info">
+          <div v-if="booking.status === 'completed' && booking.bookingItems[0]?.checkOut && new Date(booking.bookingItems[0].checkOut) < new Date()" class="status-info completed-info">
             <i class="ri-star-smile-line"></i>
             <span>Stay completed! We'd love to hear about your experience.</span>
           </div>
 
           <div class="card-body">
             <!-- Hotel Info with Image -->
-            <div class="hotel-section" v-if="booking.bookingItems?.[0]?.room?.hotel">
+            <div class="hotel-section" v-if="booking.bookingItems?.[0]">
               <div class="hotel-image" :style="{ backgroundImage: `url(${getHotelImage(booking)})` }"></div>
               <div class="hotel-info">
-                <h2 class="hotel-name">{{ booking.bookingItems[0].room.hotel.name }}</h2>
-                <p class="hotel-location" v-if="booking.bookingItems[0].room.hotel.location">
+                <h2 class="hotel-name">{{ booking.bookingItems[0].room?.hotel?.name || booking.bookingItems[0].hotelName || 'Deleted Hotel' }}</h2>
+                <p class="hotel-location" v-if="booking.bookingItems[0].room?.hotel?.location">
                   <i class="ri-map-pin-line"></i>
                   {{ booking.bookingItems[0].room.hotel.location }}
                 </p>
@@ -176,16 +176,16 @@
           </div>
 
           <!-- Hotel Info -->
-          <div class="detail-section" v-if="selectedBooking.bookingItems?.[0]?.room?.hotel">
+          <div class="detail-section" v-if="selectedBooking.bookingItems?.[0]">
             <h3 class="section-label">Hotel</h3>
             <div class="hotel-detail">
               <div class="hotel-detail-image" :style="{ backgroundImage: `url(${getHotelImage(selectedBooking)})` }"></div>
               <div class="hotel-detail-info">
-                <h4>{{ selectedBooking.bookingItems[0].room.hotel.name }}</h4>
-                <p v-if="selectedBooking.bookingItems[0].room.hotel.location">
+                <h4>{{ selectedBooking.bookingItems[0].room?.hotel?.name || selectedBooking.bookingItems[0].hotelName || 'Deleted Hotel' }}</h4>
+                <p v-if="selectedBooking.bookingItems[0].room?.hotel?.location">
                   <i class="ri-map-pin-line"></i> {{ selectedBooking.bookingItems[0].room.hotel.location }}
                 </p>
-                <p v-if="selectedBooking.bookingItems[0].room.hotel.phone">
+                <p v-if="selectedBooking.bookingItems[0].room?.hotel?.phone">
                   <i class="ri-phone-line"></i> {{ selectedBooking.bookingItems[0].room.hotel.phone }}
                 </p>
               </div>
@@ -286,7 +286,7 @@
       v-if="ratingBooking && ratingBooking.bookingItems[0]?.room?.hotel?.id"
       :hotel-id="ratingBooking.bookingItems[0].room.hotel.id"
       :booking-id="ratingBooking.id"
-      :hotel-name="ratingBooking.bookingItems[0]?.room?.hotel?.name || 'Hotel'"
+      :hotel-name="ratingBooking.bookingItems[0]?.room?.hotel?.name || ratingBooking.bookingItems[0]?.hotelName || 'Hotel'"
       :hotel-location="ratingBooking.bookingItems[0]?.room?.hotel?.location || ''"
       :hotel-image="getHotelImage(ratingBooking)"
       :existing-rating="bookingRatingData"

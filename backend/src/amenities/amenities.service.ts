@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,6 +11,7 @@ import { Amenity, AmenityCategory } from './entities/amenity.entity';
 import { CreateAmenityDto } from './dto/create-amenity.dto';
 import { UpdateAmenityDto } from './dto/update-amenity.dto';
 import { Hotel } from '../hotels/entities/hotel.entity';
+import { Room } from '../rooms/entities/room.entity';
 
 @Injectable()
 export class AmenitiesService implements OnModuleInit {
@@ -18,6 +20,8 @@ export class AmenitiesService implements OnModuleInit {
     private amenityRepository: Repository<Amenity>,
     @InjectRepository(Hotel)
     private hotelRepository: Repository<Hotel>,
+    @InjectRepository(Room)
+    private roomRepository: Repository<Room>,
   ) {}
 
   async onModuleInit() {
@@ -114,11 +118,19 @@ export class AmenitiesService implements OnModuleInit {
   async remove(id: number): Promise<{ message: string }> {
     const amenity = await this.amenityRepository.findOne({
       where: { id },
-      relations: ['hotels'],
+      relations: ['hotels', 'rooms'],
     });
 
     if (!amenity) {
       throw new NotFoundException(`Amenity with ID ${id} not found`);
+    }
+
+    // Check if any rooms are using this amenity
+    if (amenity.rooms && amenity.rooms.length > 0) {
+      const roomNames = amenity.rooms.map((r) => r.name).join(', ');
+      throw new BadRequestException(
+        `Cannot delete amenity '${amenity.name}' because it is used by ${amenity.rooms.length} room(s): ${roomNames}`,
+      );
     }
 
     // Get hotel IDs that will be affected

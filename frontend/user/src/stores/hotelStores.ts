@@ -162,6 +162,35 @@ export const useHotelStore = defineStore('hotel', {
       }
     },
 
+    async fetchHotelsByCombinedFilters(
+      amenityIds: number[],
+      bedTypeIds: number[],
+      sort: SortOption = 'default'
+    ) {
+      this.isLoading = true
+      this.selectedAmenityIds = amenityIds
+      this.selectedBedTypeIds = bedTypeIds
+      this.currentSort = sort
+      try {
+        const params = new URLSearchParams()
+        if (amenityIds.length > 0) {
+          params.append('amenityIds', amenityIds.join(','))
+        }
+        if (bedTypeIds.length > 0) {
+          params.append('bedTypeIds', bedTypeIds.join(','))
+        }
+        if (sort !== 'default') {
+          params.append('sort', sort)
+        }
+        const { data } = await api.get(`/hotels/filter/combined?${params.toString()}`)
+        this.hotels = data
+      } catch (error) {
+        console.error('Fetch hotels by combined filters error:', error)
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     async fetchBedTypes() {
       try {
         const { data } = await api.get('/bed-types')

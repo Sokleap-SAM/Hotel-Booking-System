@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
@@ -63,10 +62,14 @@ export class HotelsService {
       },
     });
 
+    // Set isActive to false if no amenities are assigned
+    const isActive = amenities.length > 0;
+
     const hotel = this.hotelsRepository.create({
       ...hotelData,
       amenities,
       images: filePaths,
+      isActive,
     });
 
     return await this.hotelsRepository.save(hotel);
@@ -75,7 +78,7 @@ export class HotelsService {
   async findAll(): Promise<Hotel[]> {
     return await this.hotelsRepository.find({
       where: { isActive: true },
-      relations: ['rooms'],
+      relations: ['rooms', 'amenities'],
       order: {
         name: 'ASC',
       },
@@ -183,6 +186,12 @@ export class HotelsService {
           category: AmenityCategory.HOTEL,
         },
       });
+      // Set isActive based on amenities
+      hotel.isActive = hotel.amenities.length > 0;
+    } else if (Array.isArray(amenityIds) && amenityIds.length === 0) {
+      // If amenityIds is explicitly empty, clear amenities and deactivate
+      hotel.amenities = [];
+      hotel.isActive = false;
     }
 
     Object.assign(hotel, rest);
@@ -190,7 +199,21 @@ export class HotelsService {
   }
 
   async remove(id: string): Promise<{ message: string }> {
-    const hotel = await this.findOneAdmin(id);
+    const hotel = await this.hotelsRepository.findOne({
+      where: { id },
+      relations: ['rooms'],
+    });
+
+    if (!hotel) {
+      throw new NotFoundException(`Hotel with id ${id} not found`);
+    }
+
+    if (hotel.rooms && hotel.rooms.length > 0) {
+      throw new BadRequestException(
+        `Cannot delete hotel "${hotel.name}" because it has ${hotel.rooms.length} room(s)`,
+      );
+    }
+
     if (hotel.images) {
       for (const imagePath of hotel.images) {
         try {
@@ -203,7 +226,7 @@ export class HotelsService {
     }
     await this.hotelsRepository.remove(hotel);
     return {
-      message: `Hotel ${id} deleted successfully`,
+      message: `Hotel "${hotel.name}" deleted successfully`,
     };
   }
 
@@ -297,6 +320,58 @@ export class HotelsService {
       .andWhere('room.discountPercentage > 0')
       .orderBy('room.discountPercentage', 'DESC')
       .getMany();
+
+    return hotels;
+  }
+
+  async getAvailableHotelByCombinedFilters(
+    amenityIds: number[],
+    bedTypeIds: number[],
+    sort?: string,
+  ): Promise<Hotel[]> {
+    let queryBuilder = this.hotelsRepository
+      .createQueryBuilder('hotel')
+      .leftJoinAndSelect('hotel.rooms', 'room')
+      .leftJoinAndSelect('hotel.amenities', 'amenity')
+      .leftJoinAndSelect('room.roomBeds', 'roomBed')
+      .leftJoinAndSelect('roomBed.bedType', 'bedType')
+      .where('hotel.isActive = :isActive', { isActive: true });
+
+    // Apply bed type filter in query if provided
+    if (bedTypeIds && bedTypeIds.length > 0) {
+      queryBuilder = queryBuilder.andWhere(
+        'roomBed.bedTypeId IN (:...bedTypeIds)',
+        { bedTypeIds },
+      );
+    }
+
+    // Apply sorting
+    switch (sort) {
+      case 'lowest-price':
+        queryBuilder = queryBuilder.orderBy('room.price', 'ASC');
+        break;
+      case 'highest-price':
+        queryBuilder = queryBuilder.orderBy('room.price', 'DESC');
+        break;
+      case 'highest-rating':
+        queryBuilder = queryBuilder.orderBy('hotel.avgRating', 'DESC');
+        break;
+      case 'highest-discount':
+        queryBuilder = queryBuilder
+          .andWhere('room.discountPercentage > 0')
+          .orderBy('room.discountPercentage', 'DESC');
+        break;
+    }
+
+    let hotels = await queryBuilder.getMany();
+
+    // Apply amenity filter in-memory (to ensure ALL amenities are present)
+    if (amenityIds && amenityIds.length > 0) {
+      hotels = hotels.filter((hotel) => {
+        const hotelAmenityIds = hotel.amenities.map((a) => a.id);
+        return amenityIds.every((id) => hotelAmenityIds.includes(id));
+      });
+    }
 
     return hotels;
   }

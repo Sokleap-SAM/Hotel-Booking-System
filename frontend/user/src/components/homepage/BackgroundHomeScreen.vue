@@ -35,6 +35,7 @@
             v-model="dateRange"
             range
             :min-date="new Date()"
+            :min-range="1"
             :enable-time-picker="false"
             inline
             auto-apply

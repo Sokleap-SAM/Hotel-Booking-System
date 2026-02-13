@@ -24,9 +24,9 @@ export class CreateHotelDto {
   @MaxLength(30)
   name: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsEnum(Destination, { message: 'Invalid destination' })
-  destination?: Destination;
+  destination: Destination;
 
   @Transform(({ value }) => value?.trim())
   @IsNotEmpty()

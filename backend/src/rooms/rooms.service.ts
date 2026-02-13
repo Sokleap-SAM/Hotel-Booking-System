@@ -192,13 +192,35 @@ export class RoomsService {
 
     Object.assign(room, rest);
     await this.roomsRepository.save(room);
-    
+
     // Return fresh room with all relations
     return await this.findOne(id);
   }
 
   async remove(id: string): Promise<{ message: string }> {
     const room = await this.findOne(id);
+
+    // Check if room has any active booking items (not completed or checkout date not passed)
+    const now = new Date();
+    const activeBookings = await this.bookingItemRepository
+      .createQueryBuilder('bookingItem')
+      .innerJoin('bookingItem.booking', 'booking')
+      .where('bookingItem.roomId = :roomId', { roomId: id })
+      .andWhere(
+        '(booking.status != :completed OR bookingItem.checkOut >= :now)',
+        {
+          completed: BookingStatus.COMPLETED,
+          now: now.toISOString().split('T')[0],
+        },
+      )
+      .getCount();
+
+    if (activeBookings > 0) {
+      throw new BadRequestException(
+        `Cannot delete room '${room.name}' because it has ${activeBookings} active booking(s)`,
+      );
+    }
+
     if (room.images) {
       for (const imagePath of room.images) {
         try {

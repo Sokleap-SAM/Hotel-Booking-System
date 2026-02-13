@@ -114,6 +114,32 @@ export class HotelsController {
   }
 
   @Public()
+  @Get('filter/combined')
+  findAvailableHotelsByCombinedFilters(
+    @Query('amenityIds') amenityIds: string,
+    @Query('bedTypeIds') bedTypeIds: string,
+    @Query('sort') sort: string,
+  ) {
+    const amenityIdsParsed = amenityIds
+      ? amenityIds
+          .split(',')
+          .map((id) => parseInt(id, 10))
+          .filter((id) => !isNaN(id))
+      : [];
+    const bedTypeIdsParsed = bedTypeIds
+      ? bedTypeIds
+          .split(',')
+          .map((id) => parseInt(id, 10))
+          .filter((id) => !isNaN(id))
+      : [];
+    return this.hotelsService.getAvailableHotelByCombinedFilters(
+      amenityIdsParsed,
+      bedTypeIdsParsed,
+      sort,
+    );
+  }
+
+  @Public()
   @Get('search/availability')
   searchHotelsWithAvailability(
     @Query('location') location?: string,

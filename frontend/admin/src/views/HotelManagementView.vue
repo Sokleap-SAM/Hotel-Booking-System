@@ -191,7 +191,7 @@ const handleAction = async (action: string) => {
       if (result.success) {
         toast.success('Hotel Deleted', `"${hotel.name}" deleted successfully!`);
       } else {
-        toast.error('Delete Failed', 'Failed to delete hotel. Please try again.');
+        toast.error('Delete Failed', result.error || 'Failed to delete hotel. Please try again.');
       }
     }
   } else if (action === 'edit') {

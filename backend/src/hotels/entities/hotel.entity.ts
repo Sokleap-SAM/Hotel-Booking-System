@@ -34,7 +34,6 @@ export enum Destination {
   SIEM_REAP = 'Siem Reap',
   STUNG_TRENG = 'Stung Treng',
   SVAY_RIENG = 'Svay Rieng',
-  TAKEO_PROVINCE = 'Takeo',
   TBOUNG_KHMUM = 'Tboung Khmum',
 }
 

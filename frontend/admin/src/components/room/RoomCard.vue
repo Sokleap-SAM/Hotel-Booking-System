@@ -100,10 +100,6 @@ const amenitiesDisplay = computed(() => {
     items.push(...props.room.amenities.map(a => a.name))
   }
   
-  if (props.room.custom_amenities) {
-    items.push(...props.room.custom_amenities.split(',').map(s => s.trim()).filter(s => s))
-  }
-  
   return items.slice(0, 5).join(', ') + (items.length > 5 ? ` +${items.length - 5} more` : '')
 })
 </script>

@@ -13,7 +13,6 @@ export interface Room {
   discountPercentage: number
   images: string[]
   amenities: { id: number; name: string }[]
-  custom_amenities?: string
   hotelId: string
 }
 

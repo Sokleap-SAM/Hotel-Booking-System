@@ -20,7 +20,6 @@ const fieldLabels: Record<string, string> = {
   email: 'Email',
   amenityIds: 'Amenities',
   images: 'Images',
-  custom_amenities: 'Custom Amenities',
 }
 
 export const useHotelStore = defineStore('hotel', {
@@ -57,7 +56,6 @@ export const useHotelStore = defineStore('hotel', {
         roomCount: hotel.rooms?.length || 0,
         displayAmenities: [
           ...(hotel.amenities?.map((a: { name: string }) => a.name) || []),
-          ...(hotel.custom_amenities ? [hotel.custom_amenities] : []),
         ].join(', '),
       }))
     },

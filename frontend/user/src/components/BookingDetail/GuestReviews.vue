@@ -47,23 +47,6 @@
         </div>
       </div>
 
-      <!-- Write Review Button -->
-      <div class="write-review-section">
-        <button 
-          v-if="!showRatingForm && canWriteReview" 
-          class="write-review-btn"
-          @click="showRatingForm = true"
-        >
-          <i class="ri-edit-line"></i> Write a Review
-        </button>
-        <p v-else-if="authStore.isAuthenticated && ratingStore.hasUserRated" class="already-rated">
-          <i class="ri-check-line"></i> You have already reviewed this hotel
-        </p>
-        <p v-else-if="!authStore.isAuthenticated && !showRatingForm" class="login-prompt">
-          <router-link to="/login">Log in</router-link> to write a review
-        </p>
-      </div>
-
       <!-- Guest Highlights -->
       <div v-if="topRatedCategories.length > 0" class="guest-highlights">
         <h4 class="highlights-title">
@@ -77,14 +60,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Rating Form -->
-      <RatingForm 
-        v-if="showRatingForm"
-        :hotelId="hotelId"
-        @submitted="onRatingSubmitted"
-        @cancel="showRatingForm = false"
-      />
 
       <!-- Reviews List -->
       <div id="reviews-list" class="reviews-list-section">
@@ -142,7 +117,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRatingStore } from '@/stores/ratingStore'
 import { useAuthStore } from '@/stores/auth'
-import RatingForm from './RatingForm.vue'
 
 const props = defineProps<{
   hotelId: string
@@ -150,7 +124,6 @@ const props = defineProps<{
 
 const ratingStore = useRatingStore()
 const authStore = useAuthStore()
-const showRatingForm = ref(false)
 
 // Reviews pagination
 const visibleReviewsCount = ref(5)
@@ -203,11 +176,6 @@ const categoryItems = computed(() => {
   ]
 })
 
-// Check if user can write a review (logged in and hasn't rated yet)
-const canWriteReview = computed(() => {
-  return authStore.isAuthenticated && !ratingStore.hasUserRated
-})
-
 // Get top 3 highest rated categories to display as highlights
 const topRatedCategories = computed(() => {
   const cats = ratingStore.ratingSummary?.categoryAverages
@@ -246,10 +214,6 @@ const formatDate = (dateStr: string) => {
 const scrollToReviews = () => {
   const el = document.getElementById('reviews-list')
   el?.scrollIntoView({ behavior: 'smooth' })
-}
-
-const onRatingSubmitted = () => {
-  showRatingForm.value = false
 }
 
 const loadRatings = async () => {

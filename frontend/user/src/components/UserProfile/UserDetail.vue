@@ -106,10 +106,10 @@ export default defineComponent({
         if (isEditingFirstName.value || isEditingLastName.value) {
           const formData = new FormData()
           if (isEditingFirstName.value) {
-            formData.append('firstName', user.value.firstName)
+            formData.append('firstName', user.value.firstName.trim())
           }
           if (isEditingLastName.value) {
-            formData.append('lastName', user.value.lastName)
+            formData.append('lastName', user.value.lastName.trim())
           }
 
           await axios.patch(`${API_URL}/auth/profile`, formData, {

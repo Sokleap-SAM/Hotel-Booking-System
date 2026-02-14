@@ -51,7 +51,8 @@ export const useBedTypeStore = defineStore('bedType', {
 
     async createBedType(name: string) {
       try {
-        const { data } = await api.post<BedType>('/bed-types', { name })
+        const trimmedName = name.trim()
+        const { data } = await api.post<BedType>('/bed-types', { name: trimmedName })
         this.bedTypes.push(data)
         return { success: true, data }
       } catch (error: unknown) {
@@ -61,7 +62,8 @@ export const useBedTypeStore = defineStore('bedType', {
 
     async updateBedType(id: number, name: string) {
       try {
-        const { data } = await api.patch<BedType>(`/bed-types/${id}`, { name })
+        const trimmedName = name.trim()
+        const { data } = await api.patch<BedType>(`/bed-types/${id}`, { name: trimmedName })
         const index = this.bedTypes.findIndex((bt) => bt.id === id)
         if (index !== -1) {
           this.bedTypes[index] = data

@@ -19,7 +19,7 @@
       <div class="form-group full-width">
         <label>Destination</label>
         <div class="select-wrapper">
-          <select v-model="form.destination" :class="['custom-select', { 'input-error': errors.destination }]">
+          <select v-model="form.destination" :class="['custom-select', { 'input-error': errors.destination }]" required>
             <option value="" disabled>Select a destination</option>
             <option v-for="dest in destinations" :key="dest" :value="dest">{{ dest }}</option>
           </select>

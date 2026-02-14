@@ -127,10 +127,10 @@ export const useRoomStore = defineStore('room', {
     prepareFormData(data: RoomFormData, isUpdate = false) {
       const formData = new FormData();
 
-      // String fields
-      formData.append('name', data.name || '');
-      formData.append('shortDescription', data.shortDescription || '');
-      formData.append('longDescription', data.longDescription || '');
+      // String fields - trim whitespace
+      formData.append('name', (data.name || '').trim());
+      formData.append('shortDescription', (data.shortDescription || '').trim());
+      formData.append('longDescription', (data.longDescription || '').trim());
       // Only include hotelId for create, not update
       if (!isUpdate && data.hotelId) {
         formData.append('hotelId', data.hotelId);

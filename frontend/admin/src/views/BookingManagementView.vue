@@ -24,6 +24,7 @@
         <option value="confirmed">Confirmed</option>
         <option value="cancelled">Cancelled</option>
         <option value="completed">Completed</option>
+        <option value="failed">Failed</option>
       </select>
     </div>
 

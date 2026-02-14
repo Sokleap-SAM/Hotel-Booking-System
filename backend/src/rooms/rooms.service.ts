@@ -8,7 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Repository, Raw } from 'typeorm';
 import { Room } from './entities/room.entity';
 import { RoomBed } from './entities/room-bed.entity';
 import { Hotel } from '../hotels/entities/hotel.entity';
@@ -40,7 +40,12 @@ export class RoomsService {
 
   async create(createRoomDto: CreateRoomDto, files: any[]): Promise<Room> {
     const existingRoom = await this.roomsRepository.findOne({
-      where: { name: createRoomDto.name, hotelId: createRoomDto.hotelId },
+      where: {
+        name: Raw((alias) => `LOWER(${alias}) = LOWER(:name)`, {
+          name: createRoomDto.name,
+        }),
+        hotelId: createRoomDto.hotelId,
+      },
     });
     if (existingRoom) {
       throw new ConflictException(
@@ -127,9 +132,17 @@ export class RoomsService {
     const { amenityIds, existingImages, roomBeds, ...rest } = updateRoomDto;
 
     // Check for duplicate name within the same hotel (only if name is being changed)
-    if (updateRoomDto.name && updateRoomDto.name !== room.name) {
+    if (
+      updateRoomDto.name &&
+      updateRoomDto.name.toLowerCase() !== room.name.toLowerCase()
+    ) {
       const existingRoom = await this.roomsRepository.findOne({
-        where: { name: updateRoomDto.name, hotelId: room.hotelId },
+        where: {
+          name: Raw((alias) => `LOWER(${alias}) = LOWER(:name)`, {
+            name: updateRoomDto.name,
+          }),
+          hotelId: room.hotelId,
+        },
       });
       if (existingRoom) {
         throw new ConflictException(

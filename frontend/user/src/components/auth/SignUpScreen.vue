@@ -165,9 +165,9 @@ export default {
       }
 
       const formData = new FormData()
-      formData.append('firstName', firstName.value)
-      formData.append('lastName', lastName.value)
-      formData.append('email', email.value)
+      formData.append('firstName', firstName.value.trim())
+      formData.append('lastName', lastName.value.trim())
+      formData.append('email', email.value.trim())
       formData.append('password', password.value)
       formData.append('confirmPassword', confirmPassword.value)
       if (profileImage.value) {
@@ -180,7 +180,7 @@ export default {
         alert('Registration successful! Please log in.')
         router.push('/login')
       } catch (err) {
-        error.value = err.message || 'An unexpected error occurred.'
+        error.value = err instanceof Error ? err.message : 'An unexpected error occurred.'
       }
     }
 

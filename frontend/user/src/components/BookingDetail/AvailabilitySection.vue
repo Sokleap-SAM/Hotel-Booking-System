@@ -168,10 +168,25 @@ tomorrow.setHours(9, 0, 0, 0); // Check-out time: 9:00
 const dateRange = ref([today, tomorrow]);
 
 // Ensure static times: check-in at 11:00, check-out at 9:00
+// Also enforce minimum 1-day stay
 const normalizeDateTime = (dates: Date[] | null) => {
   if (!dates || dates.length < 2) return;
   if (dates[0]) dates[0].setHours(11, 0, 0, 0);
   if (dates[1]) dates[1].setHours(9, 0, 0, 0);
+  
+  // Ensure checkout is at least 1 day after checkin (compare dates only)
+  if (dates[0] && dates[1]) {
+    const checkInDay = new Date(dates[0].getFullYear(), dates[0].getMonth(), dates[0].getDate());
+    const checkOutDay = new Date(dates[1].getFullYear(), dates[1].getMonth(), dates[1].getDate());
+    
+    if (checkOutDay <= checkInDay) {
+      // Set checkout to next day
+      const nextDay = new Date(checkInDay);
+      nextDay.setDate(nextDay.getDate() + 1);
+      nextDay.setHours(9, 0, 0, 0);
+      dates[1] = nextDay;
+    }
+  }
 };
 
 // Format date display without time

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   IsEmail,
   IsNotEmpty,
@@ -12,14 +15,17 @@ import {
 import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
+  @Transform(({ value }) => value?.trim())
   @IsString()
   @IsNotEmpty({ message: 'First name is required' })
   firstName: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsString()
   @IsNotEmpty({ message: 'Last name is required' })
   lastName: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsEmail({}, { message: 'Please provide a valid email address' })
   @IsNotEmpty({ message: 'Email is required' })
   email: string;

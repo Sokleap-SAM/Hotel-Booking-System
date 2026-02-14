@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Raw } from 'typeorm';
 import { BedType } from './entities/bed-type.entity';
 import { CreateBedTypeDto } from './dto/create-bed-type.dto';
 import { UpdateBedTypeDto } from './dto/update-bed-type.dto';
@@ -50,7 +50,11 @@ export class BedTypesService implements OnModuleInit {
 
   async create(createBedTypeDto: CreateBedTypeDto): Promise<BedType> {
     const existing = await this.bedTypeRepository.findOne({
-      where: { name: createBedTypeDto.name },
+      where: {
+        name: Raw((alias) => `LOWER(${alias}) = LOWER(:name)`, {
+          name: createBedTypeDto.name,
+        }),
+      },
     });
 
     if (existing) {
@@ -87,9 +91,16 @@ export class BedTypesService implements OnModuleInit {
   ): Promise<BedType> {
     const bedType = await this.findOne(id);
 
-    if (updateBedTypeDto.name && updateBedTypeDto.name !== bedType.name) {
+    if (
+      updateBedTypeDto.name &&
+      updateBedTypeDto.name.toLowerCase() !== bedType.name.toLowerCase()
+    ) {
       const existing = await this.bedTypeRepository.findOne({
-        where: { name: updateBedTypeDto.name },
+        where: {
+          name: Raw((alias) => `LOWER(${alias}) = LOWER(:name)`, {
+            name: updateBedTypeDto.name,
+          }),
+        },
       });
 
       if (existing) {

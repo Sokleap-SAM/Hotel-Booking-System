@@ -6,7 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository, Like, In } from 'typeorm';
+import { MoreThan, Repository, Like, In, Raw } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { UserRole } from './entities/user-role.entity';
@@ -142,7 +142,9 @@ export class UserService {
 
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { email },
+      where: {
+        email: Raw((alias) => `LOWER(${alias}) = LOWER(:email)`, { email }),
+      },
       relations: ['roles', 'roles.role'],
     });
   }
@@ -267,7 +269,10 @@ export class UserService {
     }
 
     // Check for email uniqueness if email is being updated
-    if (updateData.email && updateData.email !== user.email) {
+    if (
+      updateData.email &&
+      updateData.email.toLowerCase() !== user.email.toLowerCase()
+    ) {
       const existingUser = await this.findByEmail(updateData.email);
       if (existingUser) {
         throw new ConflictException('Email already exists');

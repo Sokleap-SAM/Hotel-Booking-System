@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Repository, Raw } from 'typeorm';
 import { Hotel } from './entities/hotel.entity';
 import { CreateHotelDto } from './dto/create_hotel.dto';
 import { UpdateHotelDto } from './dto/update_hotel.dto';
@@ -36,7 +36,11 @@ export class HotelsService {
     const filePaths = files.map((f) => `/uploads/hotels/${f.filename}`);
 
     const existingName = await this.hotelsRepository.findOne({
-      where: { name: dto.name },
+      where: {
+        name: Raw((alias) => `LOWER(${alias}) = LOWER(:name)`, {
+          name: dto.name,
+        }),
+      },
     });
 
     if (existingName) {
@@ -46,7 +50,11 @@ export class HotelsService {
     }
 
     const existingEmail = await this.hotelsRepository.findOne({
-      where: { email: dto.email },
+      where: {
+        email: Raw((alias) => `LOWER(${alias}) = LOWER(:email)`, {
+          email: dto.email,
+        }),
+      },
     });
 
     if (existingEmail) {
@@ -131,9 +139,13 @@ export class HotelsService {
     const { amenityIds, existingImages, ...rest } = dto;
 
     // Check for duplicate name (only if name is being changed)
-    if (dto.name && dto.name !== hotel.name) {
+    if (dto.name && dto.name.toLowerCase() !== hotel.name.toLowerCase()) {
       const existingName = await this.hotelsRepository.findOne({
-        where: { name: dto.name },
+        where: {
+          name: Raw((alias) => `LOWER(${alias}) = LOWER(:name)`, {
+            name: dto.name,
+          }),
+        },
       });
       if (existingName) {
         throw new ConflictException(
@@ -143,9 +155,13 @@ export class HotelsService {
     }
 
     // Check for duplicate email (only if email is being changed)
-    if (dto.email && dto.email !== hotel.email) {
+    if (dto.email && dto.email.toLowerCase() !== hotel.email.toLowerCase()) {
       const existingEmail = await this.hotelsRepository.findOne({
-        where: { email: dto.email },
+        where: {
+          email: Raw((alias) => `LOWER(${alias}) = LOWER(:email)`, {
+            email: dto.email,
+          }),
+        },
       });
       if (existingEmail) {
         throw new ConflictException(

@@ -36,6 +36,10 @@
           <div v-if="booking.status === 'confirmed'" class="status-info confirmed-info">
             <i class="ri-checkbox-circle-line"></i>
             <span>Approved! Please proceed to payment.</span>
+            <div v-if="booking.paymentExpiresAt" class="countdown-timer">
+              <i class="ri-timer-line"></i>
+              <span>Time remaining: {{ getCountdown(booking.paymentExpiresAt) }}</span>
+            </div>
           </div>
 
           <div v-if="booking.status === 'cancelled' && booking.rejectionReason" class="status-info rejected-info">
@@ -163,6 +167,10 @@
               <div class="info-item">
                 <span class="label">Status</span>
                 <span :class="['status-badge', `status-${selectedBooking.status}`]">{{ selectedBooking.status }}</span>
+              </div>
+              <div class="info-item" v-if="selectedBooking.status === 'confirmed' && selectedBooking.paymentExpiresAt">
+                <span class="label">Payment Deadline</span>
+                <span class="countdown-value">{{ getCountdown(selectedBooking.paymentExpiresAt) }}</span>
               </div>
               <div class="info-item">
                 <span class="label">Booked On</span>
@@ -301,7 +309,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue'
+import { defineComponent, onMounted, onUnmounted, ref } from 'vue'
 import { useBookingStore, type BookingRecord } from '@/stores/bookingStore'
 import { useRatingStore, type Rating } from '@/stores/ratingStore'
 import { useRouter } from 'vue-router'
@@ -322,6 +330,28 @@ export default defineComponent({
     const ratingBooking = ref<BookingRecord | null>(null)
     const bookingRatingData = ref<Rating | null>(null)
     const bookingRatings = ref<Record<string, Rating>>({})
+    
+    // Countdown timer state
+    const currentTime = ref(new Date())
+    let countdownInterval: ReturnType<typeof setInterval> | null = null
+
+    const getCountdown = (expiresAt: string) => {
+      const expiry = new Date(expiresAt)
+      const diff = expiry.getTime() - currentTime.value.getTime()
+      
+      if (diff <= 0) {
+        return 'Expired'
+      }
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}m ${seconds}s`
+      }
+      return `${minutes}m ${seconds}s`
+    }
 
     const formatDate = (dateStr: string) => {
       if (!dateStr) return 'N/A'
@@ -445,9 +475,21 @@ export default defineComponent({
     }
 
     onMounted(async () => {
+      // Start countdown timer - update every second
+      countdownInterval = setInterval(() => {
+        currentTime.value = new Date()
+      }, 1000)
+      
       await bookingStore.fetchMyBookings()
       // After fetching bookings, check which ones have ratings
       await fetchBookingRatings()
+    })
+
+    onUnmounted(() => {
+      // Clean up countdown interval
+      if (countdownInterval) {
+        clearInterval(countdownInterval)
+      }
     })
 
     return { 
@@ -457,6 +499,7 @@ export default defineComponent({
       formatDateTime,
       calculateNights,
       getHotelImage,
+      getCountdown,
       selectedBooking,
       openDetailModal,
       closeDetailModal,
@@ -637,6 +680,33 @@ export default defineComponent({
   background: #d4edda;
   color: #155724;
   border-bottom: 1px solid #c3e6cb;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.countdown-timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #fff3cd;
+  color: #856404;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.countdown-timer i {
+  font-size: 1rem;
+}
+
+.countdown-value {
+  color: #856404;
+  background: #fff3cd;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 600;
 }
 
 .rejected-info {

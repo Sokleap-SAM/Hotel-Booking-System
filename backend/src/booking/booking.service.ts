@@ -225,8 +225,12 @@ export class BookingService {
       throw new BadRequestException('Only pending bookings can be approved');
     }
 
+    const now = new Date();
+    const paymentExpiresAt = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour to pay
+
     booking.status = BookingStatus.CONFIRMED;
-    booking.confirmedAt = new Date();
+    booking.confirmedAt = now;
+    booking.paymentExpiresAt = paymentExpiresAt;
     return await this.bookingRepository.save(booking);
   }
 

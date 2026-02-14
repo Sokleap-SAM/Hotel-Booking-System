@@ -55,6 +55,9 @@ export class Booking {
   @Column({ type: 'timestamp', nullable: true })
   confirmedAt: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  paymentExpiresAt: Date;
+
   @OneToMany(() => BookingItem, (bookingItem) => bookingItem.booking, {
     cascade: true,
     eager: true,

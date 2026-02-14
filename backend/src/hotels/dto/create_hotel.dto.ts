@@ -69,6 +69,7 @@ export class CreateHotelDto {
   @IsString()
   phoneNumber: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsNotEmpty()
   @IsEmail()
   email: string;

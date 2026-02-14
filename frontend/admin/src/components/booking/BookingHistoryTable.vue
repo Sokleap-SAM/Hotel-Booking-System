@@ -45,6 +45,12 @@
           <span :class="['status-badge', `status-${booking.status}`]">
             {{ booking.status }}
           </span>
+          <div v-if="booking.status === 'confirmed' && booking.paymentExpiresAt" class="payment-countdown">
+            <span class="countdown-label">Payment expires:</span>
+            <span :class="['countdown-value', { 'expired': isExpired(booking.paymentExpiresAt) }]">
+              {{ getCountdown(booking.paymentExpiresAt) }}
+            </span>
+          </div>
           <div v-if="booking.rejectionReason" class="rejection-reason">
             {{ booking.rejectionReason }}
           </div>
@@ -56,12 +62,51 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
 import type { Booking } from '@/stores/bookingStore'
 
 defineProps<{
   bookings: Booking[]
   isLoading: boolean
 }>()
+
+// Countdown timer state
+const currentTime = ref(new Date())
+let countdownInterval: ReturnType<typeof setInterval> | null = null
+
+const getCountdown = (expiresAt: string) => {
+  const expiry = new Date(expiresAt)
+  const diff = expiry.getTime() - currentTime.value.getTime()
+  
+  if (diff <= 0) {
+    return 'Expired'
+  }
+  
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`
+  }
+  return `${minutes}m ${seconds}s`
+}
+
+const isExpired = (expiresAt: string) => {
+  return new Date(expiresAt).getTime() <= currentTime.value.getTime()
+}
+
+onMounted(() => {
+  countdownInterval = setInterval(() => {
+    currentTime.value = new Date()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+  }
+})
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -157,6 +202,35 @@ const formatDateTime = (dateStr: string) => {
 .status-completed {
   background: #cce5ff;
   color: #004085;
+}
+
+.status-failed {
+  background: #f8d7da;
+  color: #dc3545;
+}
+
+.payment-countdown {
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+
+.countdown-label {
+  color: #666;
+}
+
+.countdown-value {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 8px;
+  background: #fff3cd;
+  color: #856404;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.countdown-value.expired {
+  background: #f8d7da;
+  color: #dc3545;
 }
 
 .rejection-reason {

@@ -177,9 +177,9 @@ export const useUserStore = defineStore('user', {
     async createUser(userData: CreateUserData, profileImage?: File | null) {
       try {
         const formData = new FormData()
-        formData.append('firstName', userData.firstName)
-        formData.append('lastName', userData.lastName)
-        formData.append('email', userData.email)
+        formData.append('firstName', userData.firstName.trim())
+        formData.append('lastName', userData.lastName.trim())
+        formData.append('email', userData.email.trim())
         formData.append('password', userData.password)
         userData.roleIds.forEach(id => formData.append('roleIds', id.toString()))
         if (userData.isActive !== undefined) {
@@ -203,8 +203,8 @@ export const useUserStore = defineStore('user', {
     async updateUser(id: number, updateData: UpdateUserData, profileImage?: File | null, removeProfileImage = false) {
       try {
         const formData = new FormData()
-        if (updateData.firstName) formData.append('firstName', updateData.firstName)
-        if (updateData.lastName) formData.append('lastName', updateData.lastName)
+        if (updateData.firstName) formData.append('firstName', updateData.firstName.trim())
+        if (updateData.lastName) formData.append('lastName', updateData.lastName.trim())
         if (updateData.password) formData.append('password', updateData.password)
         if (updateData.isActive !== undefined) formData.append('isActive', String(updateData.isActive))
         if (profileImage) {

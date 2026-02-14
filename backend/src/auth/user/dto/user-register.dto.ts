@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   IsEmail,
   IsNotEmpty,
@@ -6,16 +9,20 @@ import {
   IsOptional,
   IsInt,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UserRegisterDto {
+  @Transform(({ value }) => value?.trim())
   @IsString()
   @IsNotEmpty()
   firstName: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsString()
   @IsNotEmpty()
   lastName: string;
 
+  @Transform(({ value }) => value?.trim())
   @IsEmail()
   @IsNotEmpty()
   email: string;

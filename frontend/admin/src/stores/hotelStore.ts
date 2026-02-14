@@ -92,7 +92,10 @@ export const useHotelStore = defineStore('hotel', {
 
       const fields = ['name', 'destination', 'shortDescription', 'longDescription', 'location', 'googleMapUrl', 'phoneNumber', 'email'];
       fields.forEach(f => {
-        if (data[f] !== undefined) formData.append(f, data[f] || '');
+        if (data[f] !== undefined) {
+          const value = typeof data[f] === 'string' ? data[f].trim() : data[f];
+          formData.append(f, value || '');
+        }
       });
 
       if (Array.isArray(data.amenityIds)) {
@@ -228,7 +231,7 @@ export const useHotelStore = defineStore('hotel', {
 
         Object.keys(fieldLabels).forEach(key => {
           if (m.includes(key.toLowerCase())) {
-            formattedMsg = msg.replace(new RegExp(key, 'gi'), fieldLabels[key]);
+            formattedMsg = msg.replace(new RegExp(key, 'gi'), fieldLabels[key] || '');
           }
         });
 

@@ -43,6 +43,8 @@ export interface BookingRecord {
   rejectionReason?: string
   guestPhone?: string
   createdAt: string
+  confirmedAt?: string
+  paymentExpiresAt?: string
   user?: {
     firstName?: string
     lastName?: string
@@ -167,6 +169,24 @@ export const useBookingStore = defineStore('booking', {
     },
 
     setDates(checkIn: string, checkOut: string) {
+      // Validate that checkout is at least 1 day after checkin
+      const checkInDate = new Date(checkIn)
+      const checkOutDate = new Date(checkOut)
+      
+      // Compare dates only (ignore time)
+      const checkInDay = new Date(checkInDate.getFullYear(), checkInDate.getMonth(), checkInDate.getDate())
+      const checkOutDay = new Date(checkOutDate.getFullYear(), checkOutDate.getMonth(), checkOutDate.getDate())
+      
+      if (checkOutDay <= checkInDay) {
+        // If checkout is same day or before, set checkout to next day
+        const nextDay = new Date(checkInDay)
+        nextDay.setDate(nextDay.getDate() + 1)
+        this.checkInDate = checkIn
+        this.checkOutDate = nextDay.toISOString()
+        console.warn('Check-out date must be at least 1 day after check-in. Adjusted automatically.')
+        return
+      }
+      
       this.checkInDate = checkIn
       this.checkOutDate = checkOut
     },

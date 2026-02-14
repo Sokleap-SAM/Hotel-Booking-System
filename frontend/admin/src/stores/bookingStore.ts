@@ -21,10 +21,12 @@ export interface Booking {
   id: string
   userId: string
   totalPrice: number
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'failed'
   rejectionReason?: string
   guestPhone?: string
   createdAt: string
+  confirmedAt?: string
+  paymentExpiresAt?: string
   bookingItems: BookingItem[]
   user: {
     id: string

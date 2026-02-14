@@ -108,10 +108,24 @@ const dateRange = ref<Date[]>([today, tomorrow]);
 const showDatePicker = ref(false);
 
 // Ensure static times: check-in at 11:00, check-out at 9:00
+// Also enforce minimum 1-day stay
 const normalizeDateTime = (dates: Date[] | null) => {
   if (!dates || dates.length < 2) return;
   if (dates[0]) dates[0].setHours(11, 0, 0, 0);
   if (dates[1]) dates[1].setHours(9, 0, 0, 0);
+  
+  // Ensure checkout is at least 1 day after checkin
+  if (dates[0] && dates[1]) {
+    const checkInDay = new Date(dates[0].getFullYear(), dates[0].getMonth(), dates[0].getDate());
+    const checkOutDay = new Date(dates[1].getFullYear(), dates[1].getMonth(), dates[1].getDate());
+    
+    if (checkOutDay <= checkInDay) {
+      const nextDay = new Date(checkInDay);
+      nextDay.setDate(nextDay.getDate() + 1);
+      nextDay.setHours(9, 0, 0, 0);
+      dates[1] = nextDay;
+    }
+  }
 };
 
 watch(dateRange, (newDates) => {

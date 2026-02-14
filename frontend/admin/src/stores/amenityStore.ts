@@ -63,7 +63,8 @@ export const useAmenityStore = defineStore('amenity', {
 
     async createAmenity(name: string, category: 'hotel' | 'room') {
       try {
-        const { data } = await api.post('/amenities', { name, category })
+        const trimmedName = name.trim()
+        const { data } = await api.post('/amenities', { name: trimmedName, category })
         this.amenities.push(data)
         return { success: true, data }
       } catch (error: unknown) {

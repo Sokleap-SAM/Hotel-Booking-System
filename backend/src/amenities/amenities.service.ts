@@ -6,7 +6,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Raw } from 'typeorm';
 import { Amenity, AmenityCategory } from './entities/amenity.entity';
 import { CreateAmenityDto } from './dto/create-amenity.dto';
 import { UpdateAmenityDto } from './dto/update-amenity.dto';
@@ -55,7 +55,11 @@ export class AmenitiesService implements OnModuleInit {
 
   async create(createAmenityDto: CreateAmenityDto): Promise<Amenity> {
     const existing = await this.amenityRepository.findOne({
-      where: { name: createAmenityDto.name },
+      where: {
+        name: Raw((alias) => `LOWER(${alias}) = LOWER(:name)`, {
+          name: createAmenityDto.name,
+        }),
+      },
     });
 
     if (existing) {
@@ -99,9 +103,16 @@ export class AmenitiesService implements OnModuleInit {
   ): Promise<Amenity> {
     const amenity = await this.findOne(id);
 
-    if (updateAmenityDto.name && updateAmenityDto.name !== amenity.name) {
+    if (
+      updateAmenityDto.name &&
+      updateAmenityDto.name.toLowerCase() !== amenity.name.toLowerCase()
+    ) {
       const existing = await this.amenityRepository.findOne({
-        where: { name: updateAmenityDto.name },
+        where: {
+          name: Raw((alias) => `LOWER(${alias}) = LOWER(:name)`, {
+            name: updateAmenityDto.name,
+          }),
+        },
       });
 
       if (existing) {

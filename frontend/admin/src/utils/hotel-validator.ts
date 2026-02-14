@@ -35,8 +35,10 @@ export const validateHotelForm = (data: any) => {
     errors.name = 'Hotel Name cannot exceed 30 characters.';
   }
 
-  // Destination validation (optional but must be valid if provided)
-  if (data.destination && !VALID_DESTINATIONS.includes(data.destination)) {
+  // Destination validation (required)
+  if (!data.destination || data.destination.trim() === '') {
+    errors.destination = 'Please select a destination.';
+  } else if (!VALID_DESTINATIONS.includes(data.destination)) {
     errors.destination = 'Please select a valid destination.';
   }
 

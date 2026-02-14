@@ -22,7 +22,7 @@ import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorator/roles.dectorator';
-import { profileUploadConfig } from '../../config/file-upload.config';
+import { profileUploadConfig, getFilePath } from '../../config/file-upload.config';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin')
@@ -41,7 +41,7 @@ export class AdminController {
     @Body() createDto: CreateUserDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const profileImage = file ? `/uploads/profiles/${file.filename}` : null;
+    const profileImage = file ? getFilePath(file, 'profiles') : null;
     return this.adminService.createUser(createDto, profileImage);
   }
 
@@ -68,7 +68,7 @@ export class AdminController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     if (file) {
-      updateDto.profileImage = `/uploads/profiles/${file.filename}`;
+      updateDto.profileImage = getFilePath(file, 'profiles');
     } else if (updateDto.removeProfileImage) {
       updateDto.profileImage = null;
     }

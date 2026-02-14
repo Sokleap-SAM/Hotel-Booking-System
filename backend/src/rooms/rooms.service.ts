@@ -22,6 +22,19 @@ import {
 } from 'src/amenities/entities/amenity.entity';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
+import { getFilePath } from '../config/file-upload.config';
+import { deleteCloudinaryImage } from '../config/cloudinary.config';
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Helper to delete image (local or Cloudinary)
+async function deleteImage(imagePath: string): Promise<void> {
+  if (isProduction && imagePath.startsWith('http')) {
+    await deleteCloudinaryImage(imagePath);
+  } else {
+    await unlink(join(process.cwd(), imagePath));
+  }
+}
 
 @Injectable()
 export class RoomsService {
@@ -53,7 +66,7 @@ export class RoomsService {
       );
     }
     const { hotelId, amenityIds, roomBeds, ...roomData } = createRoomDto;
-    const filePaths = files.map((f) => `/uploads/rooms/${f.filename}`);
+    const filePaths = files.map((f) => getFilePath(f, 'rooms'));
 
     const amenities = await this.amenitiesRepository.find({
       where: {
@@ -151,7 +164,7 @@ export class RoomsService {
       }
     }
 
-    const newPaths = newFiles.map((f) => `/uploads/rooms/${f.filename}`);
+    const newPaths = newFiles.map((f) => getFilePath(f, 'rooms'));
     const currentExisting = (existingImages as string[]) || [];
     const totalImagesAfterUpdate = [
       ...((existingImages as string[]) || []),
@@ -168,7 +181,7 @@ export class RoomsService {
 
     for (const path of imagesToDelete) {
       try {
-        await unlink(join(process.cwd(), path));
+        await deleteImage(path);
       } catch (err) {
         console.error(`Failed to delete old image: ${path}`, err);
       }
@@ -237,8 +250,7 @@ export class RoomsService {
     if (room.images) {
       for (const imagePath of room.images) {
         try {
-          const fullPath = join(process.cwd(), imagePath);
-          await unlink(fullPath);
+          await deleteImage(imagePath);
         } catch (err) {
           console.error(`Failed to delete image: ${imagePath}`, err);
         }

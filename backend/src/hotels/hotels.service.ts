@@ -19,6 +19,19 @@ import { BookingStatus } from '../booking/entities/booking.entity';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { Destination } from './entities/hotel.entity';
+import { getFilePath } from '../config/file-upload.config';
+import { deleteCloudinaryImage } from '../config/cloudinary.config';
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Helper to delete image (local or Cloudinary)
+async function deleteImage(imagePath: string): Promise<void> {
+  if (isProduction && imagePath.startsWith('http')) {
+    await deleteCloudinaryImage(imagePath);
+  } else {
+    await unlink(join(process.cwd(), imagePath));
+  }
+}
 
 @Injectable()
 export class HotelsService {
@@ -33,7 +46,7 @@ export class HotelsService {
 
   async create(dto: CreateHotelDto, files: any[]): Promise<Hotel> {
     const { amenityIds, ...hotelData } = dto;
-    const filePaths = files.map((f) => `/uploads/hotels/${f.filename}`);
+    const filePaths = files.map((f) => getFilePath(f, 'hotels'));
 
     const existingName = await this.hotelsRepository.findOne({
       where: {
@@ -170,7 +183,7 @@ export class HotelsService {
       }
     }
 
-    const newPaths = newFiles.map((f) => `/uploads/hotels/${f.filename}`);
+    const newPaths = newFiles.map((f) => getFilePath(f, 'hotels'));
     const currentExisting = (existingImages as string[]) || [];
     const totalImagesAfterUpdate = [
       ...((existingImages as string[]) || []),
@@ -187,7 +200,7 @@ export class HotelsService {
 
     for (const path of imagesToDelete) {
       try {
-        await unlink(join(process.cwd(), path));
+        await deleteImage(path);
       } catch (err) {
         console.error(`Failed to delete old image: ${path}`, err);
       }
@@ -233,8 +246,7 @@ export class HotelsService {
     if (hotel.images) {
       for (const imagePath of hotel.images) {
         try {
-          const fullPath = join(process.cwd(), imagePath);
-          await unlink(fullPath);
+          await deleteImage(imagePath);
         } catch (err) {
           console.error(`Failed to delete image: ${imagePath}`, err);
         }

@@ -14,6 +14,7 @@ import * as crypto from 'crypto';
 import { Express } from 'express';
 import 'multer';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { getFilePath } from '../config/file-upload.config';
 
 @Injectable()
 export class AuthService {
@@ -114,7 +115,7 @@ export class AuthService {
       throw new ConflictException('User already exists');
     }
     if (file) {
-      userDto.profileImage = file.path;
+      userDto.profileImage = getFilePath(file, 'profiles');
       console.log(file.path);
     }
     userDto.provider = 'local';
@@ -160,7 +161,7 @@ export class AuthService {
       user.lastName = updateProfileDto.lastName;
     }
     if (file) {
-      user.profileImage = `/uploads/profiles/${file.filename}`;
+      user.profileImage = getFilePath(file, 'profiles');
     } else if (updateProfileDto.profileImage === null) {
       // Allow setting profileImage to null if explicitly requested (e.g., removing existing image)
       user.profileImage = null;

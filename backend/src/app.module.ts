@@ -21,7 +21,8 @@ import { PaymentModule } from './payment/payment.module';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [DatabaseConfig],
-      envFilePath: '../.env',
+      envFilePath:
+        process.env.NODE_ENV === 'production' ? undefined : '../.env',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -33,6 +34,7 @@ import { PaymentModule } from './payment/payment.module';
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.database'),
+        ssl: config.get('database.ssl'),
         autoLoadEntities: true,
         synchronize: true,
       }),

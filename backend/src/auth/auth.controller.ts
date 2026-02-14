@@ -52,9 +52,9 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Request() req: { user: User }, @Res() res: Response) {
     const { access_token } = this.authService.googleLogin(req.user);
-    // Redirect to your frontend application with the token
-    // In a real app, you would have the frontend URL in your config
-    res.redirect(`http://localhost:5173/login/success?token=${access_token}`);
+    // Redirect to frontend with token - use environment variable for production
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/login/success?token=${access_token}`);
   }
 
   @UseGuards(AuthGuard('jwt'))

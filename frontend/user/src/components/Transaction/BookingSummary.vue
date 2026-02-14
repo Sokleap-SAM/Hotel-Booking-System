@@ -58,10 +58,11 @@ export default defineComponent({
     const hotelName = computed(() => bookingStore.hotelInfo?.name || 'Hotel')
     const hotelLocation = computed(() => bookingStore.hotelInfo?.location || '')
     const hotelImage = computed(() => {
-    const images = bookingStore.hotelInfo?.images
-      if (images && images.length > 0) {
+      const images = bookingStore.hotelInfo?.images
+      const firstImage = images?.[0]
+      if (firstImage) {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-        return images[0].startsWith('http') ? images[0] : `${apiUrl}${images[0]}`
+        return firstImage.startsWith('http') ? firstImage : `${apiUrl}${firstImage}`
       }
       return angkorwat
     })

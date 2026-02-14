@@ -36,7 +36,7 @@ import { PaymentModule } from './payment/payment.module';
         database: config.get<string>('database.database'),
         ssl: config.get('database.ssl'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: config.get<string>('NODE_ENV') === 'development',
       }),
     }),
     HotelsModule,

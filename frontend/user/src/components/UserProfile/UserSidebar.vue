@@ -73,8 +73,9 @@ export default defineComponent({
 
     const handleFileChange = async (event: Event) => {
       const target = event.target as HTMLInputElement;
-      if (target.files && target.files.length > 0) {
-        selectedFile.value = target.files[0];
+      const file = target.files?.[0];
+      if (file) {
+        selectedFile.value = file;
         await uploadProfileImage();
       } else {
         selectedFile.value = null;

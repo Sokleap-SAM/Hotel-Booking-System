@@ -73,7 +73,8 @@ const roomImage = computed(() => {
   if (props.room.images && props.room.images.length > 0) {
     const img = props.room.images[0]
     if (img) {
-      return img.startsWith('http') ? img : `http://localhost:3000${img}`
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+      return img.startsWith('http') ? img : `${API_URL}${img}`
     }
   }
   return 'https://via.placeholder.com/220x140?text=No+Image'

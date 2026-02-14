@@ -197,7 +197,8 @@ const renderImage = (img: string | File) => {
     if (img instanceof File) {
         return URL.createObjectURL(img);
     }
-    return img.startsWith('http') ? img : `http://localhost:3000${img}`;
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    return img.startsWith('http') ? img : `${API_URL}${img}`;
 };
 
 const handleFiles = (e: Event) => {

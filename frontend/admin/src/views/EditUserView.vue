@@ -207,7 +207,8 @@ const removeExistingImage = ref(false)
 
 const renderProfileImage = (path: string | null): string | undefined => {
   if (!path) return undefined
-  return path.startsWith('http') ? path : `http://localhost:3000${path}`
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+  return path.startsWith('http') ? path : `${API_URL}${path}`
 }
 
 const handleProfileImage = (e: Event) => {

@@ -234,7 +234,7 @@ const handleUpdate = async () => {
     if (result.success) {
         router.push(`/manage_hotel&room/${form.value.hotelId}/rooms`);
     } else {
-        errors.value = { ...result.errors };
+        errors.value = 'errors' in result ? { ...result.errors } : {};
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 };

@@ -89,56 +89,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function forgotPassword(email: string) {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/forgot-password`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
-        },
-      )
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Forgot password failed')
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.error('Forgot password error:', error)
-      throw error
-    }
-  }
-
-  async function resetPassword(token: string, password: string) {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/reset-password`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token, password }),
-        },
-      )
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Password reset failed')
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.error('Reset password error:', error)
-      throw error
-    }
-  }
-
   async function fetchUserProfileDetails() {
     if (!token.value) {
       console.warn('Cannot fetch user profile details: no authentication token available.');
@@ -181,8 +131,6 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     setToken,
-    resetPassword,
-    forgotPassword,
-    fetchUserProfileDetails, // Expose new action
+    fetchUserProfileDetails,
   }
 })

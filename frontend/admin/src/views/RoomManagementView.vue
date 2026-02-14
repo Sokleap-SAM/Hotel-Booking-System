@@ -69,7 +69,8 @@ const handleDeleteRoom = async (roomId: string, roomName: string) => {
     if (result.success) {
       toast.success('Room Deleted', `"${roomName}" deleted successfully.`);
     } else {
-      toast.error('Delete Failed', result.error || 'Failed to delete room');
+      const errorMsg = Array.isArray(result.error) ? result.error.join(', ') : (result.error || 'Failed to delete room');
+      toast.error('Delete Failed', errorMsg);
     }
   }
 };

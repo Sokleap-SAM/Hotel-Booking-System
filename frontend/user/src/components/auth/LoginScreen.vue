@@ -30,9 +30,6 @@
       </div>
     </div>
     <div v-if="error" class="error-message">{{ error }}</div>
-    <div class="forgot-password" @click="goToForgotPw">
-      <a href="#">Forgot Password</a>
-    </div>
     <button class="btn-Login" @click="handleLogin">Login</button>
     <div style="text-align: center; margin-top: 20px">Or continue with</div>
     <div class="container-google">
@@ -68,10 +65,6 @@ export default {
       router.push('/signup')
     }
 
-    const goToForgotPw = () => {
-      router.push('/ForgotPassword')
-    }
-
     const goToHome = () => {
       router.push('/home')
     }
@@ -96,7 +89,6 @@ export default {
 
     return {
       goToSignup,
-      goToForgotPw,
       goToHome,
       email,
       password,

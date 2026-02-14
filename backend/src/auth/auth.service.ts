@@ -121,51 +121,6 @@ export class AuthService {
     return this.userService.create(userDto);
   }
 
-  async forgotPassword(
-    email: string,
-  ): Promise<{ message: string; token: string }> {
-    const user = await this.userService.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date();
-    expires.setHours(expires.getHours() + 1); // Token expires in 1 hour
-
-    user.resetPasswordToken = token;
-    user.resetPasswordExpires = expires;
-
-    await this.userService.save(user);
-
-    // In a real app, you'd email this token to the user
-    console.log(`Password reset token for ${email}: ${token}`);
-
-    return { message: 'Password reset token sent.', token };
-  }
-
-  async resetPassword(
-    token: string,
-    newPass: string,
-  ): Promise<{ message: string }> {
-    const user = await this.userService.findByResetToken(token);
-
-    if (!user) {
-      throw new UnauthorizedException(
-        'Password reset token is invalid or has expired.',
-      );
-    }
-
-    const salt = await bcrypt.genSalt();
-    user.password = await bcrypt.hash(newPass, salt);
-    user.resetPasswordToken = null;
-    user.resetPasswordExpires = null;
-
-    await this.userService.save(user);
-
-    return { message: 'Password has been reset successfully.' };
-  }
-
   async changePassword(
     userId: number,
     newPass: string,

@@ -13,10 +13,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './user/dto/user-register.dto';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto'; // Import the new DTO
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { profileUploadConfig } from 'src/config/file-upload.config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from './user/entities/user.entity';
@@ -57,19 +55,6 @@ export class AuthController {
     // Redirect to your frontend application with the token
     // In a real app, you would have the frontend URL in your config
     res.redirect(`http://localhost:5173/login/success?token=${access_token}`);
-  }
-
-  @Post('forgot-password')
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    return this.authService.forgotPassword(forgotPasswordDto.email);
-  }
-
-  @Post('reset-password')
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return this.authService.resetPassword(
-      resetPasswordDto.token,
-      resetPasswordDto.password,
-    );
   }
 
   @UseGuards(AuthGuard('jwt'))

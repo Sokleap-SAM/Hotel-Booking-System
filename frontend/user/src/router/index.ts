@@ -3,8 +3,6 @@ import AuthLogin from '@/view/AuthLogin.vue'
 import LoginScreen from '@/components/auth/LoginScreen.vue'
 import LoginSuccess from '@/components/auth/LoginSuccess.vue'
 import SignUpScreen from '@/components/auth/SignUpScreen.vue'
-import ForgotPasswordScreen from '@/components/auth/ForgotPasswordScreen.vue'
-import ResetPWScreen from '@/components/auth/ResetPWScreen.vue'
 import HomeScreen from '@/view/HomeScreen.vue'
 import { useAuthStore } from '@/stores/auth'
 import Bookingpage from '@/view/BookingPage.vue'
@@ -37,16 +35,6 @@ const routes = [
         path: 'signup',
         name: 'signup',
         component: SignUpScreen,
-      },
-      {
-        path: 'ForgotPassword',
-        name: 'ForgotPassword',
-        component: ForgotPasswordScreen,
-      },
-      {
-        path: 'reset-password/:token',
-        name: 'reset-password',
-        component: ResetPWScreen,
       },
     ],
   },

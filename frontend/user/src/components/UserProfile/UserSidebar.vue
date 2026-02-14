@@ -51,9 +51,15 @@ export default defineComponent({
         user.value.firstName = authStore.user.firstName || ''; // No fallback to email here
         user.value.lastName = authStore.user.lastName || '';
         // If authStore.user has profileImage, use it, otherwise keep localAvatar
-        user.value.profileImage = authStore.user.profileImage ? 
-                                 (import.meta.env.VITE_API_URL || 'http://localhost:3000') + authStore.user.profileImage
-                                 : localAvatar;
+        // Check if profileImage is already a full URL (Cloudinary) or relative path (local)
+        if (authStore.user.profileImage) {
+          const isAbsoluteUrl = authStore.user.profileImage.startsWith('http://') || authStore.user.profileImage.startsWith('https://');
+          user.value.profileImage = isAbsoluteUrl 
+            ? authStore.user.profileImage 
+            : (import.meta.env.VITE_API_URL || 'http://localhost:3000') + authStore.user.profileImage;
+        } else {
+          user.value.profileImage = localAvatar;
+        }
       } else {
         // If not authenticated, reset to default or empty
         user.value.firstName = '';

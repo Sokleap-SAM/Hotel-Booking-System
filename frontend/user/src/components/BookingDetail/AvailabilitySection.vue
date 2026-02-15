@@ -266,10 +266,11 @@ const fetchRoomsWithAvailability = async () => {
 };
 
 // Watch for date changes and refetch availability
+// immediate: true ensures availability is fetched on initial mount
 watch(dateRange, (newDates) => {
   normalizeDateTime(newDates);
   fetchRoomsWithAvailability();
-}, { deep: true });
+}, { deep: true, immediate: true });
 
 // Watch for guest count changes and refetch availability
 watch([adults, children], () => {

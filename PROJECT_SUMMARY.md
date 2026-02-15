@@ -1,6 +1,6 @@
 # Final Project Report
 
-## Project Name: Hotel Booking Website
+## Project Name: Hotel Booking System
 
 **Course:** Internet Programming  
 **University:** Institute of Technology of Cambodia  
@@ -329,6 +329,13 @@ The Vue.js frontends utilize:
 | GitHub Actions | CI/CD auto-deploy |
 | Docker/Docker Compose | Local development |
 
+### 3.4 Tools
+
+| Tool | Purpose |
+|------|---------|
+| Github | Repository for store & sharing codes |
+| VS Code | IDE |
+| Github Copilot | AI Assistant |
 ---
 
 ## 4. Features
@@ -610,13 +617,13 @@ This formula ensures that:
 
 The price calculation follows a multi-step process:
 
-1. **Apply Discount:** Base price × (1 - discount percentage / 100)
-2. **Calculate Room Total:** Discounted price × number of nights
+1. **Apply Discount:** Base price x (1 - discount percentage / 100)
+2. **Calculate Room Total:** Discounted price x number of nights
 3. **Sum All Rooms:** Subtotal = sum of all room totals
-4. **Apply Tax:** Tax = subtotal × 10%
+4. **Apply Tax:** Tax = subtotal x 10%
 5. **Final Total:** Total = subtotal + tax
 
-**Example:** A Deluxe Suite at $200/night with 15% discount for 3 nights would be: $200 × 0.85 × 3 = $510 subtotal + $51 tax = **$561 total**
+**Example:** A Deluxe Suite at $200/night with 15% discount for 3 nights would be: $200 x 0.85 x 3 = $510 subtotal + $51 tax = **$561 total**
 
 ### 7.4 Payment Expiration System
 
@@ -644,7 +651,7 @@ This allows users to rate specific aspects while the system generates a comparab
 |------------|------|--------------|
 | **Age Check** | Guest must be 16+ years old | "Guest must be at least 16 years old" |
 | **Date Validation** | Check-out must be after check-in | "Check-out date must be after check-in" |
-| **Availability** | Requested quantity ≤ available count | "Room only has X available for selected dates" |
+| **Availability** | Requested quantity <= available count | "Room only has X available for selected dates" |
 | **Status Transition** | Only valid status changes allowed | "Only pending bookings can be confirmed" |
 | **Duplicate Rating** | One rating per booking | "You have already rated this booking" |
 
@@ -779,24 +786,22 @@ Cambodian QR payment standard for local payment support:
 | Role | Key Permissions |
 |------|-----------------|
 | **SUPER ADMIN** | All access, System config, All hotels |
-| **ADMIN** | All hotels, User mgmt, Analytics |
-| **HOTEL OWNER** | Own hotels, Room management, Staff management |
-| **OWNER STAFF** | View hotel, Manage rooms, View bookings |
-| **STAFF** | View bookings, Check-in/out |
+| **ADMIN** | All hotels, User management, Dashboard |
+| **HOTEL OWNER** | Manage own hotel, Room management, Staff management, Dashboard |
+| **STAFF** | Booking management, Check-in/out |
 | **USER** | Book rooms, View/cancel, Rate hotels |
 
 ### 10.4 Additional Future Enhancements
 
-| Enhancement | Target | Description |
-|-------------|--------|-------------|
-| **Reporting** | Phase 1 | Advanced analytics with PDF/Excel exports |
-| **Seasonal Pricing** | Phase 1 | Date-based dynamic pricing |
-| **Mobile App** | Phase 2 | React Native or Flutter applications |
-| **Multi-language** | Phase 2 | i18n support (English, Khmer, Chinese) |
-| **Multi-currency** | Phase 2 | USD, KHR, and other currencies |
-| **Loyalty Program** | Phase 3 | Points system with rewards |
-| **Chat System** | Phase 3 | Real-time messaging |
-| **Channel Manager** | Phase 4 | Integration with Booking.com, Agoda, Airbnb |
+| Enhancement | Description |
+|-------------|-------------|
+| **Reporting** | Advanced analytics with PDF/Excel exports |
+| **Seasonal Pricing** | Date-based dynamic pricing |
+| **Mobile App** | React Native or Flutter applications |
+| **Multi-language** | Multi-languages support (English, Khmer) |
+| **Multi-currency** | USD, KHR, and other currencies |
+| **Loyalty Program** | Points system with rewards |
+| **Chat System** | Real-time messaging |
 
 ---
 
@@ -836,18 +841,17 @@ The Hotel Booking Website project successfully delivers a comprehensive, modern 
 Through this project, the team gained valuable experience in:
 - Enterprise-level application architecture
 - TypeScript and modern JavaScript frameworks
-- Database design and ORM implementation
+- Database design and TYPE ORM implementation
 - RESTful API design and documentation
 - Authentication and authorization patterns
 - Payment gateway integration
 - Cloud deployment and DevOps practices
-- Agile development and teamwork
 
 ### Future Direction
 
-The project lays a solid foundation for future enhancements including microservice architecture migration, KHQR payment integration for the Cambodian market, expanded role management for hotel owners and staff, and mobile application development.
+This project lays a solid foundation for future enhancements including microservice architecture migration, KHQR payment integration for the Cambodian market, expanded role management for hotel owners and staff, and mobile application development.
 
-The Hotel Booking Website demonstrates the team's ability to deliver a production-quality full-stack application that meets real-world business requirements while maintaining code quality, security standards, and user experience excellence.
+The Hotel Booking Website deliver a production-quality full-stack application that meets real-world business requirements while maintaining code quality, security standards, and user experience excellence.
 
 ---
 
@@ -1019,4 +1023,3 @@ The system requires the following environment variable categories:
 | **Backend API** | [`https://hotel-booking-system-qjxx.onrender.com`](https://hotel-booking-system-qjxx.onrender.com) |
 ---
 
-*End of Final Project Report*

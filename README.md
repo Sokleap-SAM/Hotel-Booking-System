@@ -1,12 +1,5 @@
 # Project Name: Hotel Booking System
 
-## Team Members
-
-| No. | Student Name | Student ID |
-|-----|--------------|------------|
-| 1 | Sam Sokleap | P20230031 |
-| 2 | Kheang Ann | P20230027 |
-
 ---
 
 # Table of Contents

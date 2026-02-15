@@ -1,6 +1,4 @@
-# Final Project Report
-
-## Project Name: Hotel Booking Website
+## Project Name: Hotel Booking System
 
 **Course:** Internet Programming  
 **University:** Institute of Technology of Cambodia   

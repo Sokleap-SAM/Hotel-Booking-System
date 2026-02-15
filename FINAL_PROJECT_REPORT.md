@@ -34,9 +34,6 @@
 
 ---
 
-> **📋 Note for PDF Export:** This document uses **Mermaid diagrams** for all technical illustrations. So, you should have mermaid extension installed.
----
-
 ## 1. Introduction
 
 ### 1.1 Problem Statement
@@ -214,63 +211,27 @@ Hotel-Booking-System/
 
 The Hotel Booking System follows a **three-tier architecture** with clear separation of concerns:
 
-```mermaid
-flowchart TB
-    subgraph PRESENTATION["📱 PRESENTATION LAYER"]
-        subgraph UserFE["User Frontend (Vue.js 3)"]
-            UF1["Vue Router"]
-            UF2["Pinia Store"]
-            UF3["Axios Client"]
-        end
-        subgraph AdminFE["Admin Frontend (Vue.js 3)"]
-            AF1["Vue Router"]
-            AF2["Pinia Store"]
-            AF3["Chart.js"]
-        end
-    end
+**PRESENTATION LAYER (Vue.js 3)**
+- User Frontend: Vue Router, Pinia Store, Axios Client
+- Admin Frontend: Vue Router, Pinia Store, Chart.js
 
-    subgraph APPLICATION["⚙️ APPLICATION LAYER"]
-        subgraph Backend["NestJS Backend API"]
-            subgraph Middleware["Middleware"]
-                MW1["Helmet Security"]
-                MW2["CORS"]
-                MW3["JWT Auth"]
-                MW4["Validation Pipe"]
-            end
-            subgraph Modules["Modules"]
-                M1["Auth"]
-                M2["Hotels"]
-                M3["Rooms"]
-                M4["Booking"]
-                M5["Payment"]
-                M6["Ratings"]
-                M7["Amenities"]
-                M8["BedTypes"]
-                M9["Admin"]
-            end
-            subgraph Cron["Scheduled Tasks"]
-                CR1["Payment Expiration Check"]
-            end
-        end
-    end
+**APPLICATION LAYER (NestJS Backend API)**
+- Middleware: Helmet Security, CORS, JWT Auth, Validation Pipe
+- Modules: Auth, Hotels, Rooms, Booking, Payment, Ratings, Amenities, BedTypes, Admin
+- Scheduled Tasks: Payment Expiration Check (Cron)
 
-    subgraph DATA["💾 DATA LAYER"]
-        DB[(PostgreSQL<br/>Neon DB)]
-        STRIPE["Stripe<br/>Payment Gateway"]
-        CLOUD["Cloudinary<br/>Image CDN"]
-    end
+**DATA LAYER**
+- PostgreSQL (Neon DB) - Primary database
+- Stripe - Payment gateway
+- Cloudinary - Image CDN
 
-    subgraph EXTERNAL["🌐 EXTERNAL SERVICES"]
-        GOOGLE["Google OAuth 2.0"]
-    end
+**EXTERNAL SERVICES**
+- Google OAuth 2.0 - Social authentication
 
-    UserFE -->|HTTPS/REST| Backend
-    AdminFE -->|HTTPS/REST| Backend
-    Backend --> DB
-    Backend --> STRIPE
-    Backend --> CLOUD
-    Backend --> GOOGLE
-```
+**Data Flow:**
+- User Frontend → (HTTPS/REST) → Backend
+- Admin Frontend → (HTTPS/REST) → Backend
+- Backend → PostgreSQL, Stripe, Cloudinary, Google OAuth
 
 ### 2.3 Architecture Patterns
 
@@ -309,30 +270,29 @@ The Vue.js frontends utilize:
 
 ### 2.4 Entity Relationship Diagram (ERD)
 
-```mermaid
-erDiagram
-    USER ||--o{ USER_ROLE : has
-    ROLE ||--o{ USER_ROLE : has
-    USER ||--o{ BOOKING : creates
-    USER ||--o{ PAYMENT : makes
-    USER ||--o{ RATING : writes
+**Entity Relationships:**
 
-    BOOKING ||--o{ BOOKING_ITEM : contains
-    BOOKING ||--o| PAYMENT : has
-    BOOKING ||--o| RATING : receives
+| Parent Entity | Relationship | Child Entity |
+|---------------|--------------|---------------|
+| USER | has many | USER_ROLE |
+| ROLE | has many | USER_ROLE |
+| USER | creates many | BOOKING |
+| USER | makes many | PAYMENT |
+| USER | writes many | RATING |
+| BOOKING | contains many | BOOKING_ITEM |
+| BOOKING | has one | PAYMENT |
+| BOOKING | receives one | RATING |
+| HOTEL | has many | ROOM |
+| HOTEL | has many | HOTEL_AMENITY |
+| HOTEL | receives many | RATING |
+| ROOM | booked in many | BOOKING_ITEM |
+| ROOM | has many | ROOM_AMENITY |
+| ROOM | has many | ROOM_BED |
+| AMENITY | assigned to many | HOTEL_AMENITY, ROOM_AMENITY |
+| BED_TYPE | assigned to many | ROOM_BED |
 
-    HOTEL ||--o{ ROOM : has
-    HOTEL ||--o{ HOTEL_AMENITY : has
-    HOTEL ||--o{ RATING : receives
-    
-    ROOM ||--o{ BOOKING_ITEM : "booked in"
-    ROOM ||--o{ ROOM_AMENITY : has
-    ROOM ||--o{ ROOM_BED : has
-
-    AMENITY ||--o{ HOTEL_AMENITY : "assigned to"
-    AMENITY ||--o{ ROOM_AMENITY : "assigned to"
-    BED_TYPE ||--o{ ROOM_BED : "assigned to"
-
+**Entity Attributes:**
+```
     USER {
         uuid id PK
         string email UK
@@ -444,7 +404,6 @@ erDiagram
         datetime createdAt
     }
 ```
-
 ### 2.5 API Architecture
 
 The backend exposes a **RESTful API** with the following module endpoints:
@@ -696,29 +655,19 @@ export class StripeService {
 
 #### 5.1.2 Payment Flow
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant F as Frontend
-    participant B as Backend
-    participant S as Stripe
+**Payment Flow Steps:**
 
-    U->>F: Click "Pay Now"
-    F->>B: POST /payments/stripe/checkout
-    B->>S: Create Checkout Session
-    S-->>B: Return session URL
-    B-->>F: Return checkout URL
-    F-->>U: Redirect to Stripe
-    
-    U->>S: Stripe Checkout Page
-    U->>S: Complete Payment
-    
-    S->>B: Webhook (payment_intent.succeeded)
-    B->>B: Update Payment Status = COMPLETED
-    B->>B: Update Booking Status = COMPLETED
-    
-    S-->>U: Redirect to Success Page
-```
+1. User clicks "Pay Now" on Frontend
+2. Frontend sends POST /payments/stripe/checkout to Backend
+3. Backend creates Checkout Session with Stripe
+4. Stripe returns session URL to Backend
+5. Backend returns checkout URL to Frontend
+6. Frontend redirects User to Stripe Checkout Page
+7. User completes payment on Stripe
+8. Stripe sends Webhook (payment_intent.succeeded) to Backend
+9. Backend updates Payment Status = COMPLETED
+10. Backend updates Booking Status = COMPLETED
+11. Stripe redirects User to Success Page
 
 #### 5.1.3 Key Features
 
@@ -762,31 +711,20 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
 #### 5.2.2 OAuth Flow
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant F as Frontend
-    participant B as Backend
-    participant G as Google
+**Google OAuth Flow Steps:**
 
-    U->>F: Click "Sign in with Google"
-    F-->>U: Redirect to /auth/google
-    U->>B: GET /auth/google
-    B-->>U: Redirect to Google Consent
-    
-    U->>G: Google Consent Screen
-    U->>G: Authorize App
-    
-    G->>B: Callback with auth code
-    B->>G: Exchange code for user info
-    G-->>B: Return profile data
-    
-    B->>B: Create/Find User
-    B->>B: Generate JWT Token
-    
-    B-->>U: Redirect with JWT token
-    Note over U: Logged in!
-```
+1. User clicks "Sign in with Google" on Frontend
+2. Frontend redirects User to /auth/google
+3. User sends GET /auth/google to Backend
+4. Backend redirects User to Google Consent Screen
+5. User authorizes the App on Google
+6. Google sends Callback with auth code to Backend
+7. Backend exchanges code for user info with Google
+8. Google returns profile data to Backend
+9. Backend creates or finds User in database
+10. Backend generates JWT Token
+11. Backend redirects User with JWT token
+12. User is now logged in!
 
 #### 5.2.3 Environment Variables
 
@@ -1075,46 +1013,20 @@ if (!user.isActive) {
 
 The booking system implements a comprehensive status lifecycle:
 
-```mermaid
-stateDiagram-v2
-    [*] --> PENDING: User Creates Booking
+**Booking Status Lifecycle:**
 
-    PENDING --> CONFIRMED: Admin Approves
-    PENDING --> CANCELLED: Admin Rejects
-    PENDING --> CANCELLED: User Cancels
-
-    CONFIRMED --> COMPLETED: Payment Success
-    CONFIRMED --> FAILED: Payment Timeout (1hr)
-    CONFIRMED --> CANCELLED: User Cancels
-
-    COMPLETED --> [*]
-    CANCELLED --> [*]
-    FAILED --> [*]
-
-    note right of PENDING
-        Rooms Reserved
-        Awaiting Admin Approval
-    end note
-
-    note right of CONFIRMED
-        1 Hour Payment Window
-        Timer Started
-    end note
-
-    note right of COMPLETED
-        Booking Active
-        Stay Confirmed
-    end note
-
-    note right of CANCELLED
-        Rooms Released
-    end note
-
-    note right of FAILED
-        Rooms Released
-        Auto by Cron Job
-    end note
-```
+| Current State | Action/Trigger | Next State | Notes |
+|---------------|----------------|------------|-------|
+| (Start) | User Creates Booking | PENDING | Rooms reserved |
+| PENDING | Admin Approves | CONFIRMED | 1hr payment window starts |
+| PENDING | Admin Rejects | CANCELLED | Rooms released |
+| PENDING | User Cancels | CANCELLED | Rooms released |
+| CONFIRMED | Payment Success | COMPLETED | Booking active, stay confirmed |
+| CONFIRMED | Payment Timeout (1hr) | FAILED | Rooms released (auto by cron job) |
+| CONFIRMED | User Cancels | CANCELLED | Rooms released |
+| COMPLETED | - | (End) | - |
+| CANCELLED | - | (End) | - |
+| FAILED | - | (End) | - |
 
 **Status Codes:**
 - **PENDING:** Awaiting admin review, rooms blocked
@@ -1324,44 +1236,24 @@ async updateHotelRating(hotelId: string): Promise<void> {
 
 ### 8.1 Deployment Architecture
 
-```mermaid
-flowchart TB
-    subgraph Internet["🌐 INTERNET"]
-        Users["Users"]
-    end
+**Deployment Overview:**
 
-    subgraph Render["☁️ RENDER CLOUD"]
-        subgraph Frontends["Static Sites"]
-            UserFE["User Frontend<br/>Vue.js"]
-            AdminFE["Admin Frontend<br/>Vue.js"]
-        end
-        Backend["Backend API<br/>NestJS"]
-    end
+| Component | Platform | Type |
+|-----------|----------|------|
+| User Frontend (Vue.js) | Render | Static Site |
+| Admin Frontend (Vue.js) | Render | Static Site |
+| Backend API (NestJS) | Render | Web Service |
+| PostgreSQL | Neon DB | External Service |
+| Payments | Stripe | External Service |
+| Images | Cloudinary | External Service |
 
-    subgraph External["📦 EXTERNAL SERVICES"]
-        DB[(PostgreSQL<br/>Neon DB)]
-        Stripe["Stripe<br/>Payments"]
-        Cloudinary["Cloudinary<br/>Images"]
-    end
+**CI/CD Pipeline:**
+1. Developer pushes code to GitHub Repository
+2. Render triggers Auto-Build (npm install → npm build)
+3. Render deploys updated services automatically
 
-    subgraph CICD["🔄 CI/CD"]
-        GitHub["GitHub<br/>Repository"]
-        Build["Auto-Build<br/>npm install<br/>npm build"]
-        Deploy["Deploy<br/>to Render"]
-    end
-
-    Users --> UserFE
-    Users --> AdminFE
-    UserFE --> Backend
-    AdminFE --> Backend
-    Backend --> DB
-    Backend --> Stripe
-    Backend --> Cloudinary
-
-    GitHub -->|Push| Build
-    Build --> Deploy
-    Deploy --> Render
-```
+**Data Flow:**
+- Users → User Frontend / Admin Frontend → Backend API → PostgreSQL, Stripe, Cloudinary
 
 ### 8.2 Backend Deployment (Render)
 
@@ -1603,44 +1495,33 @@ export class UserRegisterDto {
 
 **Validation Flow:**
 
-```mermaid
-sequenceDiagram
-    participant U as User Input
-    participant F as Frontend (Vue.js)
-    participant B as Backend (NestJS)
-    participant DB as Database
+**Dual-Layer Validation Flow:**
 
-    U->>F: Fill Form
-    
-    rect rgb(255, 240, 240)
-        Note over F: Frontend Validation
-        F->>F: Check email format
-        F->>F: Check password strength
-        F->>F: Check required fields
-    end
-    
-    alt Invalid Input
-        F-->>U: Show Error (instant feedback)
-    else Valid Input
-        F->>B: POST /auth/register
-        
-        rect rgb(240, 255, 240)
-            Note over B: Backend Validation
-            B->>B: DTO decorators (class-validator)
-            B->>B: Type transformation
-            B->>B: Business rules
-        end
-        
-        alt Invalid Data
-            B-->>F: 400 Bad Request
-        else Valid Data
-            B->>DB: INSERT user
-            DB-->>B: Success
-            B-->>F: 201 Created
-            F-->>U: Success!
-        end
-    end
-```
+**Step 1: User fills form**
+
+**Step 2: Frontend Validation (Vue.js)** - Instant feedback
+- Check email format
+- Check password strength
+- Check required fields
+- If invalid → Show error immediately to user
+- If valid → Proceed to backend
+
+**Step 3: POST /auth/register to Backend**
+
+**Step 4: Backend Validation (NestJS)** - Security layer
+- DTO decorators (class-validator)
+- Type transformation
+- Business rules validation
+- If invalid → Return 400 Bad Request to Frontend
+- If valid → Proceed to database
+
+**Step 5: Database Operation**
+- INSERT user into database
+- Return success to Backend
+
+**Step 6: Response**
+- Backend returns 201 Created to Frontend
+- Frontend shows success message to User
 
 #### Other Validation Implementations
 
@@ -1979,40 +1860,22 @@ deletedAt: Date;
 
 **Migration Plan:**
 
-```mermaid
-flowchart TB
-    subgraph Gateway["🔀 API Gateway (Kong/NGINX)"]
-        GW[Load Balancer & Routing]
-    end
-    
-    subgraph Services1["Core Services"]
-        AUTH["🔐 Auth Service<br/>• User Auth<br/>• JWT/OAuth<br/>• Profiles"]
-        BOOKING["📅 Booking Service<br/>• Bookings<br/>• Availability<br/>• Scheduling"]
-        PAYMENT["💳 Payment Service<br/>• Stripe<br/>• KHQR<br/>• Refunds"]
-    end
-    
-    subgraph MessageQueue["📨 Message Queue (RabbitMQ)"]
-        MQ[Event Bus]
-    end
-    
-    subgraph Services2["Support Services"]
-        HOTEL["🏨 Hotel Service<br/>• Hotels<br/>• Rooms<br/>• Amenities"]
-        RATING["⭐ Rating Service<br/>• Reviews<br/>• Analytics"]
-        NOTIF["📧 Notification Svc<br/>• Email<br/>• SMS<br/>• Push"]
-    end
-    
-    GW --> AUTH
-    GW --> BOOKING
-    GW --> PAYMENT
-    
-    AUTH --> MQ
-    BOOKING --> MQ
-    PAYMENT --> MQ
-    
-    MQ --> HOTEL
-    MQ --> RATING
-    MQ --> NOTIF
-```
+**Planned Microservice Architecture:**
+
+| Layer | Component | Responsibilities |
+|-------|-----------|------------------|
+| Gateway | API Gateway (Kong/NGINX) | Load balancing, routing |
+| Core Services | Auth Service | User Auth, JWT/OAuth, Profiles |
+| Core Services | Booking Service | Bookings, Availability, Scheduling |
+| Core Services | Payment Service | Stripe, KHQR, Refunds |
+| Message Queue | RabbitMQ | Event Bus for async communication |
+| Support Services | Hotel Service | Hotels, Rooms, Amenities |
+| Support Services | Rating Service | Reviews, Analytics |
+| Support Services | Notification Service | Email, SMS, Push |
+
+**Communication Flow:**
+- API Gateway → Core Services (sync)
+- Core Services → Message Queue → Support Services (async)
 
 **Benefits:**
 - Independent scaling of services
@@ -2040,49 +1903,33 @@ flowchart TB
 
 **Implementation Plan:**
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant Frontend
-    participant Backend
-    participant Bank
+**KHQR Payment Flow Steps:**
 
-    User->>Frontend: Select KHQR Payment
-    Frontend->>Backend: Request QR Code
-    Backend->>Bank: Generate KHQR
-    Bank-->>Backend: Return QR Data
-    Backend-->>Frontend: QR Code Response
-    Frontend-->>User: Display QR Code
-    User->>Bank: Scan & Pay via Banking App
-    Bank-->>Backend: Webhook: Payment Confirmed
-    Backend-->>Frontend: Payment Success Event
-    Frontend-->>User: Booking Confirmed
-```
+1. User selects KHQR Payment on Frontend
+2. Frontend requests QR Code from Backend
+3. Backend requests KHQR generation from Bank
+4. Bank returns QR Data to Backend
+5. Backend sends QR Code Response to Frontend
+6. Frontend displays QR Code to User
+7. User scans QR and pays via Banking App
+8. Bank sends Webhook (Payment Confirmed) to Backend
+9. Backend sends Payment Success Event to Frontend
+10. Frontend shows Booking Confirmed to User
 
 ### 10.5 More Roles (Staff, Hotel Owner, Owner Staff)
 
 **Planned Role Hierarchy:**
 
-```mermaid
-flowchart TB
-    SA["👑 SUPER ADMIN<br/>• All access<br/>• System config<br/>• All hotels"]
-    
-    SA --> HO
-    SA --> AD
-    
-    HO["🏨 HOTEL OWNER<br/>• Own hotels<br/>• Room mgmt<br/>• Staff mgmt<br/>• Reports"]
-    AD["⚡ ADMIN<br/>• All hotels<br/>• User mgmt<br/>• Analytics<br/>• Amenities"]
-    
-    HO --> OS
-    
-    OS["👔 OWNER STAFF<br/>• View hotel<br/>• Manage rooms<br/>• View bookings<br/>• Check-in/out"]
-    
-    OS --> ST
-    
-    ST["🧑‍💼 STAFF<br/>• View bookings<br/>• Check-in/out<br/>• Limited edit"]
-    
-    USER["👤 USER (Guest)<br/>• Book rooms<br/>• View/cancel<br/>• Rate hotels"]
-```
+**Planned Role Hierarchy:**
+
+| Role | Reports To | Key Permissions |
+|------|------------|------------------|
+| SUPER ADMIN | - | All access, System config, All hotels |
+| ADMIN | Super Admin | All hotels, User mgmt, Analytics, Amenities |
+| HOTEL OWNER | Super Admin | Own hotels, Room mgmt, Staff mgmt, Reports |
+| OWNER STAFF | Hotel Owner | View hotel, Manage rooms, View bookings, Check-in/out |
+| STAFF | Owner Staff | View bookings, Check-in/out, Limited edit |
+| USER (Guest) | - | Book rooms, View/cancel, Rate hotels |
 
 **Permission Matrix:**
 
@@ -2331,7 +2178,22 @@ The system automatically seeds a default administrator account on first startup:
 |--------|----------|------|-------------|
 | GET | `/` | Public | API health check |
 
-### D. Environment Variables Reference
+### D. Important Links
+
+#### Source Code Repository
+
+**GitHub Repository:** [`https://github.com/Sokleap-SAM/Hotel-Booking-System`](https://github.com/Sokleap-SAM/Hotel-Booking-System)
+
+#### Deployed Applications
+
+| Application | URL |
+|-------------|-----|
+| **User Frontend** | [`https://cambook.onrender.com`](https://cambook.onrender.com) |
+| **Admin Frontend** | [`https://cambook-admin.onrender.com`](https://cambook-admin.onrender.com) |
+| **Backend API** | [`https://hotel-booking-system-qjxx.onrender.com`](https://hotel-booking-system-qjxx.onrender.com) |
+| **API Documentation** | [`https://hotel-booking-system-qjxx.onrender.com/api`](https://hotel-booking-system-qjxx.onrender.com/api) |
+
+### E. Environment Variables Reference
 
 ```env
 # Database Configuration
@@ -2368,7 +2230,7 @@ NODE_ENV=development
 PORT=3000
 ```
 
-### E. Diagram Summaries (PDF-Friendly)
+### F. Diagram Summaries (PDF-Friendly)
 
 *These tables provide text-based summaries of the visual diagrams for PDF compatibility.*
 

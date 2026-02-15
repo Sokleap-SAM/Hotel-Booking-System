@@ -1,12 +1,6 @@
-## Project Name: Hotel Booking System
+# Project Name: Hotel Booking System
 
-**Course:** Internet Programming  
-**University:** Institute of Technology of Cambodia   
-**Lecturer:** Mr. CHUN Thavorac  
-
----
-
-### Team Members
+## Team Members
 
 | No. | Student Name | Student ID |
 |-----|--------------|------------|
@@ -15,7 +9,7 @@
 
 ---
 
-## Table of Contents
+# Table of Contents
 
 1. [Introduction](#1-introduction)
 2. [System Design](#2-system-design)
@@ -2416,5 +2410,3 @@ CORS_ORIGIN=your-user-frontend-url,your-admin-frontend-url
 | Payments | Stripe | API |
 
 ---
-
-*End of Final Project Report*

@@ -2084,31 +2084,30 @@ flowchart TB
 
 **Permission Matrix:**
 
-| Permission | Super Admin | Admin | Hotel Owner | Owner Staff | Staff | User |
-|------------|:-----------:|:-----:|:-----------:|:-----------:|:-----:|:----:|
-| Manage System Settings | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| Manage All Hotels | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Manage Own Hotels | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ |
-| Manage Users | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Manage Staff | ✓ | ✗ | ✓ | ✗ | ✗ | ✗ |
-| View Analytics | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ |
-| Manage Rooms | ✓ | ✓ | ✓ | ✓ | ✗ | ✗ |
-| View Bookings | ✓ | ✓ | ✓ | ✓ | ✓ | Own |
-| Process Check-in/out | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
-| Make Booking | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Rate Hotels | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Permission | Super Admin | Admin | Hotel Owner | Staff | User |
+|------------|:-----------:|:-----:|:-----------:|:-----:|:----:|
+| Manage System Settings | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Manage All Hotels | ✓ | ✓ | ✗ | ✗ | ✗ 
+| Manage Own Hotels | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Manage Users | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Manage Staff | ✓ | ✓ | ✓ | ✗  ✗ |
+| View Analytics | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Manage Rooms | ✓ | ✓ | ✓ | ✗ | ✗ |
+| Manage Bookings | ✓ | ✓ | ✓ | ✓ | Own |
+| Process Check-in/out | ✓ | ✓ | ✓ | ✓ | ✗ |
+| Make Booking | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Rate Hotels | ✓ | ✓ | ✓ | ✓ | own |
 
 ### 10.6 Additional Future Enhancements
 
-| Enhancement | Target Timeline | Description |
-|-------------|-----------------|-------------|
-| **Mobile App** | Phase 2 | React Native or Flutter mobile applications |
-| **Multi-language** | Phase 2 | i18n support (English, Khmer, Chinese) |
-| **Multi-currency** | Phase 2 | USD, KHR, and other currencies |
-| **Loyalty Program** | Phase 3 | Points system with rewards |
-| **Chat System** | Phase 3 | Real-time messaging between guests and hotels |
-| **Calendar Sync** | Phase 3 | Integration with Google/Outlook Calendar |
-| **Channel Manager** | Phase 4 | Integration with Booking.com, Agoda, Airbnb |
+| Enhancement |Description |
+|-------------|-------------|
+| **Mobile App** | React Native or Flutter mobile applications |
+| **Multi-language** | Multi-languages support (English, Khmer, Chinese) |
+| **Multi-currency** | USD, KHR, and other currencies |
+| **Loyalty Program** | Points system with rewards |
+| **Chat System** | Real-time messaging between guests and hotels |
+| **Calendar Sync** | Integration with Google/Outlook Calendar |
 
 ---
 
@@ -2150,7 +2149,6 @@ Through this project, the team gained valuable experience in:
 - Authentication and authorization patterns
 - Payment gateway integration
 - Cloud deployment and DevOps practices
-- Agile development and teamwork
 
 ### Future Direction
 
@@ -2191,7 +2189,6 @@ The system automatically seeds a default administrator account on first startup:
 | Pending | `pending` | Payment initiated |
 | Completed | `completed` | Payment successful |
 | Failed | `failed` | Payment failed |
-| Refunded | `refunded` | Payment refunded |
 
 ### C. Full API Endpoints Summary
 
@@ -2323,12 +2320,6 @@ The system automatically seeds a default administrator account on first startup:
 | PATCH | `/bed-types/:id` | Admin | Update bed type |
 | DELETE | `/bed-types/:id` | Admin | Delete bed type |
 
-#### Health Check
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/` | Public | API health check |
-
 ### D. Environment Variables Reference
 
 ```env
@@ -2337,21 +2328,21 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=password
-DB_NAME=hotel_booking
-
+DB_NAME=your-db-name
+DATABASE_URL=your-database-url // only need DATABASE_URL if in production
 # JWT Configuration
 JWT_SECRET=your-secret-key
 
 # Stripe Configuration
 STRIPE_SECRET_KEY=sk_test_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
-STRIPE_SUCCESS_URL=http://localhost:5173/payment/success
-STRIPE_CANCEL_URL=http://localhost:5173/payment/cancel
+STRIPE_SUCCESS_URL=your-user-frontend-url/payment/success
+STRIPE_CANCEL_URL=your-user-frontend-url/payment/cancel
 
 # Google OAuth Configuration
 GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-xxx
-GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/redirect
+GOOGLE_CALLBACK_URL=your-backend-url/auth/google/redirect
 
 # Cloudinary Configuration
 CLOUDINARY_CLOUD_NAME=your-cloud-name
@@ -2359,11 +2350,7 @@ CLOUDINARY_API_KEY=xxx
 CLOUDINARY_API_SECRET=xxx
 
 # CORS Configuration
-CORS_ORIGIN=http://localhost:5173,http://localhost:5174
-
-# Environment
-NODE_ENV=development
-PORT=3000
+CORS_ORIGIN=your-user-frontend-url,your-admin-frontend-url
 ```
 
 ### E. Diagram Summaries (PDF-Friendly)
